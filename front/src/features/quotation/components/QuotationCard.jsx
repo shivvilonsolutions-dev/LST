@@ -1,14 +1,24 @@
+import { useContext, useState } from "react";
 import Button from "../../../components/ui/Button";
-import { getData, setData } from "../../../utils/localStorage";
+import Popup from "../../../components/ui/Popup";
+import { QuotationContext } from "../../../contexts/quotation/quotationContext";
+import { useNavigate } from "react-router-dom";
 
 const QuotationCard = ({ id, name, mobile, amount, status }) => {
+  const [showPopup, setShowPopup] = useState(false);
+  const navi = useNavigate()
+  const {quotations, setQuotations} = useContext(QuotationContext)
+
   return (
-    <div className={`border rounded-xl p-4 flex flex-col gap-2 shadow-sm hover:shadow-lg transition
-      ${status === "CONFIRM"
-        ? "bg-green-100"
-        : "bg-red-100"
-      }
-    `}>
+    <div 
+    onClick={() => {navi(`/quotations/${id}`)}}
+      className={`border cursor-pointer rounded-xl p-4 flex flex-col gap-2 shadow-sm hover:shadow-lg transition
+        ${status === "CONFIRM"
+          ? "bg-green-100"
+          : "bg-red-100"
+        }
+      `}
+    >
 
       {/* Top Row */}
       <div className="flex justify-between items-center">
@@ -34,25 +44,37 @@ const QuotationCard = ({ id, name, mobile, amount, status }) => {
         <span>₹ {amount}</span>
       </div>
 
-      {/* Action Button */}
+      {/* Action */}
       {status === "PENDING" && (
         <Button
           btnName="Confirm"
           btnColor="green"
           btnWidth="w-auto px-2"
-          onClick={() => {
-            const data = getData("quotations");
-
-            const updatedData = data.map((item) =>
-              item.id === id ? { ...item, status: "CONFIRM" } : item
-            );
-
-            setData("quotations", updatedData);
-
-            alert("Quotation confirmed");
+          onClick={(e) => {
+            e.stopPropagation();   
+            setShowPopup(true)
           }}
         />
       )}
+
+      {/* Popup */}
+      <Popup
+        isOpen={showPopup}
+        title="Confirm Action"
+        message="Are you sure you want to confirm this quotation?"
+        onConfirm={() => {
+          
+          const updatedData = quotations.map((item) =>
+            item.id === Number(id) ? { ...item, status: "CONFIRM" } : item
+          );
+
+          setQuotations(updatedData)
+
+          setShowPopup(false);
+        }}
+
+        onCancel={() => setShowPopup(false)}
+      />
 
     </div>
   );

@@ -1,7 +1,7 @@
 import React from 'react'
 
 const ProductCard = ({productName, property, quantity}) => {
-  console.log(productName, property, quantity)
+  // console.log(productName, property, quantity)
   return (
     <div className="bg-white border rounded-xl p-4 flex flex-col items-center gap-3 shadow-sm hover:shadow-md transition">
 

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/ui/Button";
 
-const QuotationActions = () => {
+const QuotationActions = ({setFilter}) => {
   const navigate = useNavigate()
 
   return (
@@ -9,12 +9,13 @@ const QuotationActions = () => {
 
       {/* Left Buttons */}
       <div className="flex gap-3">
-        <Button btnName="Pending" btnColor="white" btnWidth="w-auto" txtCol="black" />
-        <Button btnName="Confirmed" btnColor="green" btnWidth="w-auto" />
+        <Button btnName="All" btnColor="white" btnWidth="w-auto" txtCol="black" onClick={()=>{setFilter("ALL")}} />
+        <Button btnName="Pending" btnColor="yellow" btnWidth="w-auto" txtCol="black" onClick={()=>{setFilter("PENDING")}} />
+        <Button btnName="Confirmed" btnColor="green" btnWidth="w-auto" onClick={()=>{setFilter("CONFIRM")}} />
       </div>
 
       {/* Right Button */}
-      <Button btnName="+ Send Quotation" btnColor="blue" btnWidth="w-auto" onClick={() => navigate("/quotation/send-quotation")}/>
+      <Button btnName="+ Send Quotation" btnColor="blue" btnWidth="w-auto" onClick={() => navigate("/quotations/send-quotation")}/>
     </div>
   );
 };

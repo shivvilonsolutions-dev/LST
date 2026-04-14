@@ -5,7 +5,7 @@ const StatsCard = ({ title, value, active }) => {
     <div
       className={`flex flex-col items-center justify-center p-4 rounded-xl border
         ${active ? "border-purple-500 shadow-md" : "border-gray-300"}
-        bg-white w-full sm:w-[30%]`
+        bg-white w-full`
       }
     >
       <h2 className="text-lg text-center font-medium">{title}</h2>

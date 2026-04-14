@@ -1,29 +1,18 @@
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
-import Popup from "../../../utils/PopUp";
+import Popup from "../../../components/ui/Popup";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { addItem } from "../../../utils/localStorage";
-
-const getCurrentDateTime = () => {
-  const now = new Date();
-
-  return now.toLocaleString("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
+import { useState, useEffect, useContext } from "react";
+import { QuotationContext } from "../../../contexts/quotation/quotationContext";
+import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
+import calculateAmount from "../../../utils/calculateQuotationAmount";
 
 const QuotationForm = () => {
   const navi = useNavigate()
   const [showPopup, setShowPopup] = useState(false)
   const [time, setTime] = useState(getCurrentDateTime());
+  const { quotations, setQuotations } = useContext(QuotationContext);
   const [formData, setFormData] = useState({
-    id: "",
     cliName: "",
     mobile: "",
     amount: "",
@@ -39,6 +28,7 @@ const QuotationForm = () => {
     status: "PENDING"
   })
 
+  // Auto update time
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(getCurrentDateTime());
@@ -47,14 +37,16 @@ const QuotationForm = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const total = calculateAmount(formData);
+
   const handleMaterialChange = (index, field, value) => {
     const updatedMaterials = [...formData.materials];
-    
+
     updatedMaterials[index] = {
       ...updatedMaterials[index],
       [field]: value
     };
-    
+
     console.log(updatedMaterials)
     setFormData({
       ...formData,
@@ -73,19 +65,31 @@ const QuotationForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setFormData({
-      id: Date.now()
-    })
-  
-    console.log("Form data: ", formData)
-    addItem("quotations",formData)
-    navi("/quotation")
-  }
+
+    const newQuotation = {
+      ...formData,
+      id: Date.now(),
+      quotationDate: getCurrentDateTime(),
+      amount: total,
+    };
+
+    setQuotations([...quotations, newQuotation]);
+    console.log(newQuotation)
+
+    setShowPopup(true);
+  };
 
   return (
-    <div className="bg-white border rounded-xl p-6 w-full max-w-7xl mx-auto">
+    <div className="bg-white border rounded-xl p-4 m-0 w-full max-w-7xl mx-auto">
 
       <form onSubmit={handleSubmit}>
+        
+        {/* Buttons */}
+        <div className="flex justify-between mt-[-20px] items-center mb-4">
+          <Button btnName="Cancel" btnColor="white" txtCol="black" btnWidth="w-auto px-6" onClick={() => { navi("/quotations") }} />
+          <Button btnName="Send Quotation ->" btnType="submit" btnColor="blue" btnWidth="w-auto px-6" />
+        </div>
+
         {/* Top Row */}
         <div className="flex flex-wrap gap-4 items-center justify-between">
 
@@ -117,8 +121,8 @@ const QuotationForm = () => {
             <table className="w-full text-sm text-center">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="border p-2">No.</th>
-                  <th className="border p-2 w-[55%]">Name of Material</th>
+                  <th className="border p-2 w-[5%]">No.</th>
+                  <th className="border p-2 w-[50%]">Name of Material</th>
                   <th className="border p-2 w-[10%]">Gej</th>
                   <th className="border p-2 w-[10%]">Price</th>
                   <th className="border p-2 w-[15%]">Quantity</th>
@@ -127,61 +131,61 @@ const QuotationForm = () => {
 
               <tbody>
                 {formData.materials.map((row, i) => {
-                  
+
                   const isRowFilled = row.nameOfMaterial || row.gej || row.pic || row.qty;
-                  return(
-                  <tr key={i}>
-                    
-                    <td className="border">{i + 1}</td>
+                  return (
+                    <tr key={i}>
 
-                    <td className="border py-1 px-2">
-                      <Input
-                        inpName="nameOfMaterial"
-                        inpValue={row.nameOfMaterial}
-                        rColor="black"
-                        isReq={isRowFilled}
-                        onChange={(e) =>
-                          handleMaterialChange(i, "nameOfMaterial", e.target.value)
-                        }
+                      <td className="border">{i + 1}</td>
+
+                      <td className="border py-1 px-2">
+                        <Input
+                          inpName="nameOfMaterial"
+                          inpValue={row.nameOfMaterial}
+                          rColor="black"
+                          isReq={isRowFilled}
+                          onChange={(e) =>
+                            handleMaterialChange(i, "nameOfMaterial", e.target.value)
+                          }
                         />
-                    </td>
+                      </td>
 
-                    <td className="border py-1 px-2">
-                      <Input
-                        inpName="gej"
-                        inpValue={row.gej}
-                        rColor="black"
-                        isReq={isRowFilled}
-                        onChange={(e) =>
-                          handleMaterialChange(i, "gej", e.target.value)
-                        }
+                      <td className="border py-1 px-2">
+                        <Input
+                          inpName="gej"
+                          inpValue={row.gej}
+                          rColor="black"
+                          isReq={isRowFilled}
+                          onChange={(e) =>
+                            handleMaterialChange(i, "gej", e.target.value)
+                          }
                         />
-                    </td>
+                      </td>
 
-                    <td className="border py-1 px-2">
-                      <Input
-                        inpName="pic"
-                        inpValue={row.pic}
-                        rColor="black"
-                        isReq={isRowFilled}
-                        onChange={(e) =>
-                          handleMaterialChange(i, "pic", e.target.value)
-                        }
+                      <td className="border py-1 px-2">
+                        <Input
+                          inpName="pic"
+                          inpValue={row.pic}
+                          rColor="black"
+                          isReq={isRowFilled}
+                          onChange={(e) =>
+                            handleMaterialChange(i, "pic", e.target.value)
+                          }
                         />
-                    </td>
+                      </td>
 
-                    <td className="border py-1 px-2">
-                      <Input
-                        inpName="qty"
-                        inpValue={row.qty}
-                        rColor="black"
-                        isReq={isRowFilled}
-                        onChange={(e) =>
-                          handleMaterialChange(i, "qty", e.target.value)
-                        }
-                      />
-                    </td>
-                  </tr>
+                      <td className="border py-1 px-2">
+                        <Input
+                          inpName="qty"
+                          inpValue={row.qty}
+                          rColor="black"
+                          isReq={isRowFilled}
+                          onChange={(e) =>
+                            handleMaterialChange(i, "qty", e.target.value)
+                          }
+                        />
+                      </td>
+                    </tr>
                   )
                 })}
               </tbody>
@@ -199,22 +203,22 @@ const QuotationForm = () => {
 
             <div className="flex items-center gap-3">
               <label className="w-32" htmlFor="rateB">Rate B:</label>
-              <Input inpType="text" inpName="rateB" inpValue={formData.rateB} inpPlaceholder="-----" />
+              <Input inpType="text" inpName="rateB" inpValue={formData.rateB} onChange={handleChange} inpPlaceholder="-----" />
             </div>
 
             <div className="flex items-center gap-3">
               <label className="w-32" htmlFor="bending">Bending:</label>
-              <Input inpType="text" inpName="bending" inpValue={formData.bending} inpPlaceholder="-----" />
+              <Input inpType="text" inpName="bending" inpValue={formData.bending} onChange={handleChange} inpPlaceholder="-----" />
             </div>
 
             <div className="flex items-center gap-3">
               <label className="w-32" htmlFor="add">Add:</label>
-              <Input inpType="text" inpName="add" inpValue={formData.add} inpPlaceholder="-----" />
+              <Input inpType="text" inpName="add" inpValue={formData.add} onChange={handleChange} inpPlaceholder="-----" />
             </div>
 
             <div className="flex items-center gap-3">
               <label className="w-32" htmlFor="amount">Quotation Amt:</label>
-              <Input inpType="text" inpName="amount" inpValue={formData.amount} onChange={handleChange} inpPlaceholder="30000" isReq={true} />
+              <Input inpType="text" inpName="amount" inpValue={total} readOnly inpPlaceholder="30000" isReq={true} />
             </div>
 
           </div>
@@ -226,20 +230,18 @@ const QuotationForm = () => {
           ----- Warning msg or Instructions -----
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-4 mt-2">
-          <Button btnName="Send Quotation" btnColor="blue" btnWidth="w-auto px-6" onClick={() => { setShowPopup(true)}} />
-          <Button btnName="Cancel" btnColor="white" txtCol="black" btnWidth="w-auto px-6" onClick={() => { navi("/quotation") }} />
-        </div>
-
         <Popup
           isOpen={showPopup}
           title="Confirm Action"
           message="Quotation send"
           onConfirm={() => {
             console.log("Confirmed");
+
+            navi("/quotations")
+
             setShowPopup(false);
           }}
+
           onCancel={() => setShowPopup(false)}
         />
 

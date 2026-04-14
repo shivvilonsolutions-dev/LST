@@ -1,4 +1,4 @@
-import Button from "../components/ui/Button";
+import Button from "./Button";
 
 const Popup = ({ isOpen, title, message, onConfirm, onCancel }) => {
   if (!isOpen) return null;

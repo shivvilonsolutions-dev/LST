@@ -53,7 +53,7 @@ const Sidebar = () => {
       <div className="flex flex-col gap-4 mt-2">
 
         <NavItem label="Dashboard" icon="D" path="/dashboard" />
-        <NavItem label="Quotation" icon="Q" path="/quotation" />
+        <NavItem label="Quotation" icon="Q" path="/quotations" />
         <NavItem label="Payment" icon="P" path="/payment" />
         <NavItem label="Materials" icon="M" path="/materials" />
 
