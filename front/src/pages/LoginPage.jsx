@@ -1,77 +1,128 @@
-import React, {useState} from 'react'
-import { useNavigate } from 'react-router-dom'
-import Button from '../components/ui/Button'
-import Input from '../components/ui/Input'
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Paper,
+  Typography,
+  Stack,
+} from "@mui/material";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
-const cmp_name = 'ARB'
+const cmp_name = "ARB";
 
 const LoginDataPage = () => {
-  const navi = useNavigate()
+  const navi = useNavigate();
+
   const [loginData, setLoginData] = useState({
     id: "",
-    password: ""
-  })
+    password: "",
+  });
 
   const handleChange = (e) => {
-    console.log(e.target.name, e.target.value)
-
-    setLoginData(prev => ({
-    ...prev,
-    [e.target.name]: e.target.value
-  }))
-  }
+    setLoginData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    
-    console.log('Login data:', loginData)
-
-    navi("dashboard")
-  }
+    e.preventDefault();
+    console.log("Login data:", loginData);
+    navi("dashboard");
+  };
 
   return (
-    <div className='min-h-screen grid place-items-center bg-blue-100'>
-      <div className='min-h-[50%] flex flex-col justify-center
-                      w-[90%] sm:w-[70%] md:w-[50%] lg:w-[30%]
-                     bg-white p-4 rounded-2xl shadow-2xl border border-gray-100'>
+    <Box
+    sx={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "linear-gradient(135deg, #eef2ff, #f8fafc)",
+      px: 2,
+    }}
+  >
+    
+    <Paper
+      elevation={0}
+      sx={{
+        p: 4,
+        width: "100%",
+        maxWidth: 450,
+        borderRadius: 3,
+        border: "1px solid #e2e8f0",
+        boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
+      }}
+    >
+      
+      {/* Header */}
+      <Box textAlign="center" mb={5}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          color="text.primary"
+          sx = {{ textAlign: "center" }}
+        >
+          Welcome to {cmp_name}
+        </Typography>
+
+        <Typography
+         variant="h6"
+          sx = {{ textAlign: "center", color: "blue", marginBottom: "25px" }}
+        >
+          Login here
+        </Typography>
+      </Box>
+
+      {/* Form */}
+      <Box component="form" onSubmit={handleSubmit}>
         
-        <h1 className='text-2xl md:text-3xl font-bold text-center p-2 mb-4 text-blue-500'>Welcome to Company {cmp_name}</h1>
-
-        <h3 className='text-xl md:text-2xl font-semibold text-center'>Login</h3>
-
-        <form className='p-4' onSubmit={handleSubmit}>  
-          <div className='flex flex-col justify-between'>
-
-            <label htmlFor='id' className='mb-0'>Email/ID</label>
-            <Input 
-              inpType={"text"}
-              inpName={"id"}
+        <Stack spacing={2.5}>
+          
+          <Box>
+            <Typography variant="body2" sx={{marginBottom: "5px"}}>
+              Email
+            </Typography>
+            <Input
+              inpType="text"
+              inpName="id"
               inpValue={loginData.id}
-              inpPlaceholder={"Enter email/id"}
-              isReq={true}
-              rColor={"blue"}
+              inpPlaceholder="Enter your email"
+              isReq
               onChange={handleChange}
             />
+          </Box>
 
-            <label htmlFor='password' className='mt-1'>Password</label>
-            <Input 
-              inpType={"text"}
-              inpName={"password"}
+          <Box>
+            <Typography variant="body2" sx={{marginBottom: "5px"}}>
+              Password
+            </Typography>
+            <Input
+              inpType="password"
+              inpName="password"
               inpValue={loginData.password}
-              inpPlaceholder={"Enter your password"}
-              isReq={true}
-              rColor={"blue"}
+              inpPlaceholder="Enter your password"
+              isReq
               onChange={handleChange}
             />
+          </Box>
 
-          </div>
+          {/* Login Button */}
+          <Button
+            btnName="Login"
+            btnColor="secondary.main"
+            btnWidth="100%"
+            btnType="submit"
+          />
 
-          <Button btnName={"Login"} btnColor={"blue"} btnWidth={"w-full"} btnType='submit'/>
+        </Stack>
 
-        </form>
-      </div>
-    </div>
-  )
-}
+      </Box>
 
-export default LoginDataPage
+    </Paper>
+  </Box>
+  );
+};
+
+export default LoginDataPage;

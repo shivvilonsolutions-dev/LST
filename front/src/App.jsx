@@ -1,50 +1,103 @@
-import Layout from "./main-layout/Layout"
-import LoginPage from "./pages/LoginPage"
-import { BrowserRouter, Route, Routes } from "react-router-dom"
+import Layout from "./main-layout/Layout";
+import LoginPage from "./pages/LoginPage";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
 import DashboardArea from "./features/dashboard/DashboardArea";
-import MaterialArea from "./features/material/MaterialArea";
+import InventoryArea from "./features/inventory/InventoryArea";
 import QuotationArea from "./features/quotation/QuotationArea";
 import PaymentArea from "./features/payment/PaymentArea";
 import QuotationForm from "./features/quotation/components/QuotationForm";
-import QuotationProvider from "./contexts/quotation/QuotationProvider";
 import QuotationDetail from "./features/quotation/components/QuotationDetail";
+import InventoryDetail from "./features/inventory/components/InventoryDetail"
+import InventoryForm from "./features/inventory/components/InventoryForm";
+
+import QuotationProvider from "./contexts/quotation/QuotationProvider";
+import InventoryProvider from "./contexts/inventory/InventoryProvider";
 
 function App() {
-
   return (
-    <>
-      <div>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
+    <BrowserRouter>
+      <Routes>
 
-            <Route element={<Layout />}>
-              <Route path="/dashboard" element={<DashboardArea />} />
-              <Route path="/materials" element={<MaterialArea />} />
-              <Route path="/payment" element={<PaymentArea />} />
-              <Route path="/quotations" element={
-                <QuotationProvider>
-                  <QuotationArea />
-                </QuotationProvider>
-              } />
+        {/* Login */}
+        <Route path="/" element={<LoginPage />} />
 
-              <Route path="/quotations/send-quotation" element={
-                <QuotationProvider>
-                  <QuotationForm />
-                </QuotationProvider>
-              } />
+        {/* Main Layout */}
+        <Route element={<Layout />}>
 
-              <Route path="/quotations/:id" element={
+          <Route
+            path="/dashboard"
+            element={
+              <InventoryProvider>
                 <QuotationProvider>
-                  <QuotationDetail />
+                  <DashboardArea />
                 </QuotationProvider>
-              } />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </div>
-    </>
-  )
+              </InventoryProvider>
+            }
+          />
+
+          <Route
+            path="/inventories"
+            element={
+              <InventoryProvider>
+                <InventoryArea />
+              </InventoryProvider>
+            }
+          />
+
+          <Route
+            path="/inventories/new-inventory"
+            element={
+              <InventoryProvider>
+                <InventoryForm />
+              </InventoryProvider>
+            }
+          />
+
+          <Route
+            path="/inventories/:id"
+            element={
+              <InventoryProvider>
+                <InventoryDetail />
+              </InventoryProvider>
+            }
+          />
+
+          
+          <Route path="/payment" element={<PaymentArea />} />
+
+          {/* ✅ Wrap once here */}
+          <Route
+            path="/quotations"
+            element={
+              <QuotationProvider>
+                <QuotationArea />
+              </QuotationProvider>
+            }
+          />
+
+          <Route
+            path="/quotations/send-quotation"
+            element={
+              <QuotationProvider>
+                <QuotationForm />
+              </QuotationProvider>
+            }
+          />
+
+          <Route
+            path="/quotations/:id"
+            element={
+              <QuotationProvider>
+                <QuotationDetail />
+              </QuotationProvider>
+            }
+          />
+
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

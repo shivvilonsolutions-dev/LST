@@ -1,3 +1,17 @@
+import {
+  Box,
+  Paper,
+  Typography,
+  Grid,
+  Stack,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Divider,
+} from "@mui/material";
+
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import Popup from "../../../components/ui/Popup";
@@ -8,10 +22,11 @@ import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
 import calculateAmount from "../../../utils/calculateQuotationAmount";
 
 const QuotationForm = () => {
-  const navi = useNavigate()
-  const [showPopup, setShowPopup] = useState(false)
+  const navi = useNavigate();
+  const [showPopup, setShowPopup] = useState(false);
   const [time, setTime] = useState(getCurrentDateTime());
   const { quotations, setQuotations } = useContext(QuotationContext);
+
   const [formData, setFormData] = useState({
     cliName: "",
     mobile: "",
@@ -20,20 +35,18 @@ const QuotationForm = () => {
       nameOfMaterial: "",
       gej: "",
       pic: "",
-      qty: ""
+      qty: "",
     }),
     rateB: "",
     bending: "",
     add: "",
-    status: "PENDING"
-  })
+    status: "PENDING",
+  });
 
-  // Auto update time
   useEffect(() => {
     const interval = setInterval(() => {
       setTime(getCurrentDateTime());
     }, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -41,27 +54,23 @@ const QuotationForm = () => {
 
   const handleMaterialChange = (index, field, value) => {
     const updatedMaterials = [...formData.materials];
-
     updatedMaterials[index] = {
       ...updatedMaterials[index],
-      [field]: value
+      [field]: value,
     };
 
-    console.log(updatedMaterials)
     setFormData({
       ...formData,
-      materials: updatedMaterials
+      materials: updatedMaterials,
     });
   };
 
   const handleChange = (e) => {
-    console.log(e.target.name, e.target.value)
-
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -74,179 +83,204 @@ const QuotationForm = () => {
     };
 
     setQuotations([...quotations, newQuotation]);
-    console.log(newQuotation)
-
     setShowPopup(true);
   };
 
   return (
-    <div className="bg-white border rounded-xl p-4 m-0 w-full max-w-7xl mx-auto">
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        border: "1px solid gray.300",
+        borderRadius: 1,
+        bgcolor: "white",
+      }}
+    >
+      <Box component="form" onSubmit={handleSubmit}>
 
-      <form onSubmit={handleSubmit}>
-        
-        {/* Buttons */}
-        <div className="flex justify-between mt-[-20px] items-center mb-4">
-          <Button btnName="Cancel" btnColor="white" txtCol="black" btnWidth="w-auto px-6" onClick={() => { navi("/quotations") }} />
-          <Button btnName="Send Quotation ->" btnType="submit" btnColor="blue" btnWidth="w-auto px-6" />
-        </div>
+        {/* Top Buttons */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+            pb: 2,
+            borderBottom: "1px solid #e2e8f0",
+          }}
+        >
 
-        {/* Top Row */}
-        <div className="flex flex-wrap gap-4 items-center justify-between">
+          {/* LEFT: Back */}
+          <Button
+            btnName="← Back"
+            btnColor="gray"
+            txtCol="black"
+            onClick={() => navi("/quotations")}
+          />
 
-          <div className="flex items-center justify-between w-full md:w-[63%]">
-            <label className="text-lg font-medium mr-2" htmlFor="cliName">Client Name:</label>
-            <Input
-              inpType="text"
-              inpName="cliName"
-              inpPlaceholder="Enter name"
-              inpWidth="w-[82%]"
-              onChange={handleChange}
-              inpValue={formData.cliName}
+          {/* RIGHT: Actions */}
+          <Stack direction="row" spacing={1.5}>
+
+            <Button
+              btnName="Show WhatsApp"
+              btnColor="green"
             />
-          </div>
 
-          <div className="w-full md:w-[35%]">
-            <label className="text-lg font-medium">Date & Time: </label>
-            {time}
-          </div>
+            <Button
+              btnName="Send Quotation →"
+              btnType="submit"
+              btnColor="secondary.main"
+            />
 
-        </div>
+          </Stack>
+
+        </Box>
+
+
+        {/* Client + Time */}
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "specify-around", alignItems: "center", mb: 2 }}>
+
+          <Typography sx={{ minWidth: 95 }}>Client Name:</Typography>
+          <Input inpName="cliName" isReq={true} inpValue={formData.cliName} inpPlaceholder="Enter Client Name" onChange={handleChange} />
+
+          <Typography>Date:</Typography>
+          <Input inpValue={time} readOnly sx={{ width: 20 }} />
+
+        </Box>
 
         {/* Main Section */}
-        <div className="flex flex-col md:flex-row gap-6 mt-4">
+        <Grid container spacing={3} mt={2}>
 
-          {/* Table Section */}
-          <div className="flex-1 border rounded-lg overflow-hidden">
+          {/* Table */}
+          <Grid item xs={12} md={6}>
+            <Table
+              sx={{
+                "& th, & td": {
+                  padding: "3px",
+                },
+              }}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ width: "5%" }}>No.</TableCell>
+                  <TableCell sx={{ width: "40%" }}>Name</TableCell>
+                  <TableCell sx={{ width: "15%" }}>Gej</TableCell>
+                  <TableCell sx={{ width: "15%" }}>Price</TableCell>
+                  <TableCell sx={{ width: "15%" }}>Qty</TableCell>
+                </TableRow>
+              </TableHead>
 
-            <table className="w-full text-sm text-center">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="border p-2 w-[5%]">No.</th>
-                  <th className="border p-2 w-[50%]">Name of Material</th>
-                  <th className="border p-2 w-[10%]">Gej</th>
-                  <th className="border p-2 w-[10%]">Price</th>
-                  <th className="border p-2 w-[15%]">Quantity</th>
-                </tr>
-              </thead>
-
-              <tbody>
+              <TableBody>
                 {formData.materials.map((row, i) => {
+                  const isRowFilled =
+                    row.nameOfMaterial || row.gej || row.pic || row.qty;
 
-                  const isRowFilled = row.nameOfMaterial || row.gej || row.pic || row.qty;
                   return (
-                    <tr key={i}>
+                    <TableRow key={i}>
+                      <TableCell>{i + 1}</TableCell>
 
-                      <td className="border">{i + 1}</td>
-
-                      <td className="border py-1 px-2">
+                      <TableCell>
                         <Input
-                          inpName="nameOfMaterial"
                           inpValue={row.nameOfMaterial}
-                          rColor="black"
-                          isReq={isRowFilled}
                           onChange={(e) =>
                             handleMaterialChange(i, "nameOfMaterial", e.target.value)
                           }
-                        />
-                      </td>
-
-                      <td className="border py-1 px-2">
-                        <Input
-                          inpName="gej"
-                          inpValue={row.gej}
-                          rColor="black"
                           isReq={isRowFilled}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Input
+                          inpValue={row.gej}
                           onChange={(e) =>
                             handleMaterialChange(i, "gej", e.target.value)
                           }
-                        />
-                      </td>
-
-                      <td className="border py-1 px-2">
-                        <Input
-                          inpName="pic"
-                          inpValue={row.pic}
-                          rColor="black"
                           isReq={isRowFilled}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Input
+                          inpValue={row.pic}
                           onChange={(e) =>
                             handleMaterialChange(i, "pic", e.target.value)
                           }
-                        />
-                      </td>
-
-                      <td className="border py-1 px-2">
-                        <Input
-                          inpName="qty"
-                          inpValue={row.qty}
-                          rColor="black"
                           isReq={isRowFilled}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Input
+                          inpValue={row.qty}
                           onChange={(e) =>
                             handleMaterialChange(i, "qty", e.target.value)
                           }
+                          isReq={isRowFilled}
                         />
-                      </td>
-                    </tr>
-                  )
+                      </TableCell>
+                    </TableRow>
+                  );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
 
-          </div>
+            {/* Footer */}
+            <Box sx={{textAlign: "center"}}>
+              <Typography sx={{ marginTop: "25px" }} textAlign="center" variant="h5" color="text.secondary">
+                માપ ચેક કરી ને રજા લેવી
+                <br />
+                <br />
+                કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
+              </Typography>
+            </Box>
+          </Grid>
 
-          {/* Right Form - Mobile, Rate B, Bending, Add, Quotation Amount */}
-          <div className="w-full md:w-[35%] flex flex-col gap-3">
+          {/* Right Section */}
+          <Grid item xs={12} md={6} sx={{ marginLeft: "30px" , width: "28%", display: "flex", flexDirection: "column", gap: "15px"}}>
 
-            <div className="flex items-center gap-3">
-              <label className="w-32" htmlFor="mobile">Mobile No.:</label>
-              <Input inpType="text" inpName="mobile" inpValue={formData.mobile} onChange={handleChange} inpPlaceholder="0000000000" isReq={true} />
-            </div>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Typography>Mobile No.:</Typography>
+              <Input inpName="mobile" isReq={true} inpValue={formData.mobile} onChange={handleChange} />
+            </Box>
 
-            <div className="flex items-center gap-3">
-              <label className="w-32" htmlFor="rateB">Rate B:</label>
-              <Input inpType="text" inpName="rateB" inpValue={formData.rateB} onChange={handleChange} inpPlaceholder="-----" />
-            </div>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Typography>Rate B:</Typography>
+              <Input inpName="rateB" inpValue={formData.rateB} onChange={handleChange} />
+            </Box>
 
-            <div className="flex items-center gap-3">
-              <label className="w-32" htmlFor="bending">Bending:</label>
-              <Input inpType="text" inpName="bending" inpValue={formData.bending} onChange={handleChange} inpPlaceholder="-----" />
-            </div>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Typography>Bending:</Typography>
+              <Input inpName="bending" inpValue={formData.bending} onChange={handleChange} />
+            </Box>
 
-            <div className="flex items-center gap-3">
-              <label className="w-32" htmlFor="add">Add:</label>
-              <Input inpType="text" inpName="add" inpValue={formData.add} onChange={handleChange} inpPlaceholder="-----" />
-            </div>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Typography>Add:</Typography>
+              <Input inpName="add" inpValue={formData.add} onChange={handleChange} />
+            </Box>
 
-            <div className="flex items-center gap-3">
-              <label className="w-32" htmlFor="amount">Quotation Amt:</label>
-              <Input inpType="text" inpName="amount" inpValue={total} readOnly inpPlaceholder="30000" isReq={true} />
-            </div>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Typography>Quotation Amount:</Typography>
+              <Input inpValue={total} readOnly />
+            </Box>
 
-          </div>
+          </Grid>
 
-        </div>
+        </Grid>
 
-        {/* Footer */}
-        <div className="mt-4 text-center text-gray-600">
-          ----- Warning msg or Instructions -----
-        </div>
-
+        {/* Popup */}
         <Popup
           isOpen={showPopup}
           title="Confirm Action"
-          message="Quotation send"
+          message="Are you sure to send the Quotation?"
           onConfirm={() => {
-            console.log("Confirmed");
-
-            navi("/quotations")
-
+            navi("/quotations");
             setShowPopup(false);
           }}
-
           onCancel={() => setShowPopup(false)}
         />
 
-      </form>
-    </div>
+      </Box>
+    </Paper>
   );
 };
 

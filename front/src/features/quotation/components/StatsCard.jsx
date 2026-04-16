@@ -1,18 +1,38 @@
-import React from 'react'
+import React from "react";
+import { Paper, Typography, Box } from "@mui/material";
 
-const StatsCard = ({ title, value, active }) => {
+const StatsCard = ({ title, value, active, valColor, cardBgColor }) => {
   return (
-    <div
-      className={`flex flex-col items-center justify-center p-4 rounded-xl border
-        ${active ? "border-purple-500 shadow-md" : "border-gray-300"}
-        bg-white w-full`
-      }
+    <Paper
+      elevation={active ? 4 : 2}
+      sx={{
+        p: 3,
+        bgcolor: cardBgColor,
+        borderRadius: 3,
+        textAlign: "center",
+        border: "1px solid",
+        borderColor: active ? "primary.main" : "grey.300",
+        transition: "0.3s",
+      }}
     >
-      <h2 className="text-lg text-center font-medium">{title}</h2>
+      <Box>
+        
+        <Typography variant="h6" fontWeight={500}>
+          {title}
+        </Typography>
 
-      <p className="mt-2 text-xl text-center font-semibold">{value}</p>
-    </div>
-  )
-}
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          mt={1}
+          sx = {{ color : valColor}}
+        >
+          {value}
+        </Typography>
 
-export default StatsCard
+      </Box>
+    </Paper>
+  );
+};
+
+export default StatsCard;

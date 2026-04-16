@@ -1,73 +1,194 @@
-import React from 'react'
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import {
+  Drawer,
+  Box,
+  Divider,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+} from "@mui/material";
 
-const NavItem = ({ label, icon, path }) => {
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import InventoryIcon from "@mui/icons-material/Inventory";
+import LogoutIcon from "@mui/icons-material/Logout";
+
+import { useLocation, useNavigate } from "react-router-dom";
+
+const expandedWidth = 220;
+const collapsedWidth = 70;
+
+const navItems = [
+  { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
+  { label: "Quotation", path: "/quotations", icon: <ReceiptLongIcon /> },
+  { label: "Inventory", path: "/inventories", icon: <InventoryIcon /> },
+  { label: "Payment", path: "/payment", icon: <PaymentsIcon /> },
+];
+
+const Sidebar = ({ mobileOpen, onClose }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+
+  const drawerContent = (
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: "#f8fafc",
+      }}
+    >
+      {/* Logo */}
+      <Box sx={{ p: 2, textAlign: isHovered ? "left" : "center" }}>
+        {isHovered ? (
+          <>
+            <Typography variant="h6" fontWeight="bold">
+              Shivvilon Solutions
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Dashboard Panel
+            </Typography>
+          </>
+        ) : (
+          <img
+            src="/company-logo/shivvilon_solutions_logo-removebg-preview.png"
+            alt="logo"
+            width={40}
+          />
+        )}
+      </Box>
+
+      <Divider />
+
+      {/* Navigation */}
+      <List>
+        {navItems.map((item) => {
+          const isActive = location.pathname.startsWith(item.path);
+
+          return (
+            <ListItemButton
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              disableRipple
+              sx={{
+                width: "100%",
+                px: isHovered ? 3 : 1.5,
+                py: 1.5,
+                justifyContent: isHovered ? "flex-start" : "center",
+
+                color: isActive ? "primary.main" : "text.secondary",
+
+                ...(isActive && {
+                  bgcolor: "#BEC2CF",
+                  fontWeight: 600,
+                }),
+
+                "&:hover": {
+                  bgcolor: "#E1E2E8",
+                  color: "primary.main",
+                },
+
+                "& .MuiListItemIcon-root": {
+                  color: "inherit",
+                  minWidth: 0,
+                  mr: isHovered ? 2 : 0,
+                  justifyContent: "center",
+                },
+              }}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+
+              {isHovered && (
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: 15,
+                    fontWeight: isActive ? 600 : 500,
+                  }}
+                />
+              )}
+            </ListItemButton>
+          );
+        })}
+      </List>
+
+      {/* Spacer */}
+      <Box sx={{ flexGrow: 1 }} />
+
+      <Divider />
+
+      {/* Logout */}
+      <Box sx={{ p: 1 }}>
+        <ListItemButton
+          onClick={() => navigate("/")}
+          sx={{
+            px: isHovered ? 2 : 1.5,
+            justifyContent: isHovered ? "flex-start" : "center",
+
+            "&:hover": {
+              bgcolor: "error.light",
+              color: "white",
+            },
+
+            "& .MuiListItemIcon-root": {
+              color: "inherit",
+              minWidth: 0,
+              mr: isHovered ? 2 : 0,
+              justifyContent: "center",
+            },
+          }}
+        >
+          <ListItemIcon>
+            <LogoutIcon />
+          </ListItemIcon>
+
+          {isHovered && <ListItemText primary="Logout" />}
+        </ListItemButton>
+      </Box>
+    </Box>
+  );
 
   return (
-    <Link to={path}>
-      <div
-        className={
-          `flex items-center gap-3 cursor-pointer hover:bg-blue-400 p-2 rounded-lg 
-          ${location.pathname === path
-            ? "bg-blue-800 font-semibold text-white"
-            : "hover:bg-blue-300 hover:text-white"
-          }
-        `}
+    <>
+      {/* Mobile (unchanged) */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={onClose}
+        sx={{
+          display: { xs: "block", md: "none" },
+          "& .MuiDrawer-paper": {
+            width: expandedWidth,
+          },
+        }}
       >
-        <div className="w-6 h-6 bg-blue-500 text-white flex items-center justify-center rounded">
-          {icon}
-        </div>
-        <span>{label}</span>
-      </div>
-    </Link>
+        {drawerContent}
+      </Drawer>
+
+      {/* Desktop (UPDATED) */}
+      <Drawer
+        variant="permanent"
+        open
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        sx={{
+          display: { xs: "none", md: "block" },
+          "& .MuiDrawer-paper": {
+            width: isHovered ? expandedWidth : collapsedWidth,
+            overflowX: "hidden",
+            transition: "all 0.3s ease",
+            borderRight: "1px solid #eee",
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
+    </>
   );
 };
 
-const Sidebar = () => {
-  const navi = useNavigate()
-  return (
-    <div className="
-      fixed md:static top-0 left-0
-      h-full w-56 bg-gray-100 p-4 flex flex-col gap-6
-      transform md:translate-x-0 -translate-x-full
-      transition-transform duration-300
-    ">
-
-      {/* X Close */}
-      <div
-        className="flex items-center gap-2 mb-2 md:hidden cursor-pointer"
-      >
-        <span className="text-xl">✕</span>
-        <span>Close</span>
-      </div>
-
-      {/* Logo */}
-      <div className="bg-indigo-400 h-16 flex items-center justify-center text-white font-semibold rounded">
-        Company Logo
-      </div>
-
-      <hr className="border-t-1 border-gray-600" />
-
-      {/* Navigation */}
-      <div className="flex flex-col gap-4 mt-2">
-
-        <NavItem label="Dashboard" icon="D" path="/dashboard" />
-        <NavItem label="Quotation" icon="Q" path="/quotations" />
-        <NavItem label="Payment" icon="P" path="/payment" />
-        <NavItem label="Materials" icon="M" path="/materials" />
-
-        <hr className="border-t-1 border-gray-600" />
-
-        {/* Log out */}
-        <div className="flex items-center gap-3 cursor-pointer hover:bg-blue-400 p-2 rounded-lg" onClick={() => {navi("/")}}>
-          <div className="w-6 h-6 bg-blue-800 text-white flex items-center justify-center rounded">L</div>
-          <span>Logout</span>
-        </div>
-
-      </div>
-    </div>
-  )
-}
-
-export default Sidebar
+export default Sidebar;

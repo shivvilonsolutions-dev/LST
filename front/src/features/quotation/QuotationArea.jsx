@@ -1,38 +1,54 @@
+import React, { useContext, useState } from "react";
+import { Stack, Paper, Typography } from "@mui/material";
+
 import QuotationStats from "./components/QuotationStats";
 import QuotationActions from "./components/QuotationActions";
-import ShowQuotations from "./components/ShowQuotations"
-import { useContext, useState } from "react";
-import QuotationProvider from "../../contexts/quotation/QuotationProvider";
+import ShowQuotations from "./components/ShowQuotations";
 import { QuotationContext } from "../../contexts/quotation/quotationContext";
 
 const QuotationArea = () => {
-  const { quotations } = useContext(QuotationContext)
+  const { quotations } = useContext(QuotationContext);
+
   const [filter, setFilter] = useState("ALL");
+  const [search, setSearch] = useState("");
 
   const filteredData =
-  filter === "ALL"
-    ? quotations
-    : quotations.filter((item) => item.status === filter);
+    quotations
+      .filter((item) =>
+        filter === "ALL" ? true : item.status === filter
+      )
+      .filter((item) =>
+        item.cliName.toLowerCase().includes(search.toLowerCase())
+      );
 
   return (
-    <QuotationProvider>
-      <div className="flex flex-col gap-4">
-        <QuotationStats />
-        <QuotationActions setFilter={setFilter} />
+    <Stack spacing={2}>
+      
+      {/* Stats */}
+      <QuotationStats />
+      
+      {/* Actions */}
+      <QuotationActions setFilter={setFilter} setSearch={setSearch} />
 
-        {
-          quotations.length > 0 ?
-            (
-              <ShowQuotations data={filteredData} />
-            ) :
-            (
-              <div className="mt-4 py-10 bg-white rounded-xl border overflow-hidden">
-                <h2 className="text-center text-2xl">No Quotations</h2>
-              </div>
-            )
-        }
-      </div>
-    </QuotationProvider>
+      {/* Data / Empty State */}
+      {quotations.length > 0 ? (
+        <ShowQuotations data={filteredData} />
+      ) : (
+        <Paper
+          elevation={2}
+          sx={{
+            py: 6,
+            textAlign: "center",
+            borderRadius: 3,
+          }}
+        >
+          <Typography variant="h6">
+            No Quotations
+          </Typography>
+        </Paper>
+      )}
+
+    </Stack>
   );
 };
 

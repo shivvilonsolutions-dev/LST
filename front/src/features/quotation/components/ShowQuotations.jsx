@@ -1,35 +1,237 @@
-import QuotationCard from "./QuotationCard";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer,
+  TablePagination,
+  Chip,
+  Typography,
+  Box,
+  Switch
+} from "@mui/material";
+import { QuotationContext } from "../../../contexts/quotation/quotationContext";
+import Popup from "../../../components/ui/Popup";
 
 const ShowQuotations = ({ data }) => {
-  console.log(data)
+  const navigate = useNavigate();
+  const { quotations, setQuotations } = useContext(QuotationContext);
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 5;
+  const navi = useNavigate()
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  const paginatedData = data.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
+  const handleClick = (quotId) => {
+    const updated = quotations.map((item) =>
+      item.id === quotId
+        ? { ...item, status: item.status === "PENDING" ? "CONFIRM" : "PENDING"}
+        : item
+    );
+
+    setQuotations(updated)
+    selectedId(null)
+  };
+
+  const handleConfirm = () => {
+    const updated = quotations.map((item) =>
+      item.id === selectedId
+        ? { ...item, status: "CONFIRM" }
+        : item
+    );
+
+    setQuotations(updated);
+    setShowPopup(false);
+    setSelectedId(null);
+  };
+
+  const handleDelete = (deleteId) => {
+    const updated = quotations.filter((item) =>
+      item.id !== deleteId
+    )
+
+    setQuotations(updated)
+    setShowPopup(false)
+    setSelectedId(null)
+  }
+
   return (
-    <div className="mt-4 bg-white rounded-xl border overflow-hidden">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+    <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
 
-        {
-          data.length > 0 ?
-            (
-              data.map(
-                (item) => (
-                  <QuotationCard
-                    key={item.id}
+      <TableContainer>
+        <Table>
 
-                    id={item.id}
-                    name={item.cliName}
-                    mobile={item.mobile}
-                    amount={item.amount}
-                    status={item.status}
-                  />
-                ))
-            )
-            :
-            (
-              <h2>No Quotations Data</h2>
-            )
-        }
+          {/* HEADER */}
+          <TableHead sx={{ bgcolor: "#f2f4f5", borderBottom: "2px solid gray" }}>
+            <TableRow
+              hover
+              sx={{
+                "& td": {
+                  borderBottom: "1px solid #f1f5f9",
+                },
+              }}
+            >
+              <TableCell>#</TableCell>
+              <TableCell>Name</TableCell>
+              <TableCell>Amount</TableCell>
+              <TableCell>Update Status</TableCell>
+              <TableCell>Edit</TableCell>
+              <TableCell>Delete</TableCell>
+              <TableCell>View</TableCell>
+            </TableRow>
+          </TableHead>
 
-      </div>
-    </div>
+          {/* BODY */}
+          <TableBody>
+            {paginatedData.length > 0 ? (
+              paginatedData.map((item, index) => (
+                <TableRow
+                  key={item.id}
+                  hover
+                >
+
+                  {/* Index */}
+                  <TableCell>{index + 1}</TableCell>
+
+                  {/* Name */}
+                  <TableCell>{item.cliName}</TableCell>
+
+                  {/* Amount */}
+                  <TableCell>₹ {item.amount}</TableCell>
+
+                  {/* Status */}
+                  <TableCell>
+                    <Chip
+                        label={item.status}
+                        color={
+                          item.status === "CONFIRM"
+                            ? "success"
+                            : "warning"
+                        }
+                        onClick={() => {
+                          handleClick(item.id)
+                        }}
+                        size="small"
+                        sx={{ marginRight: "15px" }}
+                      />
+                      
+                  </TableCell>
+
+                  {/* Edit */}
+                  <TableCell>
+                    <Typography
+                      sx={{
+                        color: "blue",
+                        cursor: "pointer",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                      onClick={() => {
+                        navi(`/quotations/${item.id}`)
+                      }}
+                    >
+                      Edit
+                    </Typography>
+                  </TableCell>
+
+                  {/* Delete */}
+                  <TableCell>
+                    <Typography
+                      sx={{
+                        color: "red",
+                        cursor: "pointer",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                      onClick={() => {
+                        setSelectedId(item.id);
+                        setShowPopup(true)
+                      }}
+                    >
+                      Delete
+                    </Typography>
+                  </TableCell>
+
+                  {/* View */}
+                  <TableCell>
+                    <Typography
+                      sx={{
+                        color: "primary.main",
+                        cursor: "pointer",
+                        "&:hover": {
+                          textDecoration: "underline",
+                        },
+                      }}
+                      onClick={() =>
+                        navigate(`/quotations/${item.id}`)
+                      }
+                    >
+                      View
+                    </Typography>
+                  </TableCell>
+
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  No Quotations Data
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+
+        </Table>
+      </TableContainer>
+
+      <TablePagination
+        component="div"
+        count={data.length}
+        page={page}
+        onPageChange={(e, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[5]}
+      />
+
+      {/* Popup Confirm Quotation */}
+      <Popup
+        isOpen={showPopup}
+        title="Confirm Quotation"
+        message="Are you sure you want to confirm this quotation?"
+        onConfirm={handleConfirm}
+        onCancel={() => {
+          setShowPopup(false);
+          setSelectedId(null);
+        }}
+      />
+
+      {/* Popup Delete Quotation */}
+      <Popup
+        isOpen={showPopup}
+        title="Delete Quotation"
+        message="Are you sure you want to delete this quotation?"
+        onConfirm={() => {
+          handleDelete(selectedId)
+        }}
+        onCancel={() => {
+          setShowPopup(false);
+          setSelectedId(null);
+        }}
+      />
+
+    </Paper>
   );
 };
 

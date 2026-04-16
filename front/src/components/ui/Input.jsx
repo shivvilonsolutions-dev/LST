@@ -1,28 +1,43 @@
-import React from 'react'
-const ringColors = {
-  blue: "focus:ring-blue-500",
-  red: "focus:ring-red-500",
-  green: "focus:ring-green-500",
-  gray: "focus:ring-gray-500",
-  white: "focus:ring-white-500"
-};
+import React from "react";
+import { TextField } from "@mui/material";
 
-const Input = ({inpType, inpName, inpValue, inpPlaceholder, rColor, isReq, onChange, inpWidth = "w-full", readOnly = false}) => {
-  const ringClass = ringColors[rColor] || ringColors.gray;
+const Input = ({
+  inpType = "text",
+  inpName,
+  inpValue,
+  inpPlaceholder,
+  isReq,
+  onChange,
+  inpWidth = "100%",
+  readOnly = false,
+}) => {
+  // console.log("Inside the input box - readOnly: ", readOnly);
   
-
   return (
-    <input
+    <TextField
       type={inpType}
       name={inpName}
-      value={inpValue}
+      value={inpValue || ""}
       required={isReq}
       onChange={onChange}
       placeholder={inpPlaceholder}
-      readOnly={readOnly}
-      className={`${inpWidth} border my-2 border-gray-300 p-2 px-3 rounded-lg focus:outline-none focus:ring-1 ${ringClass}`}
-    />
-  )
-}
+      size="small"
+      inputProps={{
+        readOnly: readOnly,
+      }}
+      sx={{
+        width: inpWidth,
+        "& .MuiOutlinedInput-root": {
+          height: "40px",
 
-export default Input
+          ...(readOnly && {
+            pointerEvents: "none",   // 🔥 blocks typing completely
+            backgroundColor: "#f8fafc",
+          }),
+        },
+      }}
+    />
+  );
+};
+
+export default Input;

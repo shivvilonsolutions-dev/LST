@@ -1,39 +1,37 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
+import {
+  Box,
+  Paper,
+  Grid,
+  Stack,
+  Typography,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer,
+} from "@mui/material";
+
 import { useParams, useNavigate } from "react-router-dom";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
 import calculateAmount from "../../../utils/calculateQuotationAmount";
+// import { handleDownloadPDF } from "../../../utils/handleDownloadPDF";
 
 const QuotationDetail = () => {
   const { quotations, setQuotations } = useContext(QuotationContext);
   const { id } = useParams();
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
+  console.log("After initiaion: ", isEditing)
+
   const navi = useNavigate();
+  const pdfRef = useRef();
+
   const quotation = quotations.find((q) => q.id == Number(id));
-
-  const [editData, setEditData] = useState(quotation)
-
-  const renderCell = (field, index) => {
-    const value = editData.materials[index][field]
-
-    return (
-      <td className="border py-1 px-2">
-        {isEditing ? (
-          <Input
-            inpValue={value}
-            inpWidth="w-full"
-            onChange={(e) =>
-              handleMaterialChange(index, field, e.target.value)
-            }
-          />
-        ) : (
-          <span className="px-1">{value}</span>
-        )}
-      </td>
-    );
-  };
+  const [editData, setEditData] = useState(quotation);
 
   useEffect(() => {
     setEditData(quotation);
@@ -50,7 +48,6 @@ const QuotationDetail = () => {
 
   const handleMaterialChange = (index, field, value) => {
     const updated = [...editData.materials];
-
     updated[index] = {
       ...updated[index],
       [field]: value,
@@ -75,124 +72,226 @@ const QuotationDetail = () => {
 
     setQuotations(updatedData);
     setEditData(updatedItem);
+
+    console.log("Before saving: ", isEditing)
     setIsEditing(false);
   };
+  const renderCell = (field, index) => {
+    const value = editData.materials[index][field];
 
-  if (!quotation) return <div className="p-6">Quotation Not Found</div>;
+    return (
+      <TableCell sx={{ p: "3px" }}>
+        <Input
+          inpValue={value}
+          readOnly={!isEditing}
+          onChange={(e) =>
+            handleMaterialChange(index, field, e.target.value)
+          }
+        />
+      </TableCell>
+    );
+  };
+
+  if (!quotation) return <Box p={3}>Quotation Not Found</Box>;
+
 
   return (
-    <div className="border rounded-xl p-6 bg-white">
 
-      {/* Top Actions */}
-      <div className="flex justify-end gap-4 mt-[-20px] mb-4">
-        {!isEditing ? (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        border: "1px solid gray.300",
+        borderRadius: 1,
+        bgcolor: "white",
+      }}
+    >
+
+      <Box>
+
+        {/* Top Buttons (MATCHED) */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 3,
+            pb: 2,
+            borderBottom: "1px solid #e2e8f0",
+          }}
+        >
+          {/* LEFT */}
           <Button
-            btnName="Edit"
-            btnColor="blue"
-            btnWidth="w-auto px-6"
-            onClick={() => setIsEditing(true)}
+            btnName="← Back"
+            btnColor="gray"
+            txtCol="black"
+            onClick={() => navi("/quotations")}
           />
-        ) : (
-          <Button
-            btnName="Save"
-            btnColor="green"
-            btnWidth="w-auto px-6"
-            onClick={handleSave}
-          />
-        )}
-        <Button btnName="PRINT" btnColor="red" btnWidth="w-auto px-6" onClick={() => window.print()} />
-        <Button btnName="BACK" btnColor="white" txtCol="black" btnWidth="w-auto px-6" onClick={() => navi("/quotations")} />
-      </div>
 
-      {/* Top Row */}
-      <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
+          {/* RIGHT */}
+          <Stack direction="row" spacing={1.5}>
 
-        {/* Client Name */}
-        <div className="flex items-center gap-3 flex-1">
-          <span className="text-lg font-medium">Client Name:</span>
-          <Input inpName={"cliName"} readOnly={!isEditing} onChange={handleChange} inpValue={editData.cliName} inpWidth="w-[80%]" />
-        </div>
+            {!isEditing ? (
+              <Button btnName="Click to Edit" btnColor="secondary.main" onClick={() => { console.log("Before clicking the Edit button: ", isEditing); setIsEditing(true) }} />
+            ) : (
+              <Button btnName="Save" btnColor="green" onClick={handleSave} />
+            )}
+            {/* 
+            <Button
+              btnName="Print"
+              btnColor="red"
+              onClick={() =>
+                handleDownloadPDF({ pdfRef, data: editData })
+              }
+            /> */}
 
-        {/* Date */}
-        <div className="flex items-center gap-3">
-          <Input readOnly={!isEditing} onChange={handleChange} inpValue={editData.quotationDate} inpWidth="w-70" />
-        </div>
+            <Button
+              btnName="Print"
+              btnColor="red"
+              onClick={() =>
+                window.print()
+              }
+            />
+          </Stack>
 
-      </div>
+        </Box>
 
-      {/* Table */}
-      <div className="border rounded-lg overflow-hidden mb-6">
-        <table className="w-full text-sm text-left">
+        {/* MAIN CONTAINER (MATCHED) */}
+        <Box ref={pdfRef}>
 
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="border p-2 w-[5%]">No.</th>
-              <th className="border p-2 w-[50%]">Name of Material</th>
-              <th className="border p-2 w-[10%]">Gej</th>
-              <th className="border p-2 w-[10%]">Price</th>
-              <th className="border p-2 w-[15%]">Quantity</th>
-            </tr>
-          </thead>
+          {/* Client + Date (MATCHED) */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              alignItems: "center",
+              mb: 2,
+              justifyContent: "specify-around",
+            }}
+          >
+            <Typography sx={{ minWidth: 95 }}> Client Name: </Typography>
+            <Input
+              inpName="cliName"
+              inpValue={editData.cliName}
+              readOnly={!isEditing}
+              onChange={handleChange}
+            />
 
-          <tbody>
-            {
-              editData.materials ?
-                (
-                  editData.materials.map((row, i) => (
-                    <tr key={i}>
-                      <td className="border p-2">{i + 1}</td>
-                      {renderCell("nameOfMaterial", i)}
-                      {renderCell("gej", i)}
-                      {renderCell("pic", i)}
-                      {renderCell("qty", i)}
-                    </tr>
-                  ))
-                ) : (
-                  <h2 className="p-3 text-2xl">No materials</h2>
-                )
-            }
-          </tbody>
+            <Typography>Date:</Typography>
+            <Input
+              inpValue={editData.quotationDate}
+              readOnly
+            />
+          </Box>
 
-        </table>
-      </div>
+          {/* MAIN SECTION */}
+          <Grid container spacing={3} mt={1}>
 
-      {/* Bottom Section */}
-      <div className="flex flex-col md:flex-row justify-between gap-6">
+            {/* TABLE (MATCHED STYLE) */}
+            <Grid item xs={12} md={8}>
+              <Box sx={{ height: "100%" }}>
+                <TableContainer
+                  sx={{ height: "100%" }}
+                >
+                  <Table
+                    sx={{
+                      width: "90%",
+                      height: "70%",
+                      "& th, & td": {
+                        padding: "3px",
+                      },
+                    }}
+                  >
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ width: "5%" }}>No.</TableCell>
+                        <TableCell sx={{ width: "40%" }}>Name</TableCell>
+                        <TableCell sx={{ width: "15%" }}>Gej</TableCell>
+                        <TableCell sx={{ width: "15%" }}>Price</TableCell>
+                        <TableCell sx={{ width: "15%" }}>Qty</TableCell>
+                      </TableRow>
+                    </TableHead>
 
-        {/* Left */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <span>Mobile No.:</span>
-            <Input inpName={"mobile"} readOnly={!isEditing} onChange={handleChange} inpValue={editData.mobile} inpWidth="w-40" />
-          </div>
+                    <TableBody>
+                      {editData.materials.map((_, i) => (
+                        <TableRow key={i}>
 
-          <div className="flex items-center gap-3">
-            <span>Rate B:</span>
-            <Input inpName={"rateB"} readOnly={!isEditing} onChange={handleChange} inpValue={editData.rateB} inpWidth="w-40" />
-          </div>
-        </div>
+                          {/* Index */}
+                          <TableCell sx={{ p: "3px" }}>{i + 1}</TableCell>
 
-        {/* Right */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <span>Bending:</span>
-            <Input inpName={"bending"} readOnly={!isEditing} onChange={handleChange} inpValue={editData.bending} inpWidth="w-40" />
-          </div>
+                          {/* Reusable Cells */}
+                          {renderCell("nameOfMaterial", i)}
+                          {renderCell("gej", i)}
+                          {renderCell("pic", i)}
+                          {renderCell("qty", i)}
 
-          <div className="flex items-center gap-3">
-            <span>Add:</span>
-            <Input inpName={"add"} readOnly={!isEditing} onChange={handleChange} inpValue={editData.add} inpWidth="w-40" />
-          </div>
+                        </TableRow>
+                      ))}
+                    </TableBody>
 
-          <div className="flex items-center gap-3">
-            <span>Quotation Amount:</span>
-            <Input inpName={total} readOnly  inpValue={editData.amount} inpWidth="w-40" />
-          </div>
-        </div>
+                  </Table>
+                </TableContainer>
+              </Box>
 
-      </div>
+            </Grid>
 
-    </div>
+            {/* RIGHT SECTION (MATCHED) */}
+            <Stack spacing={1} sx={{ width: "25%", display: "flex", flexDirection: "column", gap: "15px" }}>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <Typography>Mobile No.:</Typography>
+                <Input
+                  inpName="mobile"
+                  inpValue={editData.mobile}
+                  readOnly={!isEditing}
+                  onChange={handleChange}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <Typography>Rate B:</Typography>
+                <Input
+                  inpName="rateB"
+                  inpValue={editData.rateB}
+                  readOnly={!isEditing}
+                  onChange={handleChange}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <Typography>Bending:</Typography>
+                <Input
+                  inpName="bending"
+                  inpValue={editData.bending}
+                  readOnly={!isEditing}
+                  onChange={handleChange}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <Typography>Add:</Typography>
+                <Input
+                  inpName="add"
+                  inpValue={editData.add}
+                  readOnly={!isEditing}
+                  onChange={handleChange}
+                />
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+                <Typography>Quotation Amount:</Typography>
+                <Input readOnly inpValue={total} />
+              </Box>
+
+            </Stack>
+
+          </Grid>
+
+        </Box>
+
+      </Box>
+
+    </Paper>
   );
 };
 
