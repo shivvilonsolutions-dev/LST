@@ -17,38 +17,65 @@ const QuotationArea = () => {
       .filter((item) =>
         filter === "ALL" ? true : item.status === filter
       )
-      .filter((item) =>
-        item.cliName.toLowerCase().includes(search.toLowerCase())
-      );
+      .filter((item) => {
+        const query = search.toLowerCase();
+
+        const matchName = item.cliName
+          ?.toLowerCase()
+          .includes(query);
+        
+        const matchAmount = item.total
+          ?.includes(query)
+
+        const matchThickness = item.materials?.some((m) =>
+          m.gej?.toString().toLowerCase().includes(query)
+        );
+
+        return matchName || matchThickness || matchAmount;
+      });
 
   return (
-    <Stack spacing={2}>
-      
-      {/* Stats */}
-      <QuotationStats />
-      
-      {/* Actions */}
-      <QuotationActions setFilter={setFilter} setSearch={setSearch} />
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        border: "1px solid #e2e8f0",
+      }}
+    >
+      <Stack spacing={2}>
 
-      {/* Data / Empty State */}
-      {quotations.length > 0 ? (
-        <ShowQuotations data={filteredData} />
-      ) : (
-        <Paper
-          elevation={2}
-          sx={{
-            py: 6,
-            textAlign: "center",
-            borderRadius: 3,
-          }}
-        >
-          <Typography variant="h6">
-            No Quotations
-          </Typography>
-        </Paper>
-      )}
+        {/* Header */}
+        <Typography variant="h4" fontWeight="bold">
+          Quotations
+        </Typography>
 
-    </Stack>
+        {/* Stats */}
+        <QuotationStats />
+
+        {/* Actions */}
+        <QuotationActions setFilter={setFilter} setSearch={setSearch} />
+
+        {/* Data / Empty State */}
+        {quotations.length > 0 ? (
+          <ShowQuotations data={filteredData} />
+        ) : (
+          <Paper
+            elevation={2}
+            sx={{
+              py: 6,
+              textAlign: "center",
+              borderRadius: 3,
+            }}
+          >
+            <Typography variant="h6">
+              No Quotations
+            </Typography>
+          </Paper>
+        )}
+
+      </Stack>
+    </Paper>
   );
 };
 

@@ -91,3 +91,30 @@ export const handleDownloadPDF = async ({ pdfRef, data }) => {
     document.body.removeChild(printContainer);
   }
 };
+
+export const generateImageFromRef = async (ref) => {
+  if (!ref?.current) return null;
+
+  try {
+    const canvas = await html2canvas(ref.current, {
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      scale: 1,
+    });
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) return resolve(null);
+
+        const file = new File([blob], "quotation.png", {
+          type: "image/png",
+        });
+
+        resolve(file);
+      }, "image/png");
+    });
+  } catch (err) {
+    console.error("Image generation error:", err);
+    return null;
+  }
+};

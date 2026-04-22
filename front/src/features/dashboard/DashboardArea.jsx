@@ -20,7 +20,6 @@ const DashboardArea = () => {
             key={item.id}
             productName={item.inventoryName}
             property={item.properties}
-            quantity={item.quantity}
             productId={item.id}
           />
         ))}

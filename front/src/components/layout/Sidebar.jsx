@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Drawer,
   Box,
@@ -28,10 +28,9 @@ const navItems = [
   { label: "Payment", path: "/payment", icon: <PaymentsIcon /> },
 ];
 
-const Sidebar = ({ mobileOpen, onClose }) => {
+const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isHovered, setIsHovered] = useState(false);
 
   const drawerContent = (
     <Box

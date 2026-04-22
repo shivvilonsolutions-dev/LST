@@ -6,7 +6,7 @@ import {
   Box,
 } from "@mui/material";
 
-const InventoryCard = ({ productName, property, quantity }) => {
+const InventoryCard = ({ productName, property }) => {
   return (
     <Card
       elevation={3}
@@ -30,7 +30,7 @@ const InventoryCard = ({ productName, property, quantity }) => {
 
         {/* Property */}
         <Typography variant="body2" color="text.secondary" mt={1}>
-          {property["thickness"]} mm
+          {property[0]["thickness"]} mm
         </Typography>
 
         {/* Quantity */}
@@ -46,7 +46,7 @@ const InventoryCard = ({ productName, property, quantity }) => {
           }}
         >
           <Typography variant="body1">
-            Quantity: {quantity}
+            Quantity: {property[0]["quantity"]}
           </Typography>
         </Box>
 

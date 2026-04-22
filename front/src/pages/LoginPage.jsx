@@ -69,7 +69,7 @@ const LoginDataPage = () => {
 
         <Typography
          variant="h6"
-          sx = {{ textAlign: "center", color: "blue", marginBottom: "25px" }}
+          sx = {{ textAlign: "center", color: "black", marginBottom: "25px" }}
         >
           Login here
         </Typography>

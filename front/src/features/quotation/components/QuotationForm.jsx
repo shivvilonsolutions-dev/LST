@@ -24,9 +24,9 @@ import calculateAmount from "../../../utils/calculateQuotationAmount";
 const QuotationForm = () => {
   const navi = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
+  const [mobilePopup, setMobilePopup] = useState(false);
   const [time, setTime] = useState(getCurrentDateTime());
   const { quotations, setQuotations } = useContext(QuotationContext);
-
   const [formData, setFormData] = useState({
     cliName: "",
     mobile: "",
@@ -86,6 +86,40 @@ const QuotationForm = () => {
     setShowPopup(true);
   };
 
+  const handleWhatsApp = () => {
+    if (!formData.mobile) {
+      setMobilePopup(true);
+
+      return;
+    }
+
+    let phone = formData.mobile.toString().replace(/\D/g, "");
+
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
+
+    const materialsText = formData.materials
+      .filter(m => m.nameOfMaterial)
+      .map(m => `• ${m.nameOfMaterial} (${m.pic} * ${m.qty})`)
+      .join("\n");
+
+    const message = 
+`Hello ${formData.cliName},
+
+Your quotation: 
+${materialsText}
+
+Amount: ${total}
+Date: ${getCurrentDateTime()}
+
+Thank you!`;
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+    window.open(url, "_blank");
+  };
+
   return (
     <Paper
       elevation={0}
@@ -124,6 +158,7 @@ const QuotationForm = () => {
             <Button
               btnName="Show WhatsApp"
               btnColor="green"
+              onClick={handleWhatsApp}
             />
 
             <Button
@@ -135,7 +170,6 @@ const QuotationForm = () => {
           </Stack>
 
         </Box>
-
 
         {/* Client + Time */}
         <Box sx={{ display: "flex", gap: 2, justifyContent: "specify-around", alignItems: "center", mb: 2 }}>
@@ -149,7 +183,7 @@ const QuotationForm = () => {
         </Box>
 
         {/* Main Section */}
-        <Grid container spacing={3} mt={2}>
+        <Grid container spacing={3} mt={2} sx={{marginTop: "30px "}}>
 
           {/* Table */}
           <Grid item xs={12} md={6}>
@@ -164,9 +198,9 @@ const QuotationForm = () => {
                 <TableRow>
                   <TableCell sx={{ width: "5%" }}>No.</TableCell>
                   <TableCell sx={{ width: "40%" }}>Name</TableCell>
-                  <TableCell sx={{ width: "15%" }}>Gej</TableCell>
-                  <TableCell sx={{ width: "15%" }}>Price</TableCell>
-                  <TableCell sx={{ width: "15%" }}>Qty</TableCell>
+                  <TableCell sx={{ width: "15%" }}>Gauge</TableCell>
+                  <TableCell sx={{ width: "15%" }}>Price (per item)</TableCell>
+                  <TableCell sx={{ width: "15%" }}>Quantity</TableCell>
                 </TableRow>
               </TableHead>
 
@@ -192,9 +226,9 @@ const QuotationForm = () => {
                       <TableCell>
                         <Input
                           inpValue={row.gej}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             handleMaterialChange(i, "gej", e.target.value)
-                          }
+                          }}
                           isReq={isRowFilled}
                         />
                       </TableCell>
@@ -202,9 +236,10 @@ const QuotationForm = () => {
                       <TableCell>
                         <Input
                           inpValue={row.pic}
-                          onChange={(e) =>
-                            handleMaterialChange(i, "pic", e.target.value)
-                          }
+                          onChange={(e) =>{
+                            const value = e.target.value.replace(/\D/g, "");
+                            handleMaterialChange(i, "pic", value)
+                          }}
                           isReq={isRowFilled}
                         />
                       </TableCell>
@@ -212,9 +247,10 @@ const QuotationForm = () => {
                       <TableCell>
                         <Input
                           inpValue={row.qty}
-                          onChange={(e) =>
-                            handleMaterialChange(i, "qty", e.target.value)
-                          }
+                          onChange={(e) =>{
+                            const value = e.target.value.replace(/\D/g, "");
+                            handleMaterialChange(i, "qty", value)
+                          }}
                           isReq={isRowFilled}
                         />
                       </TableCell>
@@ -225,7 +261,7 @@ const QuotationForm = () => {
             </Table>
 
             {/* Footer */}
-            <Box sx={{textAlign: "center"}}>
+            <Box sx={{ textAlign: "center" }}>
               <Typography sx={{ marginTop: "25px" }} textAlign="center" variant="h5" color="text.secondary">
                 માપ ચેક કરી ને રજા લેવી
                 <br />
@@ -236,11 +272,16 @@ const QuotationForm = () => {
           </Grid>
 
           {/* Right Section */}
-          <Grid item xs={12} md={6} sx={{ marginLeft: "30px" , width: "28%", display: "flex", flexDirection: "column", gap: "15px"}}>
+          <Grid item xs={12} md={6} sx={{ marginLeft: "30px", width: "28%", display: "flex", flexDirection: "column", gap: "15px" }}>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
               <Typography>Mobile No.:</Typography>
-              <Input inpName="mobile" isReq={true} inpValue={formData.mobile} onChange={handleChange} />
+              <Input inpName="mobile" isReq={true} inpValue={formData.mobile} 
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  handleChange({ target: { name: "mobile", value } });
+                }}
+              />
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
@@ -279,6 +320,16 @@ const QuotationForm = () => {
           onCancel={() => setShowPopup(false)}
         />
 
+        <Popup
+          isOpen={mobilePopup}
+          title="Requirement"
+          message="Please add 10 digit mobile number"
+          onConfirm={() => {
+            navi("/quotations/send-quotation");
+            setMobilePopup(false);
+          }}
+          onCancel={() => setMobilePopup(false)}
+        />
       </Box>
     </Paper>
   );

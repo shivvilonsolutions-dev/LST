@@ -19,7 +19,7 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
 import calculateAmount from "../../../utils/calculateQuotationAmount";
-// import { handleDownloadPDF } from "../../../utils/handleDownloadPDF";
+import { handleDownloadPDF } from "../../../utils/handleDownloadPDF";
 
 const QuotationDetail = () => {
   const { quotations, setQuotations } = useContext(QuotationContext);
@@ -76,6 +76,7 @@ const QuotationDetail = () => {
     console.log("Before saving: ", isEditing)
     setIsEditing(false);
   };
+
   const renderCell = (field, index) => {
     const value = editData.materials[index][field];
 
@@ -136,28 +137,21 @@ const QuotationDetail = () => {
             ) : (
               <Button btnName="Save" btnColor="green" onClick={handleSave} />
             )}
-            {/* 
+            
             <Button
               btnName="Print"
               btnColor="red"
               onClick={() =>
                 handleDownloadPDF({ pdfRef, data: editData })
               }
-            /> */}
-
-            <Button
-              btnName="Print"
-              btnColor="red"
-              onClick={() =>
-                window.print()
-              }
             />
+
           </Stack>
 
         </Box>
 
         {/* MAIN CONTAINER (MATCHED) */}
-        <Box ref={pdfRef}>
+        <Box ref={pdfRef} >
 
           {/* Client + Date (MATCHED) */}
           <Box
@@ -196,7 +190,7 @@ const QuotationDetail = () => {
                   <Table
                     sx={{
                       width: "90%",
-                      height: "70%",
+                      height: "80%",
                       "& th, & td": {
                         padding: "3px",
                       },

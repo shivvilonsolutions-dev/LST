@@ -18,14 +18,15 @@ import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import Popup from "../../../components/ui/Popup";
 
 const ShowQuotations = ({ data }) => {
-  const navigate = useNavigate();
   const { quotations, setQuotations } = useContext(QuotationContext);
   const [page, setPage] = useState(0);
+  const navigate = useNavigate();
   const rowsPerPage = 5;
   const navi = useNavigate()
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  console.log(quotations)
 
   const paginatedData = data.slice(
     page * rowsPerPage,
@@ -73,18 +74,12 @@ const ShowQuotations = ({ data }) => {
 
           {/* HEADER */}
           <TableHead sx={{ bgcolor: "#f2f4f5", borderBottom: "2px solid gray" }}>
-            <TableRow
-              hover
-              sx={{
-                "& td": {
-                  borderBottom: "1px solid #f1f5f9",
-                },
-              }}
-            >
+            <TableRow hover >
               <TableCell>#</TableCell>
               <TableCell>Name</TableCell>
+              <TableCell>Thickness</TableCell>
               <TableCell>Amount</TableCell>
-              <TableCell>Update Status</TableCell>
+              <TableCell>Status Update</TableCell>
               <TableCell>Edit</TableCell>
               <TableCell>Delete</TableCell>
               <TableCell>View</TableCell>
@@ -105,6 +100,9 @@ const ShowQuotations = ({ data }) => {
 
                   {/* Name */}
                   <TableCell>{item.cliName}</TableCell>
+
+                  {/* Thickness */}
+                  <TableCell>{item.materials[0].gej}</TableCell>
 
                   {/* Amount */}
                   <TableCell>₹ {item.amount}</TableCell>
@@ -178,7 +176,7 @@ const ShowQuotations = ({ data }) => {
                         navigate(`/quotations/${item.id}`)
                       }
                     >
-                      View
+                      View Detail →
                     </Typography>
                   </TableCell>
 

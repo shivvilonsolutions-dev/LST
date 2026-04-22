@@ -9,6 +9,8 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  Select,
+  MenuItem,
 } from "@mui/material";
 
 import Input from "../../../components/ui/Input";
@@ -19,28 +21,36 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect, useContext } from 'react'
 import getCurrentDateTime from '../../../utils/getCurrentDateAndTime'
-import {InventoryContext} from "../../../contexts/inventory/inventoryContext"
+import { InventoryContext } from "../../../contexts/inventory/inventoryContext"
 
 const InventoryForm = () => {
   const navi = useNavigate()
   const [showPopup, setShowPopup] = useState(false);
+  const [existPopup, setExistPopup] = useState(false)
   const [time, setTime] = useState(getCurrentDateTime());
   const { inventories, setInventories } = useContext(InventoryContext);
-
-  const [formData, setFormData] = useState({
+  const [isNew, setIsNew] = useState(false);
+  const [formData, setFormData] = useState(() => ({
     inventoryName: "",
-    properties: {
-      thickness: "",
-      weight: "",
-      height: "",
-      lengthOfInventory: ""
-    },
+    properties: [
+      {
+        id: Date.now(), // ✅ runs only ONCE
+        thickness: "",
+        weight: "",
+        height: "",
+        lengthOfInventory: ""
+      }
+    ],
     category: "",
     quantity: "",
     minQuantity: "",
     dateOfInventory: "",
     status: "NORMAL",
-  });
+  }));
+
+  const inventoryNames = [
+    ...new Set(inventories.map((inv) => inv.inventoryName))
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -73,20 +83,65 @@ const InventoryForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newInventory = {
-      ...formData,
+    const newProperty = {
       id: Date.now(),
-      dateOfInventory: getCurrentDateTime(),
-      minQuantity: formData.minQuantity == "" 
-        ? Math.ceil(Number(formData.quantity) * 0.2)
-        : Number(formData.minQuantity),
+      thickness: formData.properties.thickness,
+      dateOfProperty: getCurrentDateTime(),
+      weight: formData.properties.weight,
+      height: formData.properties.height,
+      lengthOfInventory: formData.properties.lengthOfInventory,
+      quantity: Number(formData.quantity),
+      minQuantity:
+        formData.minQuantity === ""
+          ? Math.ceil(Number(formData.quantity) * 0.2)
+          : Number(formData.minQuantity),
     };
 
-    setInventories([...inventories, newInventory])
-    setShowPopup(true)
+    const normalize = (str) => str.trim().toLowerCase();
 
-    console.log("Handled the submit data", newInventory)
-  }
+    const existingIndex = inventories.findIndex(
+      (inv) =>
+        normalize(inv.inventoryName) ===
+        normalize(formData.inventoryName)
+    );
+
+    if (existingIndex !== -1) {
+      console.log("Updating existing one...")
+      const updatedInventories = [...inventories];
+
+      const alreadyExists = updatedInventories[existingIndex].properties.some(
+        (p) => p.thickness === newProperty.thickness
+      );
+
+      if (alreadyExists) {
+        setExistPopup(true);
+        return;
+      }
+
+      updatedInventories[existingIndex] = {
+        ...updatedInventories[existingIndex],
+        properties: [
+          ...(updatedInventories[existingIndex].properties || []),
+          newProperty,
+        ],
+      };
+
+      setInventories(updatedInventories);
+    }
+    else {
+      const newInventory = {
+        id: Date.now(),
+        inventoryName: formData.inventoryName,
+        category: formData.category,
+        dateOfInventory: getCurrentDateTime(),
+        properties: [newProperty],
+      };
+
+      setInventories([...inventories, newInventory]);
+    }
+
+    setShowPopup(true);
+  };
 
   return (
     <Paper
@@ -135,48 +190,154 @@ const InventoryForm = () => {
 
 
         {/* Inventory + Time */}
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "specify-around", alignItems: "center", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+            mb: 2,
+            flexWrap: { xs: "wrap", md: "nowrap" }
+          }}
+        >
+          {/* Inventory Name */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flex: 1,
+              minWidth: { xs: "100%", md: 300 }
+            }}
+          >
+            {/* Label */}
+            <Typography sx={{ minWidth: 130 }}>
+              Inventory Name:
+            </Typography>
 
-          <Typography sx={{ minWidth: 95 }}>Inventory Name:</Typography>
-          <Input inpName="inventoryName" isReq={true} inpValue={formData.inventoryName} inpPlaceholder="Enter Inventory Name" onChange={handleChange} />
+            {/* Input Area */}
+            {!isNew ? (
+              <Select
+                size="small"
+                value={formData.inventoryName || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
 
-          <Typography>Date:</Typography>
-          <Input inpValue={time} readOnly sx={{ width: 20 }} />
+                  if (value === "__new__") {
+                    setIsNew(true);
+                    setFormData({ ...formData, inventoryName: "" });
+                  } else {
+                    setFormData({ ...formData, inventoryName: value });
+                  }
+                }}
+                displayEmpty
+                sx={{ flex: 1, minWidth: { xs: "100%", md: "auto" } }}
+                
+              >
+                <MenuItem value="" disabled>
+                  Select Inventory
+                </MenuItem>
+
+                <MenuItem value="__new__" sx={{ color: "primary.main" }}>
+                  + Add New
+                </MenuItem>
+
+                {inventoryNames.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </Select>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  flex: 1, // 👈 same as select
+                }}
+              >
+                <Input
+                  inpName="inventoryName"
+                  inpValue={formData.inventoryName}
+                  inpPlaceholder="Enter new inventory"
+                  onChange={handleChange}
+                  inpWidth="100%"
+                />
+
+                <Button
+                  btnName="Cancel"
+                  btnColor="gray"
+                  txtCol="black"
+                  btnWidth="auto"
+                  onClick={() => { setIsNew(false) }}
+                  sx={{
+                    whiteSpace: "nowrap",
+                    alignSelf: { xs: "flex-start", md: "center" }
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
+
+          {/* Date */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flex: 1,
+              minWidth: { xs: "100%", md: 300 }
+            }}
+          >
+            <Typography sx={{ ml: 1 }}>
+              Date:
+            </Typography>
+
+            <Box sx={{ width: { xs: "100%", md: 220 } }}>
+              <Input inpValue={time} readOnly />
+            </Box>
+          </Box>
 
         </Box>
 
         {/* Main Section */}
         <Typography variant="h5">Properties</Typography>
-
-        <Grid container spacing={3} sx={{marginTop: "20px", justifyContent: "space-between"}}>
-
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            mt: 2,
+            flexDirection: { xs: "column", md: "row" }
+          }}
+        >
           {/* Properties Section */}
-          <Grid item xs={12} md={6} sx={{ width: "45%", display: "flex", flexDirection: "column", gap: "15px"}}>
+          <Grid item xs={12} md={6} sx={{ width: "45%", display: "flex", flexDirection: "column", gap: "15px" }}>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Thickness(in mm):</Typography>
+              <Typography>Thickness:</Typography>
               <Input inpName="thickness" isReq={true} inpValue={formData.properties.thickness} onChange={(e) => handlePropertyChange("thickness", e.target.value)} />
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Weight(in kg):</Typography>
+              <Typography>Weight:</Typography>
               <Input inpName="weight" inpValue={formData.properties.weight} onChange={(e) => handlePropertyChange("weight", e.target.value)} />
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Height(in m):</Typography>
+              <Typography>Height:</Typography>
               <Input inpName="height" inpValue={formData.properties.height} onChange={(e) => handlePropertyChange("height", e.target.value)} />
             </Box>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Length(in m):</Typography>
+              <Typography>Length:</Typography>
               <Input inpName="lengthOfInventory" inpValue={formData.properties.lengthOfInventory} onChange={(e) => handlePropertyChange("lengthOfInventory", e.target.value)} />
             </Box>
 
           </Grid>
 
           {/* Other Details Section */}
-          <Grid item xs={12} md={6} sx={{ width: "45%", display: "flex", flexDirection: "column", gap: "15px"}}>
+          <Grid item xs={12} md={6} sx={{ width: "45%", display: "flex", flexDirection: "column", gap: "15px" }}>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
               <Typography>Quantity:</Typography>
@@ -188,14 +349,10 @@ const InventoryForm = () => {
               <Input inpName="minQuantity" inpValue={formData.minQuantity} onChange={handleChange} />
             </Box>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Category:</Typography>
-              <Input inpName="category" inpValue={formData.category} onChange={handleChange} />
-            </Box>
-
           </Grid>
 
         </Grid>
+
 
         {/* Popup */}
         <Popup
@@ -207,6 +364,17 @@ const InventoryForm = () => {
             setShowPopup(false);
           }}
           onCancel={() => setShowPopup(false)}
+        />
+
+        <Popup
+          isOpen={existPopup}
+          title="Already Exists"
+          message="This thickness already exists!"
+          onConfirm={() => {
+            navi("/inventories/new-inventory");
+            setExistPopup(false);
+          }}
+          onCancel={() => setExistPopup(false)}
         />
 
       </Box>

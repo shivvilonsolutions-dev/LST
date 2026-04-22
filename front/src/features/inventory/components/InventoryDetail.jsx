@@ -10,6 +10,7 @@ import {
 import { useContext } from "react";
 import { InventoryContext } from "../../../contexts/inventory/inventoryContext";
 import Button from "../../../components/ui/Button";
+import React from "react";
 
 const InventoryDetail = () => {
   const { id } = useParams();
@@ -19,7 +20,7 @@ const InventoryDetail = () => {
   const inventory = inventories.find(
     (item) => item.id === Number(id)
   );
-
+  
   if (!inventory) return <Typography>Inventory not found</Typography>;
 
   return (
@@ -45,7 +46,7 @@ const InventoryDetail = () => {
       <Paper
         elevation={0}
         sx={{
-          p: 4,
+          p: 3,
           border: "1px solid #e2e8f0",
           borderRadius: 2,
         }}
@@ -56,7 +57,6 @@ const InventoryDetail = () => {
           variant="h4"
           textAlign="center"
           fontWeight="500"
-          mb={4}
         >
           Inventory Detail
         </Typography>
@@ -68,12 +68,10 @@ const InventoryDetail = () => {
             alignItems: "center",
             mt: 2,
             mb: 3,
+            gap: 2
           }}
         >
-          <Typography sx={{ width: 180 }}>
-            Inventory Name:
-          </Typography>
-
+          <Typography sx={{ width: 140 }}>Inventory Name:</Typography>
           <Box
             sx={{
               flex: 1,
@@ -85,28 +83,81 @@ const InventoryDetail = () => {
           >
             {inventory.inventoryName}
           </Box>
+
+          <Typography>Date:</Typography>
+          <Box
+            sx={{
+              flex: 1,
+              bgcolor: "#e6edf7",
+              px: 2,
+              py: 1,
+              borderRadius: 1,
+            }}
+          >
+            {inventory.dateOfInventory}
+          </Box>
         </Box>
 
-        {/* 🔹 Row 2 → Properties + Right Section */}
-        <Grid container spacing={4}>
+        {/* 🔹 Row 2 → Properties */}
+        <Box>
 
-          {/* LEFT → Properties */}
-          <Grid item xs={12} md={7}>
+          <Typography mb={2} variant="h5" sx={{ marginBottom: "20px" }}>
+            Properties:
+          </Typography>
 
-            <Typography mb={2} variant="h5" sx={{ marginBottom: '20px' }}>Properties:</Typography>
-
-            <Grid container spacing={2}>
-
-              {[
-                { label: "Thickness", value: inventory.properties.thickness === "" ? "-" : inventory.properties.thickness + " mm" },
-                { label: "Weight", value: inventory.properties.weight === "" ? "-" : inventory.properties.weight + " kg" },
-                { label: "Height", value: inventory.properties.height === "" ? "-" : inventory.properties.height + " m" },
-                { label: "Length", value: inventory.properties.lengthOfInventory === "" ? "-" : inventory.properties.lengthOfInventory + "m" }
-              ].map((item) => (
-                <Grid item xs={6} key={item.label}>
-                  <Box display="flex" alignItems="center" gap={1}>
-
-                    <Typography sx={{ width: 90, marginBottom: "10px" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {inventory.properties?.map((prop) => (
+              <Box
+                key={prop.id}
+                sx={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 2,
+                  pb: 1,
+                  borderBottom: "1px solid #e2e8f0",
+                }}
+              >
+                {[
+                  {
+                    label: "Thickness",
+                    value: prop.thickness ? prop.thickness : "-",
+                  },
+                  {
+                    label: "Weight",
+                    value: prop.weight ? prop.weight : "-",
+                  },
+                  {
+                    label: "Height",
+                    value: prop.height ? prop.height : "-",
+                  },
+                  {
+                    label: "Length",
+                    value: prop.lengthOfInventory
+                      ? prop.lengthOfInventory
+                      : "-",
+                  },
+                  {
+                    label: "Quantity",
+                    value: prop.quantity || "-",
+                  },
+                ].map((item) => (
+                  <Box
+                    key={item.label}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      minWidth: "220px",
+                      flex: "1 1 220px",
+                    }}
+                  >
+                    <Typography sx={{ width: 90 }}>
                       {item.label}:
                     </Typography>
 
@@ -120,65 +171,15 @@ const InventoryDetail = () => {
                         textAlign: "center",
                       }}
                     >
-                      {item.value || "-"}
+                      {item.value}
                     </Box>
-
                   </Box>
-                </Grid>
-              ))}
-
-            </Grid>
-          </Grid>
-
-          {/* RIGHT → Quantity + Category */}
-          <Grid item xs={12} md={5}>
-            <Stack direction="row" spacing={15} sx={{justifyContent:"space-around"}}>
-
-              {/* Quantity */}
-              <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                <Typography variant="h5" sx={{ minWidth: 110 }}>
-                  Quantity:
-                </Typography>
-
-                <Box
-                  sx={{
-                    width: "100%",
-                    bgcolor: "#e6edf7",
-                    px: 2,
-                    py: 2.4,
-                    borderRadius: 1,
-                    fontSize: 25
-                  }}
-                >
-                  {inventory.quantity}
-                </Box>
+                ))}
               </Box>
+            ))}
+          </Box>
 
-              {/* Category */}
-              <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                <Typography variant="h5" sx={{ minWidth: 110 }}>
-                  Category:
-                </Typography>
-
-                <Box
-                  sx={{
-                    width: "100%",
-                    bgcolor: "#e6edf7",
-                    px: 2,
-                    py: 2.4,
-                    borderRadius: 1,
-                    fontSize: 25
-                  }}
-                >
-                  {inventory.category || "-"}
-                </Box>
-              </Box>
-
-            </Stack>
-          </Grid>
-
-        </Grid>
-
+        </Box>
       </Paper>
     </Box>
   );
