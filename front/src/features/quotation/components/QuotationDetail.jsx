@@ -15,17 +15,21 @@ import {
 
 import { useParams, useNavigate } from "react-router-dom";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
+import { ClientContext } from "../../../contexts/client/clientContext"
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
 import calculateAmount from "../../../utils/calculateQuotationAmount";
 import { handleDownloadPDF } from "../../../utils/handleDownloadPDF";
+import { useLocation } from "react-router-dom";
+
 
 const QuotationDetail = () => {
+  const location = useLocation();
   const { quotations, setQuotations } = useContext(QuotationContext);
+  const { clients, setClients } = useContext(ClientContext);
   const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
-  console.log("After initiaion: ", isEditing)
 
   const navi = useNavigate();
   const pdfRef = useRef();
@@ -71,9 +75,31 @@ const QuotationDetail = () => {
     );
 
     setQuotations(updatedData);
+    
+    const updatedClients = clients.map((c) => {
+      if (c.cliId === quotation.cliId) {
+        return {
+          ...c,
+          cliName: updatedItem.cliName,
+          mobile: updatedItem.mobile,
+          quotationList: c.quotationList.map((q) =>
+            q.id == id
+              ? {
+                ...q,
+                amount: updatedItem.amount,
+                date: updatedItem.quotationDate,
+                materials: updatedItem.materials,
+              }
+              : q
+          ),
+        };
+      }
+      return c;
+    });
+
+    setClients(updatedClients);
     setEditData(updatedItem);
 
-    console.log("Before saving: ", isEditing)
     setIsEditing(false);
   };
 
@@ -126,7 +152,7 @@ const QuotationDetail = () => {
             btnName="← Back"
             btnColor="gray"
             txtCol="black"
-            onClick={() => navi("/quotations")}
+            onClick={() => navi(location.state?.from || "/quotations")}
           />
 
           {/* RIGHT */}
@@ -137,7 +163,7 @@ const QuotationDetail = () => {
             ) : (
               <Button btnName="Save" btnColor="green" onClick={handleSave} />
             )}
-            
+
             <Button
               btnName="Print"
               btnColor="red"
@@ -167,8 +193,7 @@ const QuotationDetail = () => {
             <Input
               inpName="cliName"
               inpValue={editData.cliName}
-              readOnly={!isEditing}
-              onChange={handleChange}
+              readOnly={true}
             />
 
             <Typography>Date:</Typography>
@@ -179,108 +204,133 @@ const QuotationDetail = () => {
           </Box>
 
           {/* MAIN SECTION */}
-          <Grid container spacing={3} mt={1}>
-
+          <Box
+            sx={{
+              display: "flex",
+              gap: 3,
+              mt: 3,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
             {/* TABLE (MATCHED STYLE) */}
-            <Grid item xs={12} md={8}>
-              <Box sx={{ height: "100%" }}>
-                <TableContainer
-                  sx={{ height: "100%" }}
-                >
-                  <Table
-                    sx={{
-                      width: "90%",
-                      height: "80%",
-                      "& th, & td": {
-                        padding: "3px",
-                      },
-                    }}
-                  >
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ width: "5%" }}>No.</TableCell>
-                        <TableCell sx={{ width: "40%" }}>Name</TableCell>
-                        <TableCell sx={{ width: "15%" }}>Gej</TableCell>
-                        <TableCell sx={{ width: "15%" }}>Price</TableCell>
-                        <TableCell sx={{ width: "15%" }}>Qty</TableCell>
-                      </TableRow>
-                    </TableHead>
+            <Box sx={{ flex: 1 }}>
+              <Table
+                sx={{
+                  width: "100%",
+                  tableLayout: "fixed",
+                  "& th, & td": {
+                    padding: "3px",
+                  },
+                }}
+              >
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ width: "5%" }}>No.</TableCell>
+                    <TableCell sx={{ width: "55%" }}>Size</TableCell>
+                    <TableCell sx={{ width: "15%" }}>Peice</TableCell>
+                    <TableCell sx={{ width: "15%" }}>Gauge</TableCell>
+                  </TableRow>
+                </TableHead>
 
-                    <TableBody>
-                      {editData.materials.map((_, i) => (
-                        <TableRow key={i}>
+                <TableBody>
+                  {editData.materials.map((_, i) => (
+                    <TableRow key={i}>
 
-                          {/* Index */}
-                          <TableCell sx={{ p: "3px" }}>{i + 1}</TableCell>
+                      {/* Index */}
+                      <TableCell sx={{ p: "3px" }}>{i + 1}</TableCell>
 
-                          {/* Reusable Cells */}
-                          {renderCell("nameOfMaterial", i)}
-                          {renderCell("gej", i)}
-                          {renderCell("pic", i)}
-                          {renderCell("qty", i)}
+                      {/* Reusable Cells */}
+                      {renderCell("size", i)}
+                      {renderCell("gej", i)}
+                      {renderCell("pic", i)}
 
-                        </TableRow>
-                      ))}
-                    </TableBody>
+                    </TableRow>
+                  ))}
+                </TableBody>
 
-                  </Table>
-                </TableContainer>
-              </Box>
-
-            </Grid>
+              </Table>
+            </Box>
 
             {/* RIGHT SECTION (MATCHED) */}
-            <Stack spacing={1} sx={{ width: "25%", display: "flex", flexDirection: "column", gap: "15px" }}>
-
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <Box
+              sx={{
+                flexShrink: 0,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography>Mobile No.:</Typography>
-                <Input
-                  inpName="mobile"
-                  inpValue={editData.mobile}
-                  readOnly={!isEditing}
-                  onChange={handleChange}
-                />
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="mobile"
+                    inpValue={editData.mobile}
+                    readOnly={true}
+                  />
+                </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                <Typography>Rate B:</Typography>
-                <Input
-                  inpName="rateB"
-                  inpValue={editData.rateB}
-                  readOnly={!isEditing}
-                  onChange={handleChange}
-                />
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography>Rate B1:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="rateB"
+                    inpValue={editData.rateB1}
+                    readOnly={!isEditing}
+                    onChange={handleChange}
+                  />
+                </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography>Rate B2:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="rateB"
+                    inpValue={editData.rateB2}
+                    readOnly={!isEditing}
+                    onChange={handleChange}
+                  />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography>Bending:</Typography>
-                <Input
-                  inpName="bending"
-                  inpValue={editData.bending}
-                  readOnly={!isEditing}
-                  onChange={handleChange}
-                />
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="bending"
+                    inpValue={editData.bending}
+                    readOnly={!isEditing}
+                    onChange={handleChange}
+                  />
+                </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography>Add:</Typography>
-                <Input
-                  inpName="add"
-                  inpValue={editData.add}
-                  readOnly={!isEditing}
-                  onChange={handleChange}
-                />
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="add"
+                    inpValue={editData.add}
+                    readOnly={!isEditing}
+                    onChange={handleChange}
+                  />
+                </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography>Quotation Amount:</Typography>
-                <Input readOnly inpValue={total} />
+                <Box sx={{ width: "60%" }}>
+                  <Input readOnly inpValue={total} />
+                </Box>
               </Box>
 
-            </Stack>
 
-          </Grid>
 
+            </Box>
+          </Box>
         </Box>
 
       </Box>

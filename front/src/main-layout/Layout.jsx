@@ -21,7 +21,7 @@ const Layout = () => {
       <Sidebar
         mobileOpen={mobileOpen}
         onClose={handleDrawerToggle}
-        isHovered={isSidebarOpen}
+        showText={isSidebarOpen}
         setIsHovered={setIsSidebarOpen}
       />
 

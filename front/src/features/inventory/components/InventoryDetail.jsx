@@ -129,6 +129,10 @@ const InventoryDetail = () => {
                     value: prop.thickness ? prop.thickness : "-",
                   },
                   {
+                    label: "Quantity",
+                    value: prop.quantity || "-",
+                  },
+                  {
                     label: "Weight",
                     value: prop.weight ? prop.weight : "-",
                   },
@@ -141,10 +145,6 @@ const InventoryDetail = () => {
                     value: prop.lengthOfInventory
                       ? prop.lengthOfInventory
                       : "-",
-                  },
-                  {
-                    label: "Quantity",
-                    value: prop.quantity || "-",
                   },
                 ].map((item) => (
                   <Box

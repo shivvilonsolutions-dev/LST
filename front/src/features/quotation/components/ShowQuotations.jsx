@@ -16,16 +16,20 @@ import {
 } from "@mui/material";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import Popup from "../../../components/ui/Popup";
+import { ClientContext } from "../../../contexts/client/clientContext";
 
 const ShowQuotations = ({ data }) => {
   const { quotations, setQuotations } = useContext(QuotationContext);
+  const { clients, setClients } = useContext(ClientContext)
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
-  const rowsPerPage = 5;
+  const rowsPerPage = 4;
   const navi = useNavigate()
 
   const [showPopup, setShowPopup] = useState(false);
+  const [confirmPopUp, setConfirmPopUp] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   console.log(quotations)
 
   const paginatedData = data.slice(
@@ -33,38 +37,39 @@ const ShowQuotations = ({ data }) => {
     page * rowsPerPage + rowsPerPage
   );
 
-  const handleClick = (quotId) => {
-    const updated = quotations.map((item) =>
-      item.id === quotId
-        ? { ...item, status: item.status === "PENDING" ? "CONFIRM" : "PENDING"}
-        : item
-    );
-
-    setQuotations(updated)
-    selectedId(null)
-  };
-
   const handleConfirm = () => {
     const updated = quotations.map((item) =>
-      item.id === selectedId
-        ? { ...item, status: "CONFIRM" }
+      item.id === selectedItem.id
+        ? {
+          ...item,
+          status:
+            item.status === "PENDING" ? "CONFIRM" : "PENDING",
+        }
         : item
     );
 
     setQuotations(updated);
-    setShowPopup(false);
-    setSelectedId(null);
+    setConfirmPopUp(false);
+    setSelectedItem(null);
   };
 
   const handleDelete = (deleteId) => {
-    const updated = quotations.filter((item) =>
-      item.id !== deleteId
-    )
+    const updatedQuotations = quotations.filter(
+      (item) => item.id !== deleteId
+    );
+    setQuotations(updatedQuotations);
 
-    setQuotations(updated)
-    setShowPopup(false)
-    setSelectedId(null)
-  }
+    const updatedClients = clients.map((client) => ({
+      ...client,
+      quotationList: (client.quotationList || []).filter(
+        (q) => q.id !== deleteId
+      ),
+    }));
+    setClients(updatedClients);
+
+    setShowPopup(false);
+    setSelectedId(null);
+  };
 
   return (
     <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
@@ -110,19 +115,20 @@ const ShowQuotations = ({ data }) => {
                   {/* Status */}
                   <TableCell>
                     <Chip
-                        label={item.status}
-                        color={
-                          item.status === "CONFIRM"
-                            ? "success"
-                            : "warning"
-                        }
-                        onClick={() => {
-                          handleClick(item.id)
-                        }}
-                        size="small"
-                        sx={{ marginRight: "15px" }}
-                      />
-                      
+                      label={item.status}
+                      color={
+                        item.status === "CONFIRM"
+                          ? "success"
+                          : "warning"
+                      }
+                      onClick={() => {
+                        setSelectedItem(item);
+                        setConfirmPopUp(true);
+                      }}
+                      size="small"
+                      sx={{ marginRight: "15px" }}
+                    />
+
                   </TableCell>
 
                   {/* Edit */}
@@ -136,7 +142,9 @@ const ShowQuotations = ({ data }) => {
                         },
                       }}
                       onClick={() => {
-                        navi(`/quotations/${item.id}`)
+                        navi(`/quotations/${item.id}`, {
+                          state: { from: "/quotations" }
+                        });
                       }}
                     >
                       Edit
@@ -205,13 +213,17 @@ const ShowQuotations = ({ data }) => {
 
       {/* Popup Confirm Quotation */}
       <Popup
-        isOpen={showPopup}
-        title="Confirm Quotation"
-        message="Are you sure you want to confirm this quotation?"
+        isOpen={confirmPopUp}
+        title="Update Status"
+        message={
+          selectedItem?.status === "PENDING"
+            ? "Are you sure you want to CONFIRM this quotation?"
+            : "Are you sure you want to mark this quotation as PENDING?"
+        }
         onConfirm={handleConfirm}
         onCancel={() => {
-          setShowPopup(false);
-          setSelectedId(null);
+          setConfirmPopUp(false);
+          setSelectedItem(null);
         }}
       />
 

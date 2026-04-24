@@ -6,13 +6,18 @@ import DashboardArea from "./features/dashboard/DashboardArea";
 import InventoryArea from "./features/inventory/InventoryArea";
 import QuotationArea from "./features/quotation/QuotationArea";
 import PaymentArea from "./features/payment/PaymentArea";
+import ClientArea from "./features/clients/ClientArea"
+
 import QuotationForm from "./features/quotation/components/QuotationForm";
 import QuotationDetail from "./features/quotation/components/QuotationDetail";
 import InventoryDetail from "./features/inventory/components/InventoryDetail"
 import InventoryForm from "./features/inventory/components/InventoryForm";
+import ClientDetail from "./features/clients/components/ClientDetail"
 
 import QuotationProvider from "./contexts/quotation/QuotationProvider";
 import InventoryProvider from "./contexts/inventory/InventoryProvider";
+import ClientProvider from "./contexts/client/ClientProvider"
+import { ClientContext } from "./contexts/client/clientContext";
 
 function App() {
   return (
@@ -63,34 +68,61 @@ function App() {
             }
           />
 
-          
+          <Route
+            path="/clients"
+            element={
+              <QuotationProvider>
+                <ClientProvider>
+                  <ClientArea />
+                </ClientProvider>
+              </QuotationProvider>
+            }
+          />
+
+          <Route
+            path="/clients/:id"
+            element={
+              <QuotationProvider>
+                <ClientProvider>
+                  <ClientDetail />
+                </ClientProvider>
+              </QuotationProvider>
+            }
+          />
+
+
           <Route path="/payment" element={<PaymentArea />} />
 
-          {/* ✅ Wrap once here */}
           <Route
             path="/quotations"
             element={
-              <QuotationProvider>
-                <QuotationArea />
-              </QuotationProvider>
+              <ClientProvider>
+                <QuotationProvider>
+                  <QuotationArea />
+                </QuotationProvider>
+              </ClientProvider>
             }
           />
 
           <Route
             path="/quotations/send-quotation"
             element={
-              <QuotationProvider>
-                <QuotationForm />
-              </QuotationProvider>
+              <ClientProvider>
+                <QuotationProvider>
+                  <QuotationForm />
+                </QuotationProvider>
+              </ClientProvider>
             }
           />
 
           <Route
             path="/quotations/:id"
             element={
-              <QuotationProvider>
-                <QuotationDetail />
-              </QuotationProvider>
+              <ClientProvider>
+                <QuotationProvider>
+                  <QuotationDetail />
+                </QuotationProvider>
+              </ClientProvider>
             }
           />
 

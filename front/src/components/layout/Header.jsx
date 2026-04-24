@@ -13,6 +13,9 @@ const getTitle = (path) => {
   if (path.startsWith("/inventories")) return "Inventories";
 
   if (path.startsWith("/payment")) return "Payment";
+
+  if (path.startsWith("/clients")) return "Clients";
+
   if (path.startsWith("/dashboard")) return "Dashboard";
 
   return "Dashboard";

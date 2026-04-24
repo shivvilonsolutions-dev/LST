@@ -9,11 +9,13 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
+import { useTheme, useMediaQuery } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import InventoryIcon from "@mui/icons-material/Inventory";
+import GroupsIcon from "@mui/icons-material/Groups";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -24,13 +26,17 @@ const collapsedWidth = 70;
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
   { label: "Quotation", path: "/quotations", icon: <ReceiptLongIcon /> },
+  { label: "Client", path: "/clients", icon: <GroupsIcon /> },
   { label: "Inventory", path: "/inventories", icon: <InventoryIcon /> },
   { label: "Payment", path: "/payment", icon: <PaymentsIcon /> },
 ];
 
-const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
+const Sidebar = ({ mobileOpen, onClose, showText, setIsHovered }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const location = useLocation();
   const navigate = useNavigate();
+  const shouldShowText  = isMobile || showText;
 
   const drawerContent = (
     <Box
@@ -42,8 +48,8 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
       }}
     >
       {/* Logo */}
-      <Box sx={{ p: 2, textAlign: isHovered ? "left" : "center" }}>
-        {isHovered ? (
+      <Box sx={{ p: 2, textAlign: shouldShowText  ? "left" : "center" }}>
+        {shouldShowText  ? (
           <>
             <Typography variant="h6" fontWeight="bold">
               Shivvilon Solutions
@@ -75,9 +81,9 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
               disableRipple
               sx={{
                 width: "100%",
-                px: isHovered ? 3 : 1.5,
+                px: shouldShowText  ? 3 : 1.5,
                 py: 1.5,
-                justifyContent: isHovered ? "flex-start" : "center",
+                justifyContent: shouldShowText  ? "flex-start" : "center",
 
                 color: isActive ? "primary.main" : "text.secondary",
 
@@ -94,14 +100,14 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
                 "& .MuiListItemIcon-root": {
                   color: "inherit",
                   minWidth: 0,
-                  mr: isHovered ? 2 : 0,
+                  mr: shouldShowText ? 2 : 0,
                   justifyContent: "center",
                 },
               }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
 
-              {isHovered && (
+              {shouldShowText  && (
                 <ListItemText
                   primary={item.label}
                   primaryTypographyProps={{
@@ -125,8 +131,8 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
         <ListItemButton
           onClick={() => navigate("/")}
           sx={{
-            px: isHovered ? 2 : 1.5,
-            justifyContent: isHovered ? "flex-start" : "center",
+            px: shouldShowText  ? 2 : 1.5,
+            justifyContent: shouldShowText  ? "flex-start" : "center",
 
             "&:hover": {
               bgcolor: "error.light",
@@ -136,7 +142,7 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
             "& .MuiListItemIcon-root": {
               color: "inherit",
               minWidth: 0,
-              mr: isHovered ? 2 : 0,
+              mr: shouldShowText  ? 2 : 0,
               justifyContent: "center",
             },
           }}
@@ -145,7 +151,7 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
             <LogoutIcon />
           </ListItemIcon>
 
-          {isHovered && <ListItemText primary="Logout" />}
+          {shouldShowText  && <ListItemText primary="Logout" />}
         </ListItemButton>
       </Box>
     </Box>
@@ -177,7 +183,7 @@ const Sidebar = ({ mobileOpen, onClose, isHovered, setIsHovered }) => {
         sx={{
           display: { xs: "none", md: "block" },
           "& .MuiDrawer-paper": {
-            width: isHovered ? expandedWidth : collapsedWidth,
+            width: shouldShowText  ? expandedWidth : collapsedWidth,
             overflowX: "hidden",
             transition: "all 0.3s ease",
             borderRight: "1px solid #eee",

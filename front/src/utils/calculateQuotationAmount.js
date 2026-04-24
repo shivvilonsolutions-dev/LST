@@ -1,15 +1,29 @@
-const calculateAmount = (data) => {
-  const materialTotal = data.materials.reduce((sum, row) => {
-    const pic = Number(row.pic) || 0;
-    const qty = Number(row.qty) || 0;
+const calculateAmount = (formData) => {
+  const categories = [
+    ...new Set(
+      formData.materials
+        .map((m) => m.category)
+        .filter(Boolean)
+    ),
+  ];
 
-    return sum + pic * qty;
-  }, 0);
+  const cat1 = categories[0];
+  const cat2 = categories[1];
 
-  const bending = Number(data.bending) || 0;
-  const add = Number(data.add) || 0;
+  let sum1 = 0;
+  let sum2 = 0;
 
-  return materialTotal + bending + add;
+  formData.materials.forEach((m) => {
+    const value = Number(m.pic || 0);
+
+    if (m.category === cat1) sum1 += value;
+    else if (m.category === cat2) sum2 += value;
+  });
+
+  return (
+    sum1 * Number(formData.rateB1 || 0) +
+    sum2 * Number(formData.rateB2 || 0)
+  );
 };
 
 export default calculateAmount

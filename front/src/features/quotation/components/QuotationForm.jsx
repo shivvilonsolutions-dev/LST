@@ -10,6 +10,8 @@ import {
   TableCell,
   TableBody,
   Divider,
+  Select,
+  MenuItem
 } from "@mui/material";
 
 import Input from "../../../components/ui/Input";
@@ -18,6 +20,7 @@ import Popup from "../../../components/ui/Popup";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
+import { ClientContext } from "../../../contexts/client/clientContext"
 import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
 import calculateAmount from "../../../utils/calculateQuotationAmount";
 
@@ -27,21 +30,26 @@ const QuotationForm = () => {
   const [mobilePopup, setMobilePopup] = useState(false);
   const [time, setTime] = useState(getCurrentDateTime());
   const { quotations, setQuotations } = useContext(QuotationContext);
+  const { clients, setClients } = useContext(ClientContext);
+  const [isNewClient, setIsNewClient] = useState(false);
   const [formData, setFormData] = useState({
+    cliId: "",
     cliName: "",
     mobile: "",
     amount: "",
-    materials: Array(5).fill({
-      nameOfMaterial: "",
+    materials: Array(6).fill({
+      size: "",
       gej: "",
       pic: "",
-      qty: "",
+      category: "",
     }),
-    rateB: "",
+    rateB1: "",
+    rateB2: "",
     bending: "",
     add: "",
     status: "PENDING",
   });
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -71,21 +79,70 @@ const QuotationForm = () => {
       [e.target.name]: e.target.value,
     });
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    let finalCliId = formData.cliId;
+    let index = -1;
+
+    if (formData.cliId) {
+      index = clients.findIndex(
+        (c) => Number(c.cliId) === Number(formData.cliId)
+      );
+    } else if (formData.mobile) {
+      index = clients.findIndex(
+        (c) => c.mobile === formData.mobile
+      );
+    }
+
+    if (index === -1) {
+      finalCliId = Date.now();
+
+      const newClient = {
+        cliId: finalCliId,
+        cliName: formData.cliName,
+        mobile: formData.mobile,
+        dateOfJoin: getCurrentDateTime(),
+      };
+
+      setClients([newClient, ...clients]);
+    }
+    else {
+      finalCliId = clients[index].cliId;
+    }
 
     const newQuotation = {
       ...formData,
       id: Date.now(),
+      cliId: Number(finalCliId),
+      status: "PENDING",
       quotationDate: getCurrentDateTime(),
       amount: total,
     };
 
-    setQuotations([...quotations, newQuotation]);
+    setQuotations([newQuotation, ...quotations]);
+
+    const quotationEntry = {
+      id: newQuotation.id,
+      date: newQuotation.quotationDate,
+      materials: newQuotation.materials,
+      amount: newQuotation.amount,
+      dateOfQuotation: newQuotation.quotationDate,
+    };
+
+    if (index !== -1) {
+      const updatedClients = [...clients];
+
+      updatedClients[index].quotationList = [
+        ...(updatedClients[index].quotationList || []),
+        quotationEntry,
+      ];
+
+      setClients(updatedClients);
+    }
+
     setShowPopup(true);
   };
-
   const handleWhatsApp = () => {
     if (!formData.mobile) {
       setMobilePopup(true);
@@ -104,8 +161,8 @@ const QuotationForm = () => {
       .map(m => `• ${m.nameOfMaterial} (${m.pic} * ${m.qty})`)
       .join("\n");
 
-    const message = 
-`Hello ${formData.cliName},
+    const message =
+      `Hello ${formData.cliName},
 
 Your quotation: 
 ${materialsText}
@@ -172,23 +229,147 @@ Thank you!`;
         </Box>
 
         {/* Client + Time */}
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "specify-around", alignItems: "center", mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "space-between", alignItems: "center", mb: 2 }}>
 
-          <Typography sx={{ minWidth: 95 }}>Client Name:</Typography>
-          <Input inpName="cliName" isReq={true} inpValue={formData.cliName} inpPlaceholder="Enter Client Name" onChange={handleChange} />
+          {/* Client */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flex: 1,
+              minWidth: { xs: "100%", md: 300 }
+            }}
+          >
 
-          <Typography>Date:</Typography>
-          <Input inpValue={time} readOnly sx={{ width: 20 }} />
+            {/* Label */}
+            <Typography sx={{ minWidth: 120 }}>
+              Client Name:
+            </Typography>
+
+            {/* Input Area */}
+            {!isNewClient ? (
+              <Select
+                size="small"
+                value={formData.cliId || ""}
+                displayEmpty
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === "__new__") {
+                    setIsNewClient(true);
+                    setFormData({
+                      ...formData,
+                      cliId: "",
+                      cliName: "",
+                      mobile: ""
+                    });
+                  } else {
+                    const selectedClient = clients.find(
+                      (c) => Number(c.cliId) === Number(value)
+                    );
+
+                    if (!selectedClient) return;
+
+                    setFormData({
+                      ...formData,
+                      cliId: Number(value), // ✅ FIX
+                      cliName: selectedClient.cliName,
+                      mobile: selectedClient.mobile,
+                    });
+                  }
+                }}
+                sx={{
+                  flex: 1,
+                  minWidth: 0
+                }}
+              >
+                <MenuItem value="" disabled>
+                  Select Client
+                </MenuItem>
+
+                <MenuItem value="__new__" sx={{ color: "primary.main" }}>
+                  + Add New
+                </MenuItem>
+
+                {clients.map((client) => (
+                  <MenuItem key={client.cliId} value={client.cliId}>
+                    {client.cliName} ({client.mobile})
+                  </MenuItem>
+                ))}
+              </Select>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                  flex: 1,
+                }}
+              >
+                <Input
+                  inpName="cliName"
+                  inpValue={formData.cliName}
+                  inpPlaceholder="Enter client name"
+                  onChange={handleChange}
+                  inpWidth="100%"
+                />
+
+                <Button
+                  btnName="Cancel"
+                  btnColor="gray"
+                  txtCol="black"
+                  btnWidth="auto"
+                  onClick={() => {
+                    setIsNewClient(false);
+                    setFormData({
+                      ...formData,
+                      cliName: "",
+                      mobile: ""
+                    });
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
+
+          {/* Time */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              minWidth: "450px",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Typography>Date:</Typography>
+
+            <Input
+              inpValue={time}
+              readOnly
+            />
+          </Box>
 
         </Box>
 
         {/* Main Section */}
-        <Grid container spacing={3} mt={2} sx={{marginTop: "30px "}}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 3,
+            mt: 3,
+            width: "100%",
+            alignItems: "center",
+          }}
+        >
 
           {/* Table */}
-          <Grid item xs={12} md={6}>
+          <Box sx={{ flex: 1 }}>
             <Table
               sx={{
+                width: "100%",
+                tableLayout: "fixed",
                 "& th, & td": {
                   padding: "3px",
                 },
@@ -197,17 +378,16 @@ Thank you!`;
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ width: "5%" }}>No.</TableCell>
-                  <TableCell sx={{ width: "40%" }}>Name</TableCell>
-                  <TableCell sx={{ width: "15%" }}>Gauge</TableCell>
-                  <TableCell sx={{ width: "15%" }}>Price (per item)</TableCell>
-                  <TableCell sx={{ width: "15%" }}>Quantity</TableCell>
+                  <TableCell sx={{ width: "40%" }}>Size</TableCell>
+                  <TableCell sx={{ width: "21%" }}>Category</TableCell>
+                  <TableCell sx={{ width: "12%" }}>Peice</TableCell>
+                  <TableCell sx={{ width: "12%" }}>Gauge</TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
                 {formData.materials.map((row, i) => {
-                  const isRowFilled =
-                    row.nameOfMaterial || row.gej || row.pic || row.qty;
+                  const isRowFilled = row.size || row.gej || row.pic;
 
                   return (
                     <TableRow key={i}>
@@ -215,10 +395,38 @@ Thank you!`;
 
                       <TableCell>
                         <Input
-                          inpValue={row.nameOfMaterial}
+                          inpValue={row.size}
+                          onChange={(e) => {
+                            handleMaterialChange(i, "size", e.target.value)
+                          }}
+                          isReq={isRowFilled}
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        <Select
+                          size="small"
+                          displayEmpty
+                          value={row.category || ""}
                           onChange={(e) =>
-                            handleMaterialChange(i, "nameOfMaterial", e.target.value)
+                            handleMaterialChange(i, "category", e.target.value)
                           }
+                          sx={{ width: "100%", color: row.category ? "inherit" : "text.secondary" }}
+                        >
+                          <MenuItem value="">Select Category</MenuItem>
+                          <MenuItem value="B1">Category - 1</MenuItem>
+                          <MenuItem value="B2">Category - 2</MenuItem>
+                          <MenuItem value="B3">Category - 3</MenuItem>
+                        </Select>
+                      </TableCell>
+
+                      <TableCell>
+                        <Input
+                          inpValue={row.pic}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            handleMaterialChange(i, "pic", value)
+                          }}
                           isReq={isRowFilled}
                         />
                       </TableCell>
@@ -232,87 +440,106 @@ Thank you!`;
                           isReq={isRowFilled}
                         />
                       </TableCell>
-
-                      <TableCell>
-                        <Input
-                          inpValue={row.pic}
-                          onChange={(e) =>{
-                            const value = e.target.value.replace(/\D/g, "");
-                            handleMaterialChange(i, "pic", value)
-                          }}
-                          isReq={isRowFilled}
-                        />
-                      </TableCell>
-
-                      <TableCell>
-                        <Input
-                          inpValue={row.qty}
-                          onChange={(e) =>{
-                            const value = e.target.value.replace(/\D/g, "");
-                            handleMaterialChange(i, "qty", value)
-                          }}
-                          isReq={isRowFilled}
-                        />
-                      </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
 
-            {/* Footer */}
-            <Box sx={{ textAlign: "center" }}>
-              <Typography sx={{ marginTop: "25px" }} textAlign="center" variant="h5" color="text.secondary">
-                માપ ચેક કરી ને રજા લેવી
-                <br />
-                <br />
-                કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
-              </Typography>
-            </Box>
-          </Grid>
+          </Box>
 
           {/* Right Section */}
-          <Grid item xs={12} md={6} sx={{ marginLeft: "30px", width: "28%", display: "flex", flexDirection: "column", gap: "15px" }}>
+          <Box
+            sx={{
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: "13px" }}>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Mobile No.:</Typography>
-              <Input inpName="mobile" isReq={true} inpValue={formData.mobile} 
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, "");
-                  handleChange({ target: { name: "mobile", value } });
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Mobile No.:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="mobile"
+                    isReq={true}
+                    inpValue={formData.mobile}
+                    disabled={!isNewClient && !!formData.cliId}  // ✅ KEY LINE
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      handleChange({ target: { name: "mobile", value } });
+                    }}
+                  />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Rate B1:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input inpName="rateB1" inpValue={formData.rateB1} onChange={handleChange} isReq={true} />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Rate B2:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input inpName="rateB2" inpValue={formData.rateB2} onChange={handleChange} />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Add:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input inpName="add" inpValue={formData.add} onChange={handleChange} />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Bending:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input inpName="bending" inpValue={formData.bending} onChange={handleChange} />
+                </Box>
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
-              />
+              >
+                <Typography sx={{ width: "40%" }}>
+                  Quotation Amount:
+                </Typography>
+
+                <Box sx={{ width: "60%" }}>
+                  <Input inpValue={total} readOnly />
+                </Box>
+              </Box>
+
             </Box>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Rate B:</Typography>
-              <Input inpName="rateB" inpValue={formData.rateB} onChange={handleChange} />
-            </Box>
+          </Box>
+        </Box>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Bending:</Typography>
-              <Input inpName="bending" inpValue={formData.bending} onChange={handleChange} />
-            </Box>
 
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Add:</Typography>
-              <Input inpName="add" inpValue={formData.add} onChange={handleChange} />
-            </Box>
-
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-              <Typography>Quotation Amount:</Typography>
-              <Input inpValue={total} readOnly />
-            </Box>
-
-          </Grid>
-
-        </Grid>
+        {/* Footer */}
+        <Box sx={{ textAlign: "center" }}>
+          <Typography sx={{ marginTop: "25px" }} textAlign="center" variant="h5" color="text.secondary">
+            માપ ચેક કરી ને રજા લેવી
+            <br />
+            <br />
+            કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
+          </Typography>
+        </Box>
 
         {/* Popup */}
         <Popup
           isOpen={showPopup}
           title="Confirm Action"
-          message="Are you sure to send the Quotation?"
+          message={`Are you sure to send the Quotation to ${formData.cliName}?`}
           onConfirm={() => {
             navi("/quotations");
             setShowPopup(false);

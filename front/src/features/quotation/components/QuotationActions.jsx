@@ -68,7 +68,7 @@ const QuotationActions = ({ setFilter, setSearch }) => {
         
         <TextField
           size="small"
-          placeholder="Search by client name..."
+          placeholder="Search here..."
           onChange={(e) => setSearch(e.target.value)}
           sx={{
             width: 260,

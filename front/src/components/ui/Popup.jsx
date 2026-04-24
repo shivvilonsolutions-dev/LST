@@ -15,9 +15,13 @@ const Popup = ({ isOpen, title, message, onConfirm, onCancel }) => {
       <DialogTitle>{title}</DialogTitle>
 
       <DialogContent>
-        <Typography color="text.secondary">
-          {message}
-        </Typography>
+        {typeof message === "string" ? (
+          <Typography color="text.secondary">
+            {message}
+          </Typography>
+        ) : (
+          message
+        )}
       </DialogContent>
 
       <DialogActions>

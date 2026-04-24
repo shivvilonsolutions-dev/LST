@@ -30,7 +30,7 @@ const InventoryCard = ({ productName, property }) => {
 
         {/* Property */}
         <Typography variant="body2" color="text.secondary" mt={1}>
-          {property[0]["thickness"]} mm
+          {property[0]["thickness"]}
         </Typography>
 
         {/* Quantity */}

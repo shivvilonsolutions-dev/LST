@@ -16,20 +16,32 @@ const StatsCard = ({ title, value, active, valColor, cardBgColor }) => {
       }}
     >
       <Box>
-        
-        <Typography variant="h6" fontWeight={500}>
+
+        <Typography variant="h5" fontWeight={500}>
           {title}
         </Typography>
 
-        <Typography
-          variant="h5"
-          fontWeight="bold"
-          mt={1}
-          sx = {{ color : valColor}}
+        <Box
+          sx={{
+            mt: 1,
+            px: 2,
+            py: "4px",
+            border: "1px solid",
+            borderColor: "grey.300",
+            borderRadius: 2,
+            display: "inline-block",
+            
+          }}
         >
-          {value}
-        </Typography>
-
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            mt={1}
+            sx={{ color: valColor }}
+          >
+            Count: {value}
+          </Typography>
+        </Box>
       </Box>
     </Paper>
   );
