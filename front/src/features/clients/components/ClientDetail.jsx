@@ -193,6 +193,8 @@ const ClientDetail = () => {
                 <TableCell>Date</TableCell>
                 <TableCell>Material</TableCell>
                 <TableCell>Amount</TableCell>
+                <TableCell>WhatsApp No</TableCell>
+                <TableCell>Laser Cutting</TableCell>
                 <TableCell align="center">View Details</TableCell>
               </TableRow>
             </TableHead>
@@ -241,6 +243,14 @@ const ClientDetail = () => {
                     <TableCell sx={{ fontWeight: "500" }}>
                       ₹ {q.amount}
                     </TableCell>
+
+                    <TableCell>
+                     {q.whatsapp || "-"}
+                   </TableCell>
+
+                   <TableCell>                   
+                     {q.laserCutting || "-"}
+                   </TableCell>
 
                     {/* View */}
                     <TableCell align="center">

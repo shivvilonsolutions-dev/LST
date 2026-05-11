@@ -36,16 +36,17 @@ const QuotationForm = () => {
     cliId: "",
     cliName: "",
     mobile: "",
+    whatsapp: "",
     amount: "",
-    materials: Array(6).fill({
-      size: "",
-      gej: "",
-      pic: "",
-      category: "",
-    }),
+    materials: Array(6).fill().map(() => ({
+  size: "",
+  gej: "",
+  pic: "",
+})),
     rateB1: "",
     rateB2: "",
     bending: "",
+    laserCutting: "",
     add: "",
     status: "PENDING",
   });
@@ -59,6 +60,7 @@ const QuotationForm = () => {
   }, []);
 
   const total = calculateAmount(formData);
+  const finalAmount = formData.amount || total;
 
   const handleMaterialChange = (index, field, value) => {
     const updatedMaterials = [...formData.materials];
@@ -73,6 +75,30 @@ const QuotationForm = () => {
     });
   };
 
+  const handleAddRow = () => {
+  setFormData({
+    ...formData,
+    materials: [
+      ...formData.materials,
+      {
+        size: "",
+        gej: "",
+        pic: "",
+      },
+    ],
+  });
+};
+
+
+   const handleRemoveRow = (index) => {
+  const updated = formData.materials.filter((_, i) => i !== index);
+
+  setFormData({
+    ...formData,
+    materials: updated,
+  });
+};
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -81,6 +107,11 @@ const QuotationForm = () => {
   };
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!formData.cliName || !formData.cliName.trim()) {
+    alert("Please enter client name");
+    return;
+   }
 
     let finalCliId = formData.cliId;
     let index = -1;
@@ -117,7 +148,9 @@ const QuotationForm = () => {
       cliId: Number(finalCliId),
       status: "PENDING",
       quotationDate: getCurrentDateTime(),
-      amount: total,
+      amount: finalAmount, 
+      whatsapp: formData.whatsapp || "",
+      laserCutting: formData.laserCutting || "",
     };
 
     setQuotations([newQuotation, ...quotations]);
@@ -142,15 +175,16 @@ const QuotationForm = () => {
     }
 
     setShowPopup(true);
-  };
-  const handleWhatsApp = () => {
-    if (!formData.mobile) {
+    };
+      const handleWhatsApp = () => {
+        if (!formData.whatsapp) {
       setMobilePopup(true);
+       return;
+        }
 
-      return;
-    }
+  
 
-    let phone = formData.mobile.toString().replace(/\D/g, "");
+    let phone = formData.whatsapp.toString().replace(/\D/g, "");
 
     if (phone.length === 10) {
       phone = "91" + phone;
@@ -313,6 +347,7 @@ Thank you!`;
                   inpPlaceholder="Enter client name"
                   onChange={handleChange}
                   inpWidth="100%"
+                  isReq={true} 
                 />
 
                 <Button
@@ -379,9 +414,9 @@ Thank you!`;
                 <TableRow>
                   <TableCell sx={{ width: "5%" }}>No.</TableCell>
                   <TableCell sx={{ width: "40%" }}>Size</TableCell>
-                  <TableCell sx={{ width: "21%" }}>Category</TableCell>
                   <TableCell sx={{ width: "12%" }}>Peice</TableCell>
                   <TableCell sx={{ width: "12%" }}>Gauge</TableCell>
+                  <TableCell sx={{ width: "10%" }}>Action</TableCell>
                 </TableRow>
               </TableHead>
 
@@ -403,29 +438,13 @@ Thank you!`;
                         />
                       </TableCell>
 
-                      <TableCell>
-                        <Select
-                          size="small"
-                          displayEmpty
-                          value={row.category || ""}
-                          onChange={(e) =>
-                            handleMaterialChange(i, "category", e.target.value)
-                          }
-                          sx={{ width: "100%", color: row.category ? "inherit" : "text.secondary" }}
-                        >
-                          <MenuItem value="">Select Category</MenuItem>
-                          <MenuItem value="B1">Category - 1</MenuItem>
-                          <MenuItem value="B2">Category - 2</MenuItem>
-                          <MenuItem value="B3">Category - 3</MenuItem>
-                        </Select>
-                      </TableCell>
+                  
 
                       <TableCell>
                         <Input
                           inpValue={row.pic}
                           onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            handleMaterialChange(i, "pic", value)
+                           handleMaterialChange(i, "pic", e.target.value)
                           }}
                           isReq={isRowFilled}
                         />
@@ -440,11 +459,28 @@ Thank you!`;
                           isReq={isRowFilled}
                         />
                       </TableCell>
+
+
+                      <TableCell>
+                       <Button
+                         btnName="X"
+                         btnColor="red"
+                         onClick={() => handleRemoveRow(i)}
+                       />
+                     </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
+
+            <Box mt={2}>
+             <Button
+               btnName="+ Add Row"
+               btnColor="green"
+               onClick={handleAddRow}
+             />
+           </Box>
 
           </Box>
 
@@ -475,6 +511,21 @@ Thank you!`;
                 </Box>
               </Box>
 
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px",    justifyContent: "space-between", alignItems: "center" }}>
+               <Typography sx={{ minWidth: "40%" }}>WhatsApp No.:</Typography>
+
+                    <Box sx={{ width: "60%" }}>
+                      <Input
+                        inpName="whatsapp"
+                        inpValue={formData.whatsapp}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          handleChange({ target: { name: "whatsapp", value } });
+                        }}
+                      />
+                    </Box>
+                </Box>
+
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography sx={{ minWidth: "40%" }}>Rate B1:</Typography>
                 <Box sx={{ width: "60%" }}>
@@ -503,6 +554,17 @@ Thank you!`;
                 </Box>
               </Box>
 
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Laser Cutting:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="laserCutting"
+                    inpValue={formData.laserCutting}
+                    onChange={handleChange}
+                  />
+                </Box>
+              </Box>
+
               <Box
                 sx={{
                   display: "flex",
@@ -515,7 +577,11 @@ Thank you!`;
                 </Typography>
 
                 <Box sx={{ width: "60%" }}>
-                  <Input inpValue={total} readOnly />
+                 <Input
+                  inpName="amount"
+                 inpValue={formData.amount || total}
+                  onChange={handleChange}
+                 />
                 </Box>
               </Box>
 
@@ -550,7 +616,7 @@ Thank you!`;
         <Popup
           isOpen={mobilePopup}
           title="Requirement"
-          message="Please add 10 digit mobile number"
+          message="Please add 10 digit WhatsApp number"
           onConfirm={() => {
             navi("/quotations/send-quotation");
             setMobilePopup(false);
