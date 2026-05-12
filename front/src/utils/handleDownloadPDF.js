@@ -36,44 +36,115 @@ export const handleDownloadPDF = async ({ pdfRef, data }) => {
     backgroundColor: "#ffffff",
   });
 
-  for (let i = 0; i < 4; i++) {
-    const clone = originalElement.cloneNode(true);
-    const rotationWrapper = document.createElement("div");
+            const topLeftWrapper = document.createElement("div");
 
-    Object.assign(rotationWrapper.style, {
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      width: "100%",
-      height: "100%",
-      overflow: "hidden",
-      // Adding a background color here helps if the border has rounded corners
-      backgroundColor: "#ffffff",
-    });
+         Object.assign(topLeftWrapper.style, {
+           display: "flex",
+           flexDirection: "column",
+           justifyContent: "flex-start",
+           alignItems: "flex-start",
+           gap: "5px",
+         });
 
-    Object.assign(clone.style, {
-      transform: `rotate(-90deg) scale(${scaleHeight}, ${scaleWidth})`,
-      transformOrigin: "center center",
-      width: `${rect.width}px`,
-      height: `${rect.height}px`,
-      margin: "5px",
-      position: "static",
-      flexShrink: "0",
 
-      // Optional: If you want a slight "cut line" look, use dashed
-      border: "1px dashed #9ca3af", 
-      boxSizing: "border-box" // Ensures border stays inside the width/height
-    });
+         for (let i = 0; i < 3; i++) {
+           const clone = originalElement.cloneNode(true);
 
-    rotationWrapper.appendChild(clone);
-    printContainer.appendChild(rotationWrapper);
-  }
+            const inputs = clone.querySelectorAll("input");
+
+
+
+
+            
+  inputs.forEach((inp) => {
+
+  const div = document.createElement("div");
+
+  div.innerText = inp.value;
+  
+
+  Object.assign(div.style, {
+    width: inp.style.width || "100%",
+    maxWidth: "100%",
+    flex: "1",
+    minHeight: "24px",
+    fontSize: "8px",
+    padding: "2px 4px",
+    border: "1px solid #000",
+    outline: "none",
+    boxShadow: "none",
+    borderRadius: "0px",
+    background: "#fff",
+
+    whiteSpace: "normal",
+    overflowWrap: "break-word",
+    wordBreak: "break-word",
+
+    lineHeight: "1.4",
+    fontFamily: "inherit",
+    boxSizing: "border-box",
+
+    display: "flex",
+    alignItems: "center",
+  });
+
+  inp.parentNode.replaceChild(div, inp);
+});
+
+
+
+const wrappers = clone.querySelectorAll(".MuiOutlinedInput-root");
+
+wrappers.forEach((wrap) => {
+  wrap.style.border = "none";
+  wrap.style.outline = "none";
+  wrap.style.boxShadow = "none";
+  wrap.style.background = "transparent";
+});
+
+const fieldsets = clone.querySelectorAll("fieldset");
+
+fieldsets.forEach((fs) => {
+  fs.style.border = "none";
+});
+
+  const rows = clone.querySelectorAll("div");
+
+  rows.forEach((row) => {
+    row.style.gap = "2px";
+  });
+
+  const labels = clone.querySelectorAll("p, span");
+
+  labels.forEach((label) => {
+    label.style.fontSize = "10px";
+  });
+
+
+           Object.assign(clone.style, {
+             transform: "scale(1.0)",
+             transformOrigin: "top left",
+             margin: "0px",
+             border: "none",
+           });
+
+           topLeftWrapper.appendChild(clone);
+            }
+
+             
+           printContainer.appendChild(topLeftWrapper);
+
+
+           for (let i = 0; i < 3; i++) {
+               const empty = document.createElement("div");
+               printContainer.appendChild(empty);
+             }
 
   document.body.appendChild(printContainer);
 
   try {
     const canvas = await html2canvas(printContainer, {
-      scale: 2, // Increase for print sharpness
+      scale: 4, 
       useCORS: true,
       backgroundColor: "#ffffff"
     });
