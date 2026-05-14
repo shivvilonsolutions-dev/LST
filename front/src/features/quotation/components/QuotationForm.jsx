@@ -39,10 +39,10 @@ const QuotationForm = () => {
     whatsapp: "",
     amount: "",
     materials: Array(6).fill().map(() => ({
-  size: "",
-  gej: "",
-  pic: "",
-})),
+      size: "",
+      pic: "",
+      gej: "",
+    })),
     rateB1: "",
     rateB2: "",
     bending: "",
@@ -76,28 +76,28 @@ const QuotationForm = () => {
   };
 
   const handleAddRow = () => {
-  setFormData({
-    ...formData,
-    materials: [
-      ...formData.materials,
-      {
-        size: "",
-        gej: "",
-        pic: "",
-      },
-    ],
-  });
-};
+    setFormData({
+      ...formData,
+      materials: [
+        ...formData.materials,
+        {
+          size: "",
+          gej: "",
+          pic: "",
+        },
+      ],
+    });
+  };
 
 
-   const handleRemoveRow = (index) => {
-  const updated = formData.materials.filter((_, i) => i !== index);
+  const handleRemoveRow = (index) => {
+    const updated = formData.materials.filter((_, i) => i !== index);
 
-  setFormData({
-    ...formData,
-    materials: updated,
-  });
-};
+    setFormData({
+      ...formData,
+      materials: updated,
+    });
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -105,13 +105,14 @@ const QuotationForm = () => {
       [e.target.name]: e.target.value,
     });
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!formData.cliName || !formData.cliName.trim()) {
-    alert("Please enter client name");
-    return;
-   }
+      alert("Please enter client name");
+      return;
+    }
 
     let finalCliId = formData.cliId;
     let index = -1;
@@ -120,9 +121,13 @@ const QuotationForm = () => {
       index = clients.findIndex(
         (c) => Number(c.cliId) === Number(formData.cliId)
       );
-    } else if (formData.mobile) {
+    } 
+    else if (formData.mobile) {
       index = clients.findIndex(
-        (c) => c.mobile === formData.mobile
+        (c) => {
+          c.mobile === formData.mobile
+          c.whatsapp === formData.whatsapp
+        }
       );
     }
 
@@ -133,6 +138,7 @@ const QuotationForm = () => {
         cliId: finalCliId,
         cliName: formData.cliName,
         mobile: formData.mobile,
+        whatsapp: formData.whatsapp,
         dateOfJoin: getCurrentDateTime(),
       };
 
@@ -148,7 +154,7 @@ const QuotationForm = () => {
       cliId: Number(finalCliId),
       status: "PENDING",
       quotationDate: getCurrentDateTime(),
-      amount: finalAmount, 
+      amount: finalAmount,
       whatsapp: formData.whatsapp || "",
       laserCutting: formData.laserCutting || "",
     };
@@ -175,14 +181,12 @@ const QuotationForm = () => {
     }
 
     setShowPopup(true);
-    };
-      const handleWhatsApp = () => {
-        if (!formData.whatsapp) {
+  };
+  const handleWhatsApp = () => {
+    if (!formData.whatsapp) {
       setMobilePopup(true);
-       return;
-        }
-
-  
+      return;
+    }
 
     let phone = formData.whatsapp.toString().replace(/\D/g, "");
 
@@ -296,7 +300,8 @@ Thank you!`;
                       ...formData,
                       cliId: "",
                       cliName: "",
-                      mobile: ""
+                      mobile: "",
+                      whatsapp: "",
                     });
                   } else {
                     const selectedClient = clients.find(
@@ -310,6 +315,7 @@ Thank you!`;
                       cliId: Number(value), // ✅ FIX
                       cliName: selectedClient.cliName,
                       mobile: selectedClient.mobile,
+                      whatsapp: selectedClient.whatsapp,
                     });
                   }
                 }}
@@ -347,7 +353,7 @@ Thank you!`;
                   inpPlaceholder="Enter client name"
                   onChange={handleChange}
                   inpWidth="100%"
-                  isReq={true} 
+                  isReq={true}
                 />
 
                 <Button
@@ -400,7 +406,7 @@ Thank you!`;
         >
 
           {/* Table */}
-          <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
             <Table
               sx={{
                 width: "100%",
@@ -413,9 +419,9 @@ Thank you!`;
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ width: "5%" }}>No.</TableCell>
-                  <TableCell sx={{ width: "40%" }}>Size</TableCell>
-                  <TableCell sx={{ width: "12%" }}>Peice</TableCell>
-                  <TableCell sx={{ width: "12%" }}>Gauge</TableCell>
+                  <TableCell sx={{ width: "50%" }}>Size</TableCell>
+                  <TableCell sx={{ width: "17%" }}>Peice</TableCell>
+                  <TableCell sx={{ width: "18%" }}>Gauge</TableCell>
                   <TableCell sx={{ width: "10%" }}>Action</TableCell>
                 </TableRow>
               </TableHead>
@@ -438,13 +444,11 @@ Thank you!`;
                         />
                       </TableCell>
 
-                  
-
                       <TableCell>
                         <Input
                           inpValue={row.pic}
                           onChange={(e) => {
-                           handleMaterialChange(i, "pic", e.target.value)
+                            handleMaterialChange(i, "pic", e.target.value)
                           }}
                           isReq={isRowFilled}
                         />
@@ -460,27 +464,26 @@ Thank you!`;
                         />
                       </TableCell>
 
-
                       <TableCell>
-                       <Button
-                         btnName="X"
-                         btnColor="red"
-                         onClick={() => handleRemoveRow(i)}
-                       />
-                     </TableCell>
+                        <Button
+                          btnName="X"
+                          btnColor="red"
+                          onClick={() => handleRemoveRow(i)}
+                        />
+                      </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
 
-            <Box mt={2}>
-             <Button
-               btnName="+ Add Row"
-               btnColor="green"
-               onClick={handleAddRow}
-             />
-           </Box>
+            <Box sx={{ marginTop: 1, display: "flex", justifyContent: "flex-end" }}>
+              <Button
+                btnName="+ Add Row"
+                btnColor="green"
+                onClick={handleAddRow}
+              />
+            </Box>
 
           </Box>
 
@@ -511,20 +514,21 @@ Thank you!`;
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px",    justifyContent: "space-between", alignItems: "center" }}>
-               <Typography sx={{ minWidth: "40%" }}>WhatsApp No.:</Typography>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>WhatsApp No.:</Typography>
 
-                    <Box sx={{ width: "60%" }}>
-                      <Input
-                        inpName="whatsapp"
-                        inpValue={formData.whatsapp}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          handleChange({ target: { name: "whatsapp", value } });
-                        }}
-                      />
-                    </Box>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="whatsapp"
+                    inpValue={formData.whatsapp}
+                    disabled={!isNewClient && !!formData.cliId}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      handleChange({ target: { name: "whatsapp", value } });
+                    }}
+                  />
                 </Box>
+              </Box>
 
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography sx={{ minWidth: "40%" }}>Rate B1:</Typography>
@@ -577,11 +581,11 @@ Thank you!`;
                 </Typography>
 
                 <Box sx={{ width: "60%" }}>
-                 <Input
-                  inpName="amount"
-                 inpValue={formData.amount || total}
-                  onChange={handleChange}
-                 />
+                  <Input
+                    inpName="amount"
+                    onChange={handleChange}
+                    readOnly
+                  />
                 </Box>
               </Box>
 
@@ -593,9 +597,8 @@ Thank you!`;
 
         {/* Footer */}
         <Box sx={{ textAlign: "center" }}>
-          <Typography sx={{ marginTop: "25px" }} textAlign="center" variant="h5" color="text.secondary">
+          <Typography sx={{ marginTop: "5px" }} textAlign="center" variant="h5" color="text.secondary">
             માપ ચેક કરી ને રજા લેવી
-            <br />
             <br />
             કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
           </Typography>

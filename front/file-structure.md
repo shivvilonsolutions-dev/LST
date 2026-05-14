@@ -3,30 +3,53 @@
 ## src/
 
 ### 📁 components/
+
 - 📁 layout/
   - Header.jsx
   - Sidebar.jsx
-  
+
 - 📁 ui/
   - Button.jsx
   - Input.jsx
+  - Popup.jsx
 
 ---
 
 ### 📁 contexts/
 
--  quotationDataContext.js
+- 📁 client/
+  - clientContext.js
+  - ClientProvider.jsx
+
+- 📁 inventory/
+  - inventoryContext.js
+  - InventoryProvider.jsx
+
+- 📁 quotation/
+  - quotationContext.js
+  - QuotationProvider.jsx
 
 ---
 
 ### 📁 features/
 
+
+- 📁 clients/
+  - ClientArea.jsx
+
+  - 📁 components/
+    - ClientDetail.jsx
+
 - 📁 dashboard/
   - DashboardArea.jsx
-  - ProductCard.jsx
+  - InventoryCard.jsx
 
-- 📁 material/
-  - MaterialArea.jsx
+- 📁 inventory/
+  - InventoryArea.jsx
+
+  - 📁 components/
+    - InventoryDetail.jsx
+    - InventoryForm.jsx
 
 - 📁 payment/
   - PaymentArea.jsx
@@ -41,16 +64,24 @@
     - QuotationStats.jsx
     - ShowQuotations.jsx
     - StatsCard.jsx
-  
-  - 📁 services/
-    - FetchQuotationData.jsx
 
 ---
 
 ### 📁 main-layout/
+
 - DashboardLayout.jsx
 
 ---
 
 ### 📁 pages/
+
 - LoginPage.jsx
+
+---
+
+### 📁 utils/
+
+- caculateQuotationAmount.js
+- getCurrentDateAndTime.js
+- handleDownloadPDF.js
+- localStorage.js

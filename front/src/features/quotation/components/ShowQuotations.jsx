@@ -114,8 +114,12 @@ const ShowQuotations = ({ data }) => {
                   {/* Amount */}
                   <TableCell>₹ {item.amount}</TableCell>
 
+                  {/* Whatsapp */}
                   <TableCell>{item.whatsapp}</TableCell>
+
+                  {/* Laser Cutting */}
                   <TableCell>{item.laserCutting}</TableCell>
+
                   {/* Status */}
                   <TableCell>
                     <Chip

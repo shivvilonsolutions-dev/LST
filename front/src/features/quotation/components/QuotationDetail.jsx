@@ -34,6 +34,7 @@ const QuotationDetail = () => {
   const navi = useNavigate();
   const pdfRef = useRef();
 
+  const [isGenerating, setIsGenerating] = useState(false);
   const quotation = quotations.find((q) => q.id == Number(id));
   const [editData, setEditData] = useState(quotation);
 
@@ -205,11 +206,21 @@ const QuotationDetail = () => {
             />
 
             <Button
-              btnName="Print"
+              btnName={isGenerating ? "Generating PDF..." : "Print"}
               btnColor="red"
-              onClick={() =>
-                handleDownloadPDF({ pdfRef, data: editData })
-              }
+              onClick={async () => {
+                setIsGenerating(true);
+
+                try {
+                  await handleDownloadPDF({
+                    pdfRef,
+                    data: editData,
+                  });
+                } 
+                finally {
+                  setIsGenerating(false);
+                }
+              }}
             />
 
           </Stack>

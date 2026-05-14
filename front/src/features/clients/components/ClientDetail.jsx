@@ -244,10 +244,12 @@ const ClientDetail = () => {
                       ₹ {q.amount}
                     </TableCell>
 
+                    {/* Whatsapp */}
                     <TableCell>
                      {q.whatsapp || "-"}
                    </TableCell>
 
+                    {/* Laser Cutting */}
                    <TableCell>                   
                      {q.laserCutting || "-"}
                    </TableCell>
