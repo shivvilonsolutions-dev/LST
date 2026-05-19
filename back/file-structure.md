@@ -89,7 +89,23 @@
 
 ---
 
+### 📁 template/
+
+- quotation_template.xlsx
+
+---
+
 ### 📁 utils/
+
+- 📁 excel/
+  - generateQuotationExcel.js
+
+- 📁 pdf/
+  - convertExcelToPdf.js
+
+- 📁 storage/
+  - createStorage.js
+  - saveQuotationFiles.js
 
 - checkInternet.js
 - generateOTP.js

@@ -5,8 +5,11 @@ import {
   updateQuotationService,
   deleteQuotationService,
 } from "../services/quotationService.js";
-
 import saveQuotationPdf from "../utils/saveQuotationPdf.js";
+
+import fs from "fs";
+import Quotation from "../models/local/Quotation.js";
+
 
 export const createQuotation =
   async (req, res) => {
@@ -181,5 +184,84 @@ export const saveQuotationPdfController =
         message:
           error.message,
       });
+    }
+  };
+
+export const downloadQuotationPdf =
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const quotation =
+        await Quotation.findById(
+          req.params.id
+        );
+
+      if (!quotation) {
+
+        return res.status(404)
+          .json({
+
+            success: false,
+
+            message:
+              "Quotation not found",
+          });
+      }
+
+
+      if (
+        !quotation.pdfPath
+      ) {
+
+        return res.status(404)
+          .json({
+
+            success: false,
+
+            message:
+              "PDF not generated",
+          });
+      }
+
+
+      if (
+        !fs.existsSync(
+          quotation.pdfPath
+        )
+      ) {
+
+        return res.status(404)
+          .json({
+
+            success: false,
+
+            message:
+              "PDF file missing",
+          });
+      }
+
+
+      return res.download(
+        quotation.pdfPath
+      );
+
+    }
+
+    catch (error) {
+
+      console.log(error);
+
+      return res.status(500)
+        .json({
+
+          success: false,
+
+          message:
+            error.message,
+        });
     }
   };

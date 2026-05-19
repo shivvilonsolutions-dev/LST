@@ -61,3 +61,42 @@ export const deleteQuotation =
 
     return response.data;
   };
+
+export const downloadQuotationPdf =
+  async (id) => {
+
+    try {
+
+      const response =
+        await api.get(
+
+          `/quotations/${id}/pdf`,
+
+          {
+            responseType:
+              "blob",
+          }
+        );
+
+      return {
+
+        success: true,
+
+        data:
+          response.data,
+      };
+
+    }
+
+    catch (error) {
+
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message ||
+          "PDF download failed",
+      };
+    }
+  };

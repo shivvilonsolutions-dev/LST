@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect, useRef } from "react";
+import React, { useContext, useState } from "react";
 import {
   Box,
   Paper,
@@ -15,15 +15,17 @@ import {
 
 import { useParams, useNavigate } from "react-router-dom";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
-import { ClientContext } from "../../../contexts/client/clientContext"
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
-import { handleDownloadPDF } from "../../../utils/handleDownloadPDF";
 import { useLocation } from "react-router-dom";
 import PageLoader from "../../../components/ui/PageLoader"
 import formatDate from "../../../utils/formatDate"
-import QuotationPdfTemplate
-  from "../components/QuotationPdfTemplate";
+import Popup from "../../../components/ui/Popup"
+import {
+  downloadQuotationPdf,
+}
+  from "../../../api/quotationApi";
+
 
 const QuotationDetail = () => {
   const location = useLocation();
@@ -33,32 +35,28 @@ const QuotationDetail = () => {
   } = useContext(QuotationContext);
   const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
+  const [isDownloading,
+    setIsDownloading] =
+    useState(false);
   const [warningPopup, setWarningPopup] = useState({
-
     open: false,
-
     message: "",
   });
   const navi = useNavigate();
-  const pdfRef = useRef();
-
-  const [isGenerating, setIsGenerating] = useState(false);
   const quotation =
     quotations.find(
       (q) =>
         String(q.quotationNo) === String(id)
     );
-  const [editData, setEditData] = useState(null);
+
+  const [editData, setEditData] = useState(quotation || null);
+  if (quotation && !editData) {
+    setEditData(quotation);
+  }
+
   const [time] = useState(
     formatDate(new Date())
   );
-
-  useEffect(() => {
-    if (quotation) {
-      setEditData(quotation);
-    }
-
-  }, [quotation]);
 
   const handleChange = (e) => {
     setEditData({
@@ -215,24 +213,76 @@ const QuotationDetail = () => {
             />
 
             <Button
-              btnName={isGenerating ? "Generating PDF..." : "Download"}
-              btnColor="red"
-              onClick={async () => {
+              btnName={
+                isDownloading
+                  ? "Downloading..."
+                  : "Download PDF"
+              }
 
-                setIsGenerating(true);
+              btnColor="red"
+
+              onClick={async () => {
 
                 try {
 
-                  await handleDownloadPDF({
-                    pdfRef,
-                    data: editData,
-                  });
+                  setIsDownloading(true);
+
+                  const response =
+                    await downloadQuotationPdf(
+                      editData._id
+                    );
+
+                  if (response.success) {
+
+                    const url =
+                      window.URL.createObjectURL(
+
+                        new Blob([
+                          response.data,
+                        ])
+                      );
+
+                    const link =
+                      document.createElement(
+                        "a"
+                      );
+
+                    link.href =
+                      url;
+
+                    link.setAttribute(
+
+                      "download",
+
+                      `${editData.cliName}_${editData.quotationNo}.pdf`
+                    );
+
+                    document.body.appendChild(
+                      link
+                    );
+
+                    link.click();
+
+                    link.remove();
+
+                  }
+
+                  else {
+
+                    setWarningPopup({
+
+                      open: true,
+
+                      message:
+                        response.message,
+                    });
+                  }
 
                 }
 
                 finally {
 
-                  setIsGenerating(false);
+                  setIsDownloading(false);
                 }
               }}
             />
@@ -308,8 +358,8 @@ const QuotationDetail = () => {
 
                       {/* Reusable Cells */}
                       {renderCell("size", i)}
-                      {renderCell("gauge", i)}
                       {renderCell("piece", i)}
+                      {renderCell("gauge", i)}
 
                     </TableRow>
                   ))}
@@ -448,28 +498,6 @@ const QuotationDetail = () => {
           })
         }
       />
-
-      <Box
-        sx={{
-          position: "fixed",
-
-          top: 0,
-          left: 0,
-
-          visibility: "hidden",
-
-          pointerEvents: "none",
-
-          zIndex: -1,
-        }}
-      >
-
-        <QuotationPdfTemplate
-          ref={pdfRef}
-          data={editData}
-        />
-
-      </Box>
 
     </Paper>
   );

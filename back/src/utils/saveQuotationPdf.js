@@ -1,20 +1,18 @@
 import fs from "fs";
 import path from "path";
 
-import Settings
-from "../models/local/Settings.js";
-
+import Settings from "../models/local/Settings.js";
+import generateQuotationExcel from "./excel/generateQuotationExcel.js";
+import convertExcelToPdf from "./pdf/convertExcelToPdf.js";
 
 const saveQuotationPdf =
   async (
-    pdfBuffer,
-    quotationNo
+    quotationData
   ) => {
 
     try {
 
-      // GET SETTINGS
-
+      // SETTINGS
       const settings =
         await Settings.findOne();
 
@@ -28,55 +26,110 @@ const saveQuotationPdf =
         );
       }
 
-      const directoryPath =
+
+      // BASE DIRECTORY
+      const baseDirectory =
         settings.offlinePdfPath;
 
-      // ENSURE DIRECTORY EXISTS
 
+      // DATE FOLDER
+      const now =
+        new Date();
+
+      const month =
+        now.toLocaleString(
+          "default",
+          {
+            month: "long",
+          }
+        );
+
+      const dayFolder =
+        `${now.getDate()}-${month}`;
+
+
+      // FINAL PATH
+      const finalDirectory =
+        path.join(
+          baseDirectory,
+          month,
+          dayFolder
+        );
+
+
+      // CREATE DIRECTORY
       fs.mkdirSync(
-        directoryPath,
-
+        finalDirectory,
         {
           recursive: true,
         }
       );
 
+
       // FILE NAME
-
       const fileName =
-        `${quotationNo}.pdf`;
+        quotationData
+          .quotationNo;
 
-      const filePath =
+
+      // XLSX PATH
+      const excelPath =
         path.join(
-          directoryPath,
-          fileName
+          finalDirectory,
+          `${fileName}.xlsx`
         );
 
-      // SAVE FILE
 
-      fs.writeFileSync(
-        filePath,
-        pdfBuffer
+      // PDF PATH
+      const pdfPath =
+        path.join(
+          finalDirectory,
+          `${fileName}.pdf`
+        );
+
+
+      // GENERATE EXCEL
+      await generateQuotationExcel(
+
+        quotationData,
+
+        excelPath
       );
+
+
+      // GENERATE PDF
+      await convertExcelToPdf(
+
+        excelPath,
+
+        pdfPath
+      );
+
 
       console.log(
-        `PDF Saved: ${filePath}`
+
+        `Quotation Files Saved: ${finalDirectory}`
       );
 
+
       return {
+
         success: true,
 
-        filePath,
+        excelPath,
+
+        pdfPath,
       };
 
     } catch (error) {
 
       console.log(
-        "PDF Save Error:",
+        "Quotation Save Error:",
         error
       );
 
       return {
+
         success: false,
 
         message:
@@ -85,4 +138,5 @@ const saveQuotationPdf =
     }
   };
 
-export default saveQuotationPdf;
+export default
+  saveQuotationPdf;

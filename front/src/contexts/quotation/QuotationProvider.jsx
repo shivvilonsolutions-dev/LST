@@ -176,10 +176,25 @@ const QuotationProvider = ({
 
       } catch (err) {
 
-        setError(
+        const errorMessage =
+
           err.response?.data?.message ||
-          "Failed to delete quotation"
-        );
+
+          "Failed to create quotation";
+
+
+        // ONLY FOR REAL SERVER ERRORS
+        if (
+
+          !errorMessage.includes(
+            "Mobile number already belongs"
+          )
+        ) {
+
+          setError(
+            errorMessage
+          );
+        }
 
         return {
 

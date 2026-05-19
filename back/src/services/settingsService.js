@@ -53,6 +53,8 @@ export const updateSettingsService =
         }
       );
 
+    console.log("New Path: ", data.offlinePdfPath)
+
     await syncAfterLocalSave(
       settings,
       "settings"

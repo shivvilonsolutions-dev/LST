@@ -30,6 +30,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 import GroupsIcon from "@mui/icons-material/Groups";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
+import PaymentIcon from '@mui/icons-material/Payment';
 
 const expandedWidth = 220;
 const collapsedWidth = 70;
@@ -54,11 +55,17 @@ const navItems = [
     icon: <GroupsIcon />,
   },
 
-  {
-    label: "Inventory",
-    path: "/inventories",
-    icon: <InventoryIcon />,
-  },
+  // {
+  //   label: "Inventory",
+  //   path: "/inventories",
+  //   icon: <InventoryIcon />,
+  // },
+
+  // {
+  //   label: "Payments",
+  //   path: "/payment",
+  //   icon: <PaymentIcon />,
+  // },
 
   {
     label: "Settings",

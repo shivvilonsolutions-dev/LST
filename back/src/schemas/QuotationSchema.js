@@ -69,6 +69,14 @@ const quotationSchema =
         default: "PENDING",
       },
 
+      excelPath: {
+        type: String,
+      },
+
+      pdfPath: {
+        type: String,
+      },
+
       isSynced: {
         type: Boolean,
         default: false,

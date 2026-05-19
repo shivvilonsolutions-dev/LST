@@ -8,6 +8,9 @@ import {
   syncAfterLocalSave,
 } from "./syncService.js";
 
+import saveQuotationPdf
+  from "../utils/saveQuotationPdf.js";
+
 export const createQuotationService =
   async (data) => {
 
@@ -107,6 +110,26 @@ export const createQuotationService =
       quotation,
       "quotation"
     );
+
+    // AUTO GENERATE XLSX + PDF
+    const savedFiles =
+      await saveQuotationPdf(
+        quotation
+      );
+
+    // OPTIONAL:
+    // STORE PATHS INSIDE DB
+    if ( savedFiles.success ) 
+    {
+
+      quotation.excelPath =
+        savedFiles.excelPath;
+
+      quotation.pdfPath =
+        savedFiles.pdfPath;
+
+      await quotation.save();
+    }
 
     // UPDATE CLIENT SUMMARY CACHE
     client.quotationList.push({

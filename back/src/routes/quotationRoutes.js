@@ -7,6 +7,7 @@ import {
   updateQuotation,
   deleteQuotation,
   saveQuotationPdfController,
+  downloadQuotationPdf,
 } from "../controllers/quotationController.js";
 import authMiddleware
 from "../middleware/authMiddleware.js";
@@ -35,6 +36,13 @@ router.get(
   "/",
   authMiddleware,
   getAllQuotations
+);
+
+// GET PDF
+router.get(
+  "/:id/pdf",
+  authMiddleware,
+  downloadQuotationPdf
 );
 
 // GET SINGLE

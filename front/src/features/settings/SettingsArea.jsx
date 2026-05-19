@@ -192,7 +192,7 @@ const SettingsArea = () => {
             <Input
               inpName="pdfPath"
               inpValue={pdfPath}
-              inpPlaceholder="Enter PDF Folder Path"
+              inpPlaceholder="Enter alreday created folder path"
               onChange={(e) =>
                 setPdfPath(
                   e.target.value
