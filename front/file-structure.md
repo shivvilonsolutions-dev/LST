@@ -1,6 +1,18 @@
-# 📁 Project Structure
+# 📁 Frontend Project Structure
 
 ## src/
+
+### 📁 api/
+
+- authApi.js
+- axios.js
+- clientApi.js
+- inventoryApi.js
+- quotationApi.js
+- settingsApi.js
+
+
+---
 
 ### 📁 components/
 
@@ -10,12 +22,21 @@
 
 - 📁 ui/
   - Button.jsx
+  - ErrorMessage.jsx
   - Input.jsx
+  - Loader.jsx
+  - PageLoader.jsx
   - Popup.jsx
+
 
 ---
 
 ### 📁 contexts/
+
+- 📁 auth/
+  - AuthContext.js
+  - authContext.jsx
+  - authReducer.js
 
 - 📁 client/
   - clientContext.js
@@ -28,6 +49,7 @@
 - 📁 quotation/
   - quotationContext.js
   - QuotationProvider.jsx
+
 
 ---
 
@@ -65,23 +87,44 @@
     - ShowQuotations.jsx
     - StatsCard.jsx
 
+- 📁 settings/
+  - SettingsArea.jsx
+
+
+---
+
+### 📁 hooks/
+
+- useApiError.js
+- useLoading.js
+
+
 ---
 
 ### 📁 main-layout/
 
-- DashboardLayout.jsx
+- Layout.jsx
+
 
 ---
 
 ### 📁 pages/
 
+- ForgotPassword.jsx
 - LoginPage.jsx
+- ResetPassword.jsx
+
+
+---
+
+### 📁 routes/
+
+- ProtectedRoute.jsx
+
 
 ---
 
 ### 📁 utils/
 
-- caculateQuotationAmount.js
-- getCurrentDateAndTime.js
+- formatDate.js
 - handleDownloadPDF.js
-- localStorage.js

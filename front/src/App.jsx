@@ -1,46 +1,76 @@
-import Layout from "./main-layout/Layout";
-import LoginPage from "./pages/LoginPage";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+} from "react-router-dom";
 
+import Layout from "./main-layout/Layout";
+
+import LoginPage from "./pages/LoginPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
+import ProtectedRoute from "./routes/ProtectedRoute.jsx";
+
+import ClientArea from "./features/clients/ClientArea";
+import ClientDetail from "./features/clients/components/ClientDetail";
 import DashboardArea from "./features/dashboard/DashboardArea";
 import InventoryArea from "./features/inventory/InventoryArea";
-import QuotationArea from "./features/quotation/QuotationArea";
+import InventoryDetail from "./features/inventory/components/InventoryDetail";
+import InventoryForm from "./features/inventory/components/InventoryForm";
 import PaymentArea from "./features/payment/PaymentArea";
-import ClientArea from "./features/clients/ClientArea"
-
+import QuotationArea from "./features/quotation/QuotationArea";
 import QuotationForm from "./features/quotation/components/QuotationForm";
 import QuotationDetail from "./features/quotation/components/QuotationDetail";
-import InventoryDetail from "./features/inventory/components/InventoryDetail"
-import InventoryForm from "./features/inventory/components/InventoryForm";
-import ClientDetail from "./features/clients/components/ClientDetail"
+import SettingsArea from "./features/settings/SettingsArea";
 
 import QuotationProvider from "./contexts/quotation/QuotationProvider";
 import InventoryProvider from "./contexts/inventory/InventoryProvider";
-import ClientProvider from "./contexts/client/ClientProvider"
-import { ClientContext } from "./contexts/client/clientContext";
+import ClientProvider from "./contexts/client/ClientProvider";
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Login */}
-        <Route path="/" element={<LoginPage />} />
+        {/* LOGIN */}
+        <Route
+          path="/"
+          element={<LoginPage />}
+        />
 
-        {/* Main Layout */}
-        <Route element={<Layout />}>
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
 
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
+
+        {/* MAIN LAYOUT */}
+        <Route element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }>
+
+          {/* DASHBOARD */}
           <Route
             path="/dashboard"
             element={
-              <InventoryProvider>
-                <QuotationProvider>
+              <QuotationProvider>
+                <InventoryProvider>
                   <DashboardArea />
-                </QuotationProvider>
-              </InventoryProvider>
+                </InventoryProvider>
+              </QuotationProvider>
             }
           />
 
+
+          {/* INVENTORY */}
           <Route
             path="/inventories"
             element={
@@ -68,62 +98,76 @@ function App() {
             }
           />
 
+
+          {/* CLIENTS */}
           <Route
             path="/clients"
             element={
-              <QuotationProvider>
-                <ClientProvider>
+              <ClientProvider>
+                <QuotationProvider>
                   <ClientArea />
-                </ClientProvider>
-              </QuotationProvider>
+                </QuotationProvider>
+              </ClientProvider>
             }
           />
 
           <Route
             path="/clients/:id"
             element={
-              <QuotationProvider>
-                <ClientProvider>
+              <ClientProvider>
+                <QuotationProvider>
                   <ClientDetail />
-                </ClientProvider>
-              </QuotationProvider>
+                </QuotationProvider>
+              </ClientProvider>
             }
           />
 
 
-          <Route path="/payment" element={<PaymentArea />} />
+          {/* PAYMENT */}
+          <Route
+            path="/payment"
+            element={<PaymentArea />}
+          />
 
+
+          {/* QUOTATIONS */}
           <Route
             path="/quotations"
             element={
-              <ClientProvider>
-                <QuotationProvider>
+              <QuotationProvider>
+                <ClientProvider>
                   <QuotationArea />
-                </QuotationProvider>
-              </ClientProvider>
+                </ClientProvider>
+              </QuotationProvider>
             }
           />
 
           <Route
             path="/quotations/send-quotation"
             element={
-              <ClientProvider>
-                <QuotationProvider>
+              <QuotationProvider>
+                <ClientProvider>
                   <QuotationForm />
-                </QuotationProvider>
-              </ClientProvider>
+                </ClientProvider>
+              </QuotationProvider>
             }
           />
 
           <Route
             path="/quotations/:id"
             element={
-              <ClientProvider>
-                <QuotationProvider>
+              <QuotationProvider>
+                <ClientProvider>
                   <QuotationDetail />
-                </QuotationProvider>
-              </ClientProvider>
+                </ClientProvider>
+              </QuotationProvider>
             }
+          />
+
+
+          <Route
+            path="/settings"
+            element={<SettingsArea />}
           />
 
         </Route>

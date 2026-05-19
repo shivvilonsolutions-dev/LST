@@ -4,11 +4,6 @@ import {
   Typography,
   Grid,
   Stack,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   Select,
   MenuItem,
 } from "@mui/material";
@@ -19,46 +14,39 @@ import Popup from "../../../components/ui/Popup";
 
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect, useContext } from 'react'
-import getCurrentDateTime from '../../../utils/getCurrentDateAndTime'
+import { useState, useContext } from 'react'
+import formatDate from "../../../utils/formatDate";
+import ErrorMessage from "../../../components/ui/ErrorMessage";
 import { InventoryContext } from "../../../contexts/inventory/inventoryContext"
 
 const InventoryForm = () => {
   const navi = useNavigate()
   const [showPopup, setShowPopup] = useState(false);
-  const [existPopup, setExistPopup] = useState(false)
-  const [time, setTime] = useState(getCurrentDateTime());
-  const { inventories, setInventories } = useContext(InventoryContext);
+  const {
+    inventories,
+    handleUpsertInventory,
+    error,
+  } = useContext(InventoryContext);
   const [isNew, setIsNew] = useState(false);
   const [formData, setFormData] = useState(() => ({
     inventoryName: "",
-    properties: [
-      {
-        id: Date.now(), // ✅ runs only ONCE
-        thickness: "",
-        weight: "",
-        height: "",
-        lengthOfInventory: ""
-      }
-    ],
-    category: "",
+    properties: {
+      thickness: "",
+      weight: "",
+      height: "",
+      lengthOfInventory: ""
+    },
     quantity: "",
     minQuantity: "",
-    dateOfInventory: "",
     status: "NORMAL",
   }));
+  const [time] = useState(
+    formatDate(new Date())
+  );
 
   const inventoryNames = [
     ...new Set(inventories.map((inv) => inv.inventoryName))
   ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(getCurrentDateTime());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
 
   const handleChange = (e) => {
     setFormData({
@@ -80,67 +68,61 @@ const InventoryForm = () => {
     });
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+
     e.preventDefault();
 
-    const newProperty = {
-      id: Date.now(),
-      thickness: formData.properties.thickness,
-      dateOfProperty: getCurrentDateTime(),
-      weight: formData.properties.weight,
-      height: formData.properties.height,
-      lengthOfInventory: formData.properties.lengthOfInventory,
-      quantity: Number(formData.quantity),
-      minQuantity:
-        formData.minQuantity === ""
-          ? Math.ceil(Number(formData.quantity) * 0.2)
-          : Number(formData.minQuantity),
+    if (
+      !formData.inventoryName ||
+      !formData.properties.thickness ||
+      !formData.quantity
+    ) {
+      return;
+    }
+
+    const payload = {
+
+      inventoryName:
+        formData.inventoryName,
+
+      properties: [
+        {
+          propertyId: Date.now().toString(),
+
+          thickness:
+            formData.properties.thickness,
+
+          weight:
+            formData.properties.weight,
+
+          height:
+            formData.properties.height,
+
+          lengthOfInventory:
+            formData.properties.lengthOfInventory,
+
+          quantity:
+            Number(formData.quantity),
+
+          minQuantity:
+            formData.minQuantity === ""
+              ? Math.ceil(
+                Number(formData.quantity) * 0.2
+              )
+              : Number(formData.minQuantity),
+        },
+      ],
     };
 
-    const normalize = (str) => str.trim().toLowerCase();
-
-    const existingIndex = inventories.findIndex(
-      (inv) =>
-        normalize(inv.inventoryName) ===
-        normalize(formData.inventoryName)
-    );
-
-    if (existingIndex !== -1) {
-      console.log("Updating existing one...")
-      const updatedInventories = [...inventories];
-
-      const alreadyExists = updatedInventories[existingIndex].properties.some(
-        (p) => p.thickness === newProperty.thickness
+    const response =
+      await handleUpsertInventory(
+        payload
       );
 
-      if (alreadyExists) {
-        setExistPopup(true);
-        return;
-      }
+    if (response.success) {
 
-      updatedInventories[existingIndex] = {
-        ...updatedInventories[existingIndex],
-        properties: [
-          ...(updatedInventories[existingIndex].properties || []),
-          newProperty,
-        ],
-      };
-
-      setInventories(updatedInventories);
+      setShowPopup(true);
     }
-    else {
-      const newInventory = {
-        id: Date.now(),
-        inventoryName: formData.inventoryName,
-        category: formData.category,
-        dateOfInventory: getCurrentDateTime(),
-        properties: [newProperty],
-      };
-
-      setInventories([...inventories, newInventory]);
-    }
-
-    setShowPopup(true);
   };
 
   return (
@@ -154,6 +136,7 @@ const InventoryForm = () => {
       }}
     >
       <Box component="form" onSubmit={handleSubmit}>
+        <ErrorMessage message={error} />
 
         {/* Top Buttons */}
         <Box
@@ -232,7 +215,7 @@ const InventoryForm = () => {
                 }}
                 displayEmpty
                 sx={{ flex: 1, minWidth: { xs: "100%", md: "auto" } }}
-                
+
               >
                 <MenuItem value="" disabled>
                   Select Inventory
@@ -364,17 +347,6 @@ const InventoryForm = () => {
             setShowPopup(false);
           }}
           onCancel={() => setShowPopup(false)}
-        />
-
-        <Popup
-          isOpen={existPopup}
-          title="Already Exists"
-          message="This thickness already exists!"
-          onConfirm={() => {
-            navi("/inventories/new-inventory");
-            setExistPopup(false);
-          }}
-          onCancel={() => setExistPopup(false)}
         />
 
       </Box>

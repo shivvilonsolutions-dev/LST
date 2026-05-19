@@ -77,7 +77,7 @@ const QuotationActions = ({ setFilter, setSearch }) => {
               bgcolor: "white",
             },
           }}
-          inputProps={{
+          InputProps={{
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon fontSize="small" />

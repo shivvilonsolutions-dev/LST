@@ -10,6 +10,7 @@ const Input = ({
   onChange,
   inpWidth = "100%",
   readOnly = false,
+  endAdornment
 }) => {
   // console.log("Inside the input box - readOnly: ", readOnly);
   
@@ -22,8 +23,9 @@ const Input = ({
       onChange={onChange}
       placeholder={inpPlaceholder}
       size="small"
-      inputProps={{
+      InputProps={{
         readOnly: readOnly,
+        endAdornment: endAdornment,
       }}
       sx={{
         width: inpWidth,
@@ -31,7 +33,7 @@ const Input = ({
           height: "40px",
 
           ...(readOnly && {
-            pointerEvents: "none",   // 🔥 blocks typing completely
+            pointerEvents: "none",
             backgroundColor: "#f8fafc",
           }),
         },

@@ -12,15 +12,17 @@ import {
   Chip,
   Typography,
   Box,
-  Switch
 } from "@mui/material";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import Popup from "../../../components/ui/Popup";
 import { ClientContext } from "../../../contexts/client/clientContext";
 
 const ShowQuotations = ({ data }) => {
-  const { quotations, setQuotations } = useContext(QuotationContext);
-  const { clients, setClients } = useContext(ClientContext)
+  const {
+    handleUpdateQuotation,
+    handleDeleteQuotation,
+  } = useContext(QuotationContext);
+
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
   const rowsPerPage = 4;
@@ -30,44 +32,40 @@ const ShowQuotations = ({ data }) => {
   const [confirmPopUp, setConfirmPopUp] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  console.log(quotations)
 
   const paginatedData = data.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
 
-  const handleConfirm = () => {
-    const updated = quotations.map((item) =>
-      item.id === selectedItem.id
-        ? {
-          ...item,
-          status:
-            item.status === "PENDING" ? "CONFIRM" : "PENDING",
-        }
-        : item
+  const handleConfirm = async () => {
+
+    const updatedStatus =
+      selectedItem.status === "PENDING"
+        ? "CONFIRM"
+        : "PENDING";
+
+    await handleUpdateQuotation(
+      selectedItem.quotationNo,
+      {
+        ...selectedItem,
+        status: updatedStatus,
+      }
     );
 
-    setQuotations(updated);
     setConfirmPopUp(false);
+
     setSelectedItem(null);
   };
 
-  const handleDelete = (deleteId) => {
-    const updatedQuotations = quotations.filter(
-      (item) => item.id !== deleteId
-    );
-    setQuotations(updatedQuotations);
+  const handleDelete = async (quotationNo) => {
 
-    const updatedClients = clients.map((client) => ({
-      ...client,
-      quotationList: (client.quotationList || []).filter(
-        (q) => q.id !== deleteId
-      ),
-    }));
-    setClients(updatedClients);
+    await handleDeleteQuotation(
+      quotationNo
+    );
 
     setShowPopup(false);
+
     setSelectedId(null);
   };
 
@@ -83,7 +81,6 @@ const ShowQuotations = ({ data }) => {
               <TableCell>#</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Thickness</TableCell>
-              <TableCell>Amount</TableCell>
               <TableCell>WhatsApp</TableCell>
               <TableCell>Laser Cutting</TableCell>
               <TableCell>Status Update</TableCell>
@@ -98,7 +95,7 @@ const ShowQuotations = ({ data }) => {
             {paginatedData.length > 0 ? (
               paginatedData.map((item, index) => (
                 <TableRow
-                  key={item.id}
+                  key={item.quotationNo}
                   hover
                 >
 
@@ -109,16 +106,13 @@ const ShowQuotations = ({ data }) => {
                   <TableCell>{item.cliName}</TableCell>
 
                   {/* Thickness */}
-                  <TableCell>{item.materials[0].gej}</TableCell>
-
-                  {/* Amount */}
-                  <TableCell>₹ {item.amount}</TableCell>
+                  <TableCell>{item.materials[0].gauge}</TableCell>
 
                   {/* Whatsapp */}
                   <TableCell>{item.whatsapp}</TableCell>
 
                   {/* Laser Cutting */}
-                  <TableCell>{item.laserCutting}</TableCell>
+                  <TableCell>{item.laserCutting || "-"}</TableCell>
 
                   {/* Status */}
                   <TableCell>
@@ -150,7 +144,7 @@ const ShowQuotations = ({ data }) => {
                         },
                       }}
                       onClick={() => {
-                        navi(`/quotations/${item.id}`, {
+                        navi(`/quotations/${item.quotationNo}`, {
                           state: { from: "/quotations" }
                         });
                       }}
@@ -170,7 +164,7 @@ const ShowQuotations = ({ data }) => {
                         },
                       }}
                       onClick={() => {
-                        setSelectedId(item.id);
+                        setSelectedId(item.quotationNo);
                         setShowPopup(true)
                       }}
                     >
@@ -189,7 +183,14 @@ const ShowQuotations = ({ data }) => {
                         },
                       }}
                       onClick={() =>
-                        navigate(`/quotations/${item.id}`)
+                        navigate(
+                          `/quotations/${item.quotationNo}`,
+                          {
+                            state: {
+                              from: "/quotations",
+                            },
+                          }
+                        )
                       }
                     >
                       View Detail →

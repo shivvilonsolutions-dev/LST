@@ -18,31 +18,47 @@ import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import { ClientContext } from "../../../contexts/client/clientContext"
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
-import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
-import calculateAmount from "../../../utils/calculateQuotationAmount";
 import { handleDownloadPDF } from "../../../utils/handleDownloadPDF";
 import { useLocation } from "react-router-dom";
-
+import PageLoader from "../../../components/ui/PageLoader"
+import formatDate from "../../../utils/formatDate"
+import QuotationPdfTemplate
+  from "../components/QuotationPdfTemplate";
 
 const QuotationDetail = () => {
   const location = useLocation();
-  const { quotations, setQuotations } = useContext(QuotationContext);
-  const { clients, setClients } = useContext(ClientContext);
+  const {
+    quotations,
+    handleUpdateQuotation,
+  } = useContext(QuotationContext);
   const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
+  const [warningPopup, setWarningPopup] = useState({
 
+    open: false,
+
+    message: "",
+  });
   const navi = useNavigate();
   const pdfRef = useRef();
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const quotation = quotations.find((q) => q.id == Number(id));
-  const [editData, setEditData] = useState(quotation);
+  const quotation =
+    quotations.find(
+      (q) =>
+        String(q.quotationNo) === String(id)
+    );
+  const [editData, setEditData] = useState(null);
+  const [time] = useState(
+    formatDate(new Date())
+  );
 
   useEffect(() => {
-    setEditData(quotation);
-  }, [quotation]);
+    if (quotation) {
+      setEditData(quotation);
+    }
 
-  const total = calculateAmount(editData);
+  }, [quotation]);
 
   const handleChange = (e) => {
     setEditData({
@@ -64,79 +80,69 @@ const QuotationDetail = () => {
     });
   };
 
-  const handleSave = () => {
-    const updatedItem = {
-      ...editData,
-      quotationDate: getCurrentDateTime(),
-      amount: editData.amount || total,
-    };
+  const handleSave = async () => {
 
-    const updatedData = quotations.map((item) =>
-      item.id == id ? updatedItem : item
-    );
+    const response =
+      await handleUpdateQuotation(
+        quotation.quotationNo,
+        editData
+      );
 
-    setQuotations(updatedData);
-    
-    const updatedClients = clients.map((c) => {
-      if (c.cliId === quotation.cliId) {
-        return {
-          ...c,
-          cliName: updatedItem.cliName,
-          mobile: updatedItem.mobile,
-          quotationList: c.quotationList.map((q) =>
-            q.id == id
-              ? {
-                ...q,
-                amount: updatedItem.amount,
-                date: updatedItem.quotationDate,
-                materials: updatedItem.materials,
-              }
-              : q
-          ),
-        };
-      }
-      return c;
-    });
+    if (response.success) {
 
-    setClients(updatedClients);
-    setEditData(updatedItem);
-
-    setIsEditing(false);
+      setIsEditing(false);
+    }
   };
 
 
-         const handleWhatsApp = () => {
-           if (!editData?.whatsapp) {
-             alert("Please add WhatsApp number");
-             return;
-           }
-         
-           let phone = editData.whatsapp.toString().replace(/\D/g, "");
-         
-           if (phone.length === 10) {
-             phone = "91" + phone;
-           }
-         
-           const materialsText = (editData.materials || [])
-             .filter(m => m.size)
-             .map(m => `• ${m.size} (${m.pic} pcs)`)
-             .join("\n");
-         
-           const message =
-         `Hello ${editData.cliName},
+  const handleWhatsApp = () => {
+    if (!editData?.whatsapp) {
+      setWarningPopup({
+
+        open: true,
+
+        message:
+          "Please add WhatsApp number",
+      });
+      return;
+    }
+
+    let phone = editData.whatsapp.toString().replace(/\D/g, "");
+
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
+
+    const materialsText = (editData.materials || [])
+
+      .filter(
+        (m) =>
+          m.size ||
+          m.piece ||
+          m.gauge
+      )
+
+      .map(
+        (m, index) =>
+          `• ${index + 1}. ${m.size || "-"} (${m.piece || 0} pcs | ${m.gauge || "-"} gauge)`
+      )
+
+      .join("\n");
+
+    const message =
+      `Hello ${editData.cliName},
 
          Your quotation:
          ${materialsText}
 
-         Amount: ${editData.amount || total}
          Date: ${editData.quotationDate}
 
          Thank you!`;
 
-           const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-           window.open(url, "_blank");
-         };
+    window.open(url, "_blank");
+  };
 
   const renderCell = (field, index) => {
     const value = editData.materials[index][field];
@@ -154,8 +160,11 @@ const QuotationDetail = () => {
     );
   };
 
-  if (!quotation) return <Box p={3}>Quotation Not Found</Box>;
+  if (!quotation || !editData) {
+    return <PageLoader />;
+  }
 
+  if (!quotation) return <Box p={3}>Quotation Not Found</Box>;
 
   return (
 
@@ -206,18 +215,23 @@ const QuotationDetail = () => {
             />
 
             <Button
-              btnName={isGenerating ? "Generating PDF..." : "Print"}
+              btnName={isGenerating ? "Generating PDF..." : "Download"}
               btnColor="red"
               onClick={async () => {
+
                 setIsGenerating(true);
 
                 try {
+
                   await handleDownloadPDF({
                     pdfRef,
                     data: editData,
                   });
-                } 
+
+                }
+
                 finally {
+
                   setIsGenerating(false);
                 }
               }}
@@ -228,7 +242,7 @@ const QuotationDetail = () => {
         </Box>
 
         {/* MAIN CONTAINER (MATCHED) */}
-        <Box ref={pdfRef} >
+        <Box>
 
           {/* Client + Date (MATCHED) */}
           <Box
@@ -242,15 +256,15 @@ const QuotationDetail = () => {
           >
             <Typography sx={{ minWidth: 95 }}> Client Name: </Typography>
             <Input
-               inpName="cliName"
-               inpValue={editData.cliName}
-               readOnly={!isEditing}
-               onChange={handleChange}
-             />
+              inpName="cliName"
+              inpValue={editData.cliName}
+              readOnly={!isEditing}
+              onChange={handleChange}
+            />
 
             <Typography>Date:</Typography>
             <Input
-              inpValue={editData.quotationDate}
+              inpValue={time}
               readOnly
             />
           </Box>
@@ -294,8 +308,8 @@ const QuotationDetail = () => {
 
                       {/* Reusable Cells */}
                       {renderCell("size", i)}
-                      {renderCell("gej", i)}
-                      {renderCell("pic", i)}
+                      {renderCell("gauge", i)}
+                      {renderCell("piece", i)}
 
                     </TableRow>
                   ))}
@@ -316,7 +330,7 @@ const QuotationDetail = () => {
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography>Mobile No.:</Typography>
                 <Box sx={{ width: "60%" }}>
-                 <Input
+                  <Input
                     inpName="mobile"
                     inpValue={editData.mobile}
                     readOnly={!isEditing}
@@ -325,17 +339,17 @@ const QuotationDetail = () => {
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px",   justifyContent: "space-between",    alignItems: "center" }}>
-                 <Typography>WhatsApp No.:</Typography>
-                 <Box sx={{ width: "60%" }}>
-                   <Input
-                     inpName="whatsapp"
-                     inpValue={editData.whatsapp}
-                     readOnly={!isEditing}
-                     onChange={handleChange}
-                   />
-                 </Box>
-               </Box>
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography>WhatsApp No.:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="whatsapp"
+                    inpValue={editData.whatsapp}
+                    readOnly={!isEditing}
+                    onChange={handleChange}
+                  />
+                </Box>
+              </Box>
 
 
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
@@ -376,15 +390,15 @@ const QuotationDetail = () => {
 
 
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-               <Typography>Laser Cutting:</Typography>
-               <Box sx={{ width: "60%" }}>
-                 <Input
-                   inpName="laserCutting"
-                   inpValue={editData.laserCutting}
-                   readOnly={!isEditing}
-                   onChange={handleChange}
-                 />
-               </Box>
+                <Typography>Laser Cutting:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="laserCutting"
+                    inpValue={editData.laserCutting}
+                    readOnly={!isEditing}
+                    onChange={handleChange}
+                  />
+                </Box>
               </Box>
 
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
@@ -399,23 +413,61 @@ const QuotationDetail = () => {
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography>Quotation Amount:</Typography>
-                <Box sx={{ width: "60%" }}>
-                  <Input
-                    inpName="amount"
-                    inpValue={editData.amount}
-                    readOnly={!isEditing}
-                    onChange={handleChange}
-                  />
-                </Box>
-              </Box>
-
-
-
             </Box>
           </Box>
         </Box>
+
+      </Box>
+
+      <Popup
+        isOpen={
+          warningPopup.open
+        }
+
+        title="Requirement"
+
+        message={
+          warningPopup.message
+        }
+
+        onConfirm={() =>
+          setWarningPopup({
+
+            open: false,
+
+            message: "",
+          })
+        }
+
+        onCancel={() =>
+          setWarningPopup({
+
+            open: false,
+
+            message: "",
+          })
+        }
+      />
+
+      <Box
+        sx={{
+          position: "fixed",
+
+          top: 0,
+          left: 0,
+
+          visibility: "hidden",
+
+          pointerEvents: "none",
+
+          zIndex: -1,
+        }}
+      >
+
+        <QuotationPdfTemplate
+          ref={pdfRef}
+          data={editData}
+        />
 
       </Box>
 

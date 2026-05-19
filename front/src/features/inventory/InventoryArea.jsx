@@ -1,4 +1,8 @@
-import React, { useContext, useState } from "react";
+import React, {
+  useContext,
+  useState,
+} from "react";
+
 import {
   TextField,
   Paper,
@@ -11,233 +15,429 @@ import {
   TableBody,
   TableContainer,
   TablePagination,
-  Select,
-  MenuItem,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { InventoryContext } from "../../contexts/inventory/inventoryContext";
+
+import {
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  InventoryContext,
+} from "../../contexts/inventory/inventoryContext";
+
 import Button from "../../components/ui/Button";
 import Popup from "../../components/ui/Popup";
-import { } from "@mui/material";
-
+import ErrorMessage from "../../components/ui/ErrorMessage";
+import PageLoader from "../../components/ui/PageLoader";
 
 const InventoryArea = () => {
-  const { inventories, setInventories } = useContext(InventoryContext);
-  const [showPopUp, setShowPopUp] = useState(false)
-  const [page, setPage] = useState(0);
-  const [selectedId, setSelectedId] = useState(null)
-  const [selectedMap, setSelectedMap] = useState({});
-  const [search, setSearch] = useState("");
-  const navi = useNavigate();
-  const rowsPerPage = 10;
-  
-  const paginatedData = inventories.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+
+  const {
+    inventories,
+    loading,
+    error,
+    handleDeleteInventory,
+  } = useContext(
+    InventoryContext
   );
 
-  const filteredData = paginatedData.filter((item) => {
-    const query = search.toLowerCase();
+  const [
+    showPopUp,
+    setShowPopUp,
+  ] = useState(false);
 
-    const matchName = item.inventoryName.toLowerCase().includes(query);
+  const [page, setPage] =
+    useState(0);
 
-    const matchProperties = item.properties?.some((prop) =>
-      prop.thickness?.toString().includes(query)
-    );
+  const [
+    selectedId,
+    setSelectedId,
+  ] = useState(null);
 
-    return matchName || matchProperties;
-  });
+  const [search, setSearch] =
+    useState("");
 
-  const handleDelete = (deleteId) => {
-    const updated = inventories.filter((item) =>
-      item.id !== deleteId
-    )
+  const navi =
+    useNavigate();
 
-    setInventories(updated)
-    setShowPopUp(false)
+  const rowsPerPage = 10;
+
+  if (loading) {
+    return <PageLoader />;
   }
 
+  const filteredData =
+    inventories.filter((item) => {
+
+      const query =
+        search.toLowerCase();
+
+      const matchName =
+        item.inventoryName
+          ?.toLowerCase()
+          .includes(query);
+
+      const matchProperties =
+        item.properties?.some(
+          (prop) =>
+            prop.thickness
+              ?.toString()
+              .toLowerCase()
+              .includes(query)
+        );
+
+      return (
+        matchName ||
+        matchProperties
+      );
+    });
+
+  const paginatedData =
+    filteredData.slice(
+      page * rowsPerPage,
+      page * rowsPerPage +
+      rowsPerPage
+    );
+
+  const handleDelete =
+    async (
+      inventoryId
+    ) => {
+
+      await handleDeleteInventory(
+        inventoryId
+      );
+
+      setShowPopUp(false);
+    };
+
   return (
+
     <Paper
       elevation={0}
       sx={{
         p: 2,
         borderRadius: 2,
-        border: "1px solid #e2e8f0",
+        border:
+          "1px solid #e2e8f0",
       }}
     >
+
+      <ErrorMessage
+        message={error}
+      />
 
       {/* Header */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
-          marginBottom: "16px"
+          justifyContent:
+            "space-between",
+
+          marginBottom:
+            "16px",
         }}
       >
 
-        <Typography variant="h4" fontWeight="bold">
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+        >
           Inventories
         </Typography>
 
         {/* Actions */}
-        <Box sx={{display: "flex", gap: "15px"}}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "15px",
+          }}
+        >
+
           <TextField
             size="small"
+
             placeholder="Search inventory..."
+
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+
+            onChange={(e) =>
+              setSearch(
+                e.target.value
+              )
+            }
           />
 
           <Button
-            btnName={"+ New inventory"}
+            btnName={
+              "+ New inventory"
+            }
+
             btnColor="secondary.main"
-            onClick={() => navi("/inventories/new-inventory")}
+
+            onClick={() =>
+              navi(
+                "/inventories/new-inventory"
+              )
+            }
           />
+
         </Box>
 
       </Box>
 
       {/* Table */}
-      <Paper elevation={2} sx={{ borderRadius: 2, overflow: "hidden" }}>
+      <Paper
+        elevation={2}
+
+        sx={{
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
 
         <TableContainer>
+
           <Table>
-            <TableHead sx={{ bgcolor: "#f2f4f5", borderBottom: "2px solid gray"  }}>
-              <TableRow hover >
-                <TableCell>ID</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Thickness</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Delete</TableCell>
-                <TableCell>Detail</TableCell>
+
+            <TableHead
+              sx={{
+                bgcolor:
+                  "#f2f4f5",
+
+                borderBottom:
+                  "2px solid gray",
+              }}
+            >
+
+              <TableRow hover>
+
+                <TableCell>
+                  No
+                </TableCell>
+
+                <TableCell>
+                  Name
+                </TableCell>
+
+                <TableCell>
+                  Thickness
+                </TableCell>
+
+                <TableCell>
+                  Quantity
+                </TableCell>
+
+                <TableCell>
+                  Delete
+                </TableCell>
+
+                <TableCell>
+                  Detail
+                </TableCell>
+
               </TableRow>
+
             </TableHead>
 
             <TableBody>
-              {filteredData.length > 0 ? (
-                filteredData.map((item, i) => {
 
-                  // const hasMultiple = item.properties?.length > 1;
-                  const hasMultiple = false;
+              {paginatedData.length >
+                0 ? (
 
-                  return (
-                    <TableRow key={item.id} hover>
+                paginatedData.map(
+                  (
+                    item,
+                    i
+                  ) => (
 
-                      {/* Index */}
-                      <TableCell>{i + 1}</TableCell>
+                    <TableRow
+                      key={
+                        item.inventoryId
+                      }
+                      hover
+                    >
 
-                      {/* Name */}
-                      <TableCell>{item.inventoryName}</TableCell>
-
-                      {/* Thickness */}
                       <TableCell>
-
-                        {hasMultiple ? (
-                          <Select
-                            size="small"
-                            value={
-                              selectedMap[item.id] ||
-                              item.properties?.[0]?.thickness
-                            }
-                            onChange={(e) =>
-                              setSelectedMap((prev) => ({
-                                ...prev,
-                                [item.id]: e.target.value,
-                              }))
-                            }
-                            sx={{ minWidth: 100 }}
-                          >
-                            {item.properties.map((prop) => (
-                              <MenuItem key={prop.thickness} value={prop.thickness}>
-                                {prop.thickness}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        ) : (
-                          `${item.properties?.[0]?.thickness || "-"}`
-                        )}
+                        {i + 1}
                       </TableCell>
 
-                      {/* Quantity */}
-                      <TableCell sx={{ fontSize: "18px" }}>
-                        {hasMultiple
-                          ? item.properties.find(
-                            (p) =>
-                              p.thickness ===
-                              (selectedMap[item.id] ||
-                                item.properties?.[0]?.thickness)
-                          )?.quantity
-                          : item.properties?.[0]?.quantity}
+                      <TableCell>
+                        {
+                          item.inventoryName
+                        }
                       </TableCell>
 
-                      {/* Delete */}
                       <TableCell>
+                        {
+                          item.properties?.length > 0
+
+                            ? item.properties
+                              .map(
+                                (prop) =>
+                                  prop.thickness
+                              )
+                              .join(", ")
+
+                            : "-"
+                        }
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          fontSize:
+                            "18px",
+                        }}
+                      >
+                        {
+                          item.properties?.length > 0
+
+                            ? item.properties
+                              .map(
+                                (prop) =>
+                                  prop.quantity
+                              )
+                              .join(", ")
+
+                            : "-"
+                        }
+                      </TableCell>
+
+                      {/* DELETE */}
+                      <TableCell>
+
                         <Typography
                           sx={{
-                            color: "#f74d6c",
-                            cursor: "pointer",
-                            "&:hover": { textDecoration: "underline" },
+                            color:
+                              "#f74d6c",
+
+                            cursor:
+                              "pointer",
+
+                            "&:hover":
+                            {
+                              textDecoration:
+                                "underline",
+                            },
                           }}
+
                           onClick={() => {
-                            setShowPopUp(true);
-                            setSelectedId(item.id);
+
+                            setShowPopUp(
+                              true
+                            );
+
+                            setSelectedId(
+                              item.inventoryId
+                            );
                           }}
                         >
                           Delete
                         </Typography>
+
                       </TableCell>
 
-                      {/* Detail */}
+                      {/* DETAIL */}
                       <TableCell>
+
                         <Typography
                           sx={{
-                            color: "primary.main",
-                            cursor: "pointer",
-                            "&:hover": { textDecoration: "underline" },
+                            color:
+                              "primary.main",
+
+                            cursor:
+                              "pointer",
+
+                            "&:hover":
+                            {
+                              textDecoration:
+                                "underline",
+                            },
                           }}
-                          onClick={() => navi(`/inventories/${item.id}`)}
+
+                          onClick={() =>
+                            navi(
+                              `/inventories/${item.inventoryId}`
+                            )
+                          }
                         >
                           View Detail →
                         </Typography>
+
                       </TableCell>
 
                     </TableRow>
-                  );
-                })
+                  )
+                )
 
               ) : (
+
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+
+                  <TableCell
+                    colSpan={5}
+                    align="center"
+                  >
                     No Inventory Data
                   </TableCell>
+
                 </TableRow>
               )}
+
             </TableBody>
+
           </Table>
+
         </TableContainer>
 
         <TablePagination
           component="div"
-          count={inventories.length}
+
+          count={
+            filteredData.length
+          }
+
           page={page}
-          onPageChange={(e, newPage) => setPage(newPage)}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[10]}
+
+          onPageChange={(
+            e,
+            newPage
+          ) =>
+            setPage(newPage)
+          }
+
+          rowsPerPage={
+            rowsPerPage
+          }
+
+          rowsPerPageOptions={[
+            10,
+          ]}
         />
+
       </Paper>
 
-      {/* Popup Delete Quotation */}
+      {/* DELETE POPUP */}
       <Popup
         isOpen={showPopUp}
-        title="Delete Quotation"
-        message="Are you sure you want to delete this quotation?"
+
+        title="Delete Inventory"
+
+        message="Are you sure you want to delete this inventory?"
+
         onConfirm={() => {
-          handleDelete(selectedId)
+          handleDelete(
+            selectedId
+          );
         }}
+
         onCancel={() => {
+
           setShowPopUp(false);
-          setSelectedId(null);
+
+          setSelectedId(
+            null
+          );
         }}
       />
 

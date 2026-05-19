@@ -18,30 +18,49 @@ import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import Popup from "../../../components/ui/Popup";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useContext } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import { ClientContext } from "../../../contexts/client/clientContext"
-import getCurrentDateTime from "../../../utils/getCurrentDateAndTime";
-import calculateAmount from "../../../utils/calculateQuotationAmount";
+import formatDate from "../../../utils/formatDate";
+import ErrorMessage from "../../../components/ui/ErrorMessage";
+import {
+  handleDownloadPDF,
+} from "../../../utils/handleDownloadPDF";
+import {
+  uploadQuotationPdf,
+} from "../../../api/settingsApi";
+
+import QuotationPdfTemplate
+  from "../components/QuotationPdfTemplate";
 
 const QuotationForm = () => {
+  const {
+    handleCreateQuotation,
+    error,
+  } = useContext(QuotationContext);
+
+  const { clients } =
+    useContext(ClientContext);
+
+  const [createdQuotation, setCreatedQuotation] = useState(null);
+  const pdfRef = useRef();
   const navi = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
   const [mobilePopup, setMobilePopup] = useState(false);
-  const [time, setTime] = useState(getCurrentDateTime());
-  const { quotations, setQuotations } = useContext(QuotationContext);
-  const { clients, setClients } = useContext(ClientContext);
+  const [duplicatePopup, setDuplicatePopup] = useState({
+    open: false,
+    message: "",
+  });
   const [isNewClient, setIsNewClient] = useState(false);
   const [formData, setFormData] = useState({
     cliId: "",
     cliName: "",
     mobile: "",
     whatsapp: "",
-    amount: "",
     materials: Array(6).fill().map(() => ({
       size: "",
-      pic: "",
-      gej: "",
+      piece: "",
+      gauge: "",
     })),
     rateB1: "",
     rateB2: "",
@@ -50,17 +69,67 @@ const QuotationForm = () => {
     add: "",
     status: "PENDING",
   });
+  const [time] = useState(
+    formatDate(new Date())
+  );
 
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTime(getCurrentDateTime());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
-  const total = calculateAmount(formData);
-  const finalAmount = formData.amount || total;
+    const autoSavePdf =
+      async () => {
+
+        if (
+          !createdQuotation ||
+          !pdfRef.current
+        ) {
+          return;
+        }
+
+        try {
+
+          const pdfBlob =
+            await handleDownloadPDF({
+              pdfRef,
+              data:
+                createdQuotation,
+              shouldDownload: false,
+            });
+
+          const formDataObj =
+            new FormData();
+
+          formDataObj.append(
+            "pdf",
+            pdfBlob,
+            `${createdQuotation.quotationNo}.pdf`
+          );
+
+          formDataObj.append(
+            "quotationNo",
+            createdQuotation.quotationNo
+          );
+
+          await uploadQuotationPdf(
+            formDataObj
+          );
+
+          console.log(
+            "PDF Saved Successfully"
+          );
+
+        } catch (error) {
+
+          console.log(
+            "Auto PDF Save Error:",
+            error
+          );
+        }
+      };
+
+    autoSavePdf();
+
+  }, [createdQuotation]);
 
   const handleMaterialChange = (index, field, value) => {
     const updatedMaterials = [...formData.materials];
@@ -82,8 +151,8 @@ const QuotationForm = () => {
         ...formData.materials,
         {
           size: "",
-          gej: "",
-          pic: "",
+          gauge: "",
+          piece: "",
         },
       ],
     });
@@ -106,82 +175,58 @@ const QuotationForm = () => {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit =
+    async (e) => {
 
-    if (!formData.cliName || !formData.cliName.trim()) {
-      alert("Please enter client name");
-      return;
-    }
+      e.preventDefault();
 
-    let finalCliId = formData.cliId;
-    let index = -1;
+      if (
+        !formData.cliName ||
+        !formData.cliName.trim()
+      ) {
+        
+        setDuplicatePopup({
 
-    if (formData.cliId) {
-      index = clients.findIndex(
-        (c) => Number(c.cliId) === Number(formData.cliId)
-      );
-    } 
-    else if (formData.mobile) {
-      index = clients.findIndex(
-        (c) => {
-          c.mobile === formData.mobile
-          c.whatsapp === formData.whatsapp
-        }
-      );
-    }
+          open: true,
 
-    if (index === -1) {
-      finalCliId = Date.now();
+          message:
+            "Please enter client name",
+        });
 
-      const newClient = {
-        cliId: finalCliId,
-        cliName: formData.cliName,
-        mobile: formData.mobile,
-        whatsapp: formData.whatsapp,
-        dateOfJoin: getCurrentDateTime(),
-      };
+        return;
+      }
 
-      setClients([newClient, ...clients]);
-    }
-    else {
-      finalCliId = clients[index].cliId;
-    }
+      const response =
+        await handleCreateQuotation({
+          ...formData,
 
-    const newQuotation = {
-      ...formData,
-      id: Date.now(),
-      cliId: Number(finalCliId),
-      status: "PENDING",
-      quotationDate: getCurrentDateTime(),
-      amount: finalAmount,
-      whatsapp: formData.whatsapp || "",
-      laserCutting: formData.laserCutting || "",
+          laserCutting:
+            formData.laserCutting || "",
+
+          whatsapp:
+            formData.whatsapp || "",
+
+          status: "PENDING",
+        });
+
+      if (response.success) {
+
+        setCreatedQuotation(
+          response.data
+        );
+
+        setShowPopup(true);
+
+      }
+      else {
+        setDuplicatePopup({
+          open: true,
+          message:
+            response.message,
+        });
+      }
     };
 
-    setQuotations([newQuotation, ...quotations]);
-
-    const quotationEntry = {
-      id: newQuotation.id,
-      date: newQuotation.quotationDate,
-      materials: newQuotation.materials,
-      amount: newQuotation.amount,
-      dateOfQuotation: newQuotation.quotationDate,
-    };
-
-    if (index !== -1) {
-      const updatedClients = [...clients];
-
-      updatedClients[index].quotationList = [
-        ...(updatedClients[index].quotationList || []),
-        quotationEntry,
-      ];
-
-      setClients(updatedClients);
-    }
-
-    setShowPopup(true);
-  };
   const handleWhatsApp = () => {
     if (!formData.whatsapp) {
       setMobilePopup(true);
@@ -195,18 +240,21 @@ const QuotationForm = () => {
     }
 
     const materialsText = formData.materials
-      .filter(m => m.nameOfMaterial)
-      .map(m => `• ${m.nameOfMaterial} (${m.pic} * ${m.qty})`)
-      .join("\n");
+      .filter(
+        (m) =>
+          m.size ||
+          m.piece ||
+          m.gauge
+      ).map(
+        (m, index) =>
+          `• ${index + 1}. ${m.size || "-"} (${m.piece || 0} pcs | ${m.gauge || "-"} gauge)`
+      ).join("\n");
 
     const message =
       `Hello ${formData.cliName},
 
 Your quotation: 
 ${materialsText}
-
-Amount: ${total}
-Date: ${getCurrentDateTime()}
 
 Thank you!`;
 
@@ -225,6 +273,10 @@ Thank you!`;
         bgcolor: "white",
       }}
     >
+      <ErrorMessage
+        message={error}
+      />
+
       <Box component="form" onSubmit={handleSubmit}>
 
         {/* Top Buttons */}
@@ -305,14 +357,15 @@ Thank you!`;
                     });
                   } else {
                     const selectedClient = clients.find(
-                      (c) => Number(c.cliId) === Number(value)
+                      (c) =>
+                        String(c.cliId) === String(value)
                     );
 
                     if (!selectedClient) return;
 
                     setFormData({
                       ...formData,
-                      cliId: Number(value), // ✅ FIX
+                      cliId: value, // ✅ FIX
                       cliName: selectedClient.cliName,
                       mobile: selectedClient.mobile,
                       whatsapp: selectedClient.whatsapp,
@@ -428,7 +481,7 @@ Thank you!`;
 
               <TableBody>
                 {formData.materials.map((row, i) => {
-                  const isRowFilled = row.size || row.gej || row.pic;
+                  const isRowFilled = row.size || row.gauge || row.piece;
 
                   return (
                     <TableRow key={i}>
@@ -446,9 +499,9 @@ Thank you!`;
 
                       <TableCell>
                         <Input
-                          inpValue={row.pic}
+                          inpValue={row.piece}
                           onChange={(e) => {
-                            handleMaterialChange(i, "pic", e.target.value)
+                            handleMaterialChange(i, "piece", e.target.value)
                           }}
                           isReq={isRowFilled}
                         />
@@ -456,9 +509,9 @@ Thank you!`;
 
                       <TableCell>
                         <Input
-                          inpValue={row.gej}
+                          inpValue={row.gauge}
                           onChange={(e) => {
-                            handleMaterialChange(i, "gej", e.target.value)
+                            handleMaterialChange(i, "gauge", e.target.value)
                           }}
                           isReq={isRowFilled}
                         />
@@ -569,26 +622,6 @@ Thank you!`;
                 </Box>
               </Box>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Typography sx={{ width: "40%" }}>
-                  Quotation Amount:
-                </Typography>
-
-                <Box sx={{ width: "60%" }}>
-                  <Input
-                    inpName="amount"
-                    onChange={handleChange}
-                    readOnly
-                  />
-                </Box>
-              </Box>
-
             </Box>
 
           </Box>
@@ -603,30 +636,84 @@ Thank you!`;
             કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
           </Typography>
         </Box>
-
-        {/* Popup */}
-        <Popup
-          isOpen={showPopup}
-          title="Confirm Action"
-          message={`Are you sure to send the Quotation to ${formData.cliName}?`}
-          onConfirm={() => {
-            navi("/quotations");
-            setShowPopup(false);
-          }}
-          onCancel={() => setShowPopup(false)}
-        />
-
-        <Popup
-          isOpen={mobilePopup}
-          title="Requirement"
-          message="Please add 10 digit WhatsApp number"
-          onConfirm={() => {
-            navi("/quotations/send-quotation");
-            setMobilePopup(false);
-          }}
-          onCancel={() => setMobilePopup(false)}
-        />
       </Box>
+
+      {/* Popup */}
+      <Popup
+        isOpen={showPopup}
+        title="Confirm Action"
+        message={`Are you sure to send the Quotation to ${formData.cliName}?`}
+        onConfirm={() => {
+          navi("/quotations");
+          setShowPopup(false);
+        }}
+        onCancel={() => setShowPopup(false)}
+      />
+
+      <Popup
+        isOpen={mobilePopup}
+        title="Requirement"
+        message="Please add 10 digit WhatsApp number"
+        onConfirm={() => {
+          navi("/quotations/send-quotation");
+          setMobilePopup(false);
+        }}
+        onCancel={() => setMobilePopup(false)}
+      />
+
+      <Popup
+        isOpen={
+          duplicatePopup.open
+        }
+
+        title="Duplicate Mobile Number"
+
+        message={
+          duplicatePopup.message
+        }
+
+        onConfirm={() =>
+          setDuplicatePopup({
+
+            open: false,
+
+            message: "",
+          })
+        }
+
+        onCancel={() =>
+          setDuplicatePopup({
+
+            open: false,
+
+            message: "",
+          })
+        }
+      />
+
+      {createdQuotation && (
+        <Box
+          sx={{
+            position: "fixed",
+
+            top: 0,
+            left: 0,
+
+            visibility: "hidden",
+
+            pointerEvents: "none",
+
+            zIndex: -1,
+          }}
+        >
+
+          <QuotationPdfTemplate
+            ref={pdfRef}
+            data={createdQuotation}
+          />
+
+        </Box>
+      )}
     </Paper>
   );
 };

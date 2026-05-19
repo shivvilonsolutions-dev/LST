@@ -1,7 +1,13 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export const handleDownloadPDF = async ({ pdfRef, data }) => {
+
+export const handleDownloadPDF =
+  async ({
+    pdfRef,
+    data,
+    shouldDownload = true,
+  }) => {
   const originalElement = pdfRef.current;
   if (!originalElement) return;
 
@@ -9,7 +15,7 @@ export const handleDownloadPDF = async ({ pdfRef, data }) => {
   const A4_WIDTH_PX = 794;
   const A4_HEIGHT_PX = 1123;
   const PADDING_X = 30;   // ← left & right
-  const PADDING_Y = 40; 
+  const PADDING_Y = 40;
   const DIVIDER_HEIGHT = 14; // 2 dividers × 7px
 
   const availableWidth = A4_WIDTH_PX - PADDING_X * 2;
@@ -56,7 +62,7 @@ export const handleDownloadPDF = async ({ pdfRef, data }) => {
         alignItems: "center",
         width: inp.offsetWidth ? `${inp.offsetWidth}px` : "100%",
         minHeight: "20px",
-        fontSize: "10px",
+        fontSize: "12px",
         padding: "2px 4px",
         border: "1px solid #000",
         borderRadius: "0",
@@ -84,7 +90,7 @@ export const handleDownloadPDF = async ({ pdfRef, data }) => {
 
     // Fix font sizes
     clone.querySelectorAll("p, span, th, td, label, div").forEach((el) => {
-      el.style.fontSize = "10px";
+      el.style.fontSize = "14px";
     });
 
     // ✅ KEY FIX: use scaleX and scaleY independently
@@ -148,10 +154,39 @@ export const handleDownloadPDF = async ({ pdfRef, data }) => {
     });
 
     // JPEG keeps file size small (1-3MB vs 120MB with PNG + scale:4)
-    const imgData = canvas.toDataURL("image/jpeg", 0.92);
-    const pdf = new jsPDF("p", "mm", "a4");
-    pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
-    pdf.save(`Quotation_${data.cliName || "Export"}_${data.mobile}.pdf`);
+    const imgData =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.92
+      );
+
+    const pdf =
+      new jsPDF(
+        "p",
+        "mm",
+        "a4"
+      );
+
+    pdf.addImage(
+      imgData,
+      "JPEG",
+      0,
+      0,
+      210,
+      297
+    );
+
+
+    // DOWNLOAD IN BROWSER
+    if (shouldDownload) {
+
+      pdf.save(
+        `Quotation_${data.cliName || "Export"}_${data.mobile}.pdf`
+      );
+    }
+
+    return pdf.output("blob");
+
   } catch (error) {
     console.error("PDF Error:", error);
   } finally {
