@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
-import envConfig
-from "./envConfig.js";
+import envConfig from "./envConfig.js";
 
 const atlasConnection =
   mongoose.createConnection(

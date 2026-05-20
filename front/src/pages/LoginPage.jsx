@@ -27,7 +27,7 @@ import Popup from "../components/ui/Popup";
 import { loginUser } from "../api/authApi";
 import { AuthContext } from "../contexts/auth/AuthContext";
 
-const cmp_name = "ARB";
+const cmp_name = "LST";
 
 
 const LoginDataPage =

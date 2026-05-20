@@ -1,5 +1,5 @@
 import {
-  BrowserRouter,
+  HashRouter,
   Route,
   Routes,
 } from "react-router-dom";
@@ -31,7 +31,7 @@ import ClientProvider from "./contexts/client/ClientProvider";
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
 
         {/* LOGIN */}
@@ -172,7 +172,7 @@ function App() {
 
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

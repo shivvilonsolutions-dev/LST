@@ -1,11 +1,13 @@
 # 📁 Backend Project Structure
 
-## src/
 
 ### Core Files
 
-- app.js
 - server.js
+
+## src/
+
+- app.js
 
 ---
 

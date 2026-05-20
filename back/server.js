@@ -1,17 +1,22 @@
-import app from "./app.js";
+import app from "./src/app.js";
 
-import envConfig
-from "./config/envConfig.js";
+import envConfig from "./src/config/envConfig.js";
+import startSyncJob from "./src/jobs/syncJob.js";
 
-import startSyncJob
-from "./jobs/syncJob.js";
 
 // INITIALIZE DB CONNECTIONS
 
-import "./config/localDb.js";
-import "./config/atlasDb.js";
+import "./src/config/localDb.js";
+import "./src/config/atlasDb.js";
+
 
 const PORT = envConfig.PORT || 5000;
+
+
+console.log(
+  "Email sender in server.js:",
+  envConfig.EMAIL_USER
+);
 
 
 const startServer =
@@ -20,6 +25,7 @@ const startServer =
     try {
 
       app.listen(
+
         PORT,
 
         () => {
@@ -32,7 +38,9 @@ const startServer =
         }
       );
 
-    } catch (error) {
+    }
+
+    catch (error) {
 
       console.log(
         "Server Startup Failed"
@@ -41,5 +49,6 @@ const startServer =
       console.log(error);
     }
   };
+
 
 startServer();

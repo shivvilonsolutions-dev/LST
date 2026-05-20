@@ -55,7 +55,6 @@ const ForgotPassword =
           );
 
         if (response.success) {
-
           setPopup({
             open: true,
 
@@ -68,6 +67,15 @@ const ForgotPassword =
 
           setTimeout(() => {
 
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+
             navi(
               "/reset-password",
               {
@@ -77,7 +85,7 @@ const ForgotPassword =
               }
             );
 
-          }, 1500);
+          }, 2000);
 
         } else {
 
@@ -127,7 +135,7 @@ const ForgotPassword =
           <Box
             component="form"
             onSubmit={handleSubmit}
-            sx={{ marginTop: "40px"}}
+            sx={{ marginTop: "40px" }}
           >
 
             <Stack spacing={3}>
@@ -162,20 +170,6 @@ const ForgotPassword =
           isOpen={popup.open}
           title={popup.title}
           message={popup.message}
-          onConfirm={() =>
-            setPopup({
-              open: false,
-              title: "",
-              message: "",
-            })
-          }
-          onCancel={() =>
-            setPopup({
-              open: false,
-              title: "",
-              message: "",
-            })
-          }
         />
 
       </Box>

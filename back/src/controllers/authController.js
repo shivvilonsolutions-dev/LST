@@ -8,6 +8,8 @@ import {
 export const login =
   async (req, res) => {
 
+    console.log(req.body);
+
     try {
 
       const data =
@@ -21,7 +23,8 @@ export const login =
       });
 
     } catch (error) {
-
+      console.log(error);
+      
       res.status(400).json({
         success: false,
         message:

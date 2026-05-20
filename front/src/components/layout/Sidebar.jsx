@@ -140,7 +140,7 @@ const Sidebar = ({
               variant="h6"
               fontWeight="bold"
             >
-              Shivvilon Solutions
+              Laxmi Steel Traders
             </Typography>
 
             <Typography
@@ -156,7 +156,7 @@ const Sidebar = ({
         ) : (
 
           <img
-            src="/company-logo/shivvilon_solutions_logo-removebg-preview.png"
+            src="/company-logo/lst-card-logo.png"
 
             alt="logo"
 

@@ -92,9 +92,21 @@ const ResetPassword =
               "Password updated successfully",
           });
 
+
           setTimeout(() => {
+
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+
             navi("/");
-          }, 1500);
+
+          }, 2000);
 
         } else {
 
@@ -106,6 +118,19 @@ const ResetPassword =
             message:
               response.message,
           });
+
+          setTimeout(() => {
+
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+
+          }, 2000);
         }
       };
 
@@ -142,7 +167,7 @@ const ResetPassword =
           <Box
             component="form"
             onSubmit={handleSubmit}
-            sx={{ marginTop: "40px"}}
+            sx={{ marginTop: "40px" }}
           >
 
             <Stack spacing={3}>
@@ -180,20 +205,6 @@ const ResetPassword =
           isOpen={popup.open}
           title={popup.title}
           message={popup.message}
-          onConfirm={() =>
-            setPopup({
-              open: false,
-              title: "",
-              message: "",
-            })
-          }
-          onCancel={() =>
-            setPopup({
-              open: false,
-              title: "",
-              message: "",
-            })
-          }
         />
 
       </Box>
