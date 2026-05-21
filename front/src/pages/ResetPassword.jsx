@@ -27,6 +27,11 @@ import {
   resetPassword,
 } from "../api/authApi";
 
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import IconButton from "@mui/material/IconButton";
+import TextField from "@mui/material/TextField";
+
 
 const ResetPassword =
   () => {
@@ -37,6 +42,8 @@ const ResetPassword =
     const navi =
       useNavigate();
 
+    const [showPassword, setShowPassword] =
+      useState(false);
 
     const email =
       location.state?.email || "";
@@ -179,19 +186,101 @@ const ResetPassword =
                 onChange={handleChange}
               />
 
-              <Input
-                inpType="password"
-                inpName="password"
-                inpPlaceholder="Enter new password"
-                inpValue={formData.password}
-                onChange={handleChange}
-              />
+              {/* New Password */}
+
+              <Box>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 1,
+                  }}
+                >
+                  New Password
+                </Typography>
+
+                <Box
+                  sx={{
+                    position: "relative",
+                  }}
+                >
+
+                  <TextField
+                    fullWidth
+
+                    size="small"
+
+                    variant="outlined"
+
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+
+                    name="password"
+
+                    value={formData.password}
+
+                    onChange={handleChange}
+
+                    placeholder="Enter new password"
+                  />
+
+                  <IconButton
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
+
+                    sx={{
+
+                      position:
+                        "absolute",
+
+                      right: 8,
+
+                      top: "50%",
+
+                      transform:
+                        "translateY(-50%)",
+
+                      color:
+                        "#162660",
+
+                      zIndex: 10,
+                    }}
+                  >
+
+                    {showPassword ? (
+
+                      <VisibilityOff />
+
+                    ) : (
+
+                      <Visibility />
+
+                    )}
+
+                  </IconButton>
+
+                </Box>
+
+              </Box>
 
               <Button
                 btnName="Reset Password"
                 btnColor="secondary.main"
                 btnType="submit"
                 btnWidth="100%"
+              />
+
+              <Button
+                btnName="← Back"
+                btnColor="gray"
+                txtCol="black"
+                onClick={() => navi("/")}
               />
 
             </Stack>

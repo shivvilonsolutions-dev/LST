@@ -1,21 +1,10 @@
-import bcrypt
-from "bcryptjs";
-
-import LocalUser
-from "../models/local/User.js";
-
-import AtlasUser
-from "../models/atlas/User.js";
-
-import generateToken
-from "../utils/generateToken.js";
-
-import generateOTP
-from "../utils/generateOTP.js";
-
-import sendEmail
-from "../utils/sendEmail.js";
-
+import bcrypt from "bcryptjs";
+import LocalUser from "../models/local/User.js";
+import AtlasUser from "../models/atlas/User.js";
+import generateToken from "../utils/generateToken.js";
+import generateOTP from "../utils/generateOTP.js";
+import sendEmail from "../utils/sendEmail.js";
+import checkInternet from "../utils/checkInternet.js"
 
 export const loginService =
   async ({
@@ -107,16 +96,21 @@ export const sendOtpService =
 
       await atlasUser.save();
     }
+    
+    const isOnline =
+      await checkInternet();
 
-    await sendEmail(
+    if (isOnline) {
+      await sendEmail(
 
-      email,
+        email,
 
-      "Password Reset OTP",
+        "Password Reset OTP",
 
-      `Your OTP is ${otp}`
-    );
-  };
+        `Your OTP is ${otp}`
+      );
+    };
+  }
 
 
 export const resetPasswordService =

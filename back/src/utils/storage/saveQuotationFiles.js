@@ -1,14 +1,14 @@
 import path
-from "path";
+  from "path";
 
 import createStoragePath
-from "./createStoragePath.js";
+  from "./createStoragePath.js";
 
 import generateQuotationExcel
-from "../excel/generateQuotationExcel.js";
+  from "../excel/generateQuotationExcel.js";
 
 import convertExcelToPdf
-from "../pdf/convertExcelToPdf.js";
+  from "../pdf/convertExcelToPdf.js";
 
 
 const saveQuotationFiles =
@@ -22,8 +22,12 @@ const saveQuotationFiles =
         basePath
       );
 
+    const safeClientName =
+      quotationData.cliName
+        .replace(/[<>:"/\\\\|?*]/g, "")
+        .trim();
 
-    const fileName = `${quotationData.quotationNo}_${quotationData.cliName}`;
+    const fileName = `${quotationData.quotationNo}_${safeClientName}`;
     console.log("File name:", fileName)
 
     const excelPath =

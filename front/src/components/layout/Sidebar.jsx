@@ -156,7 +156,7 @@ const Sidebar = ({
         ) : (
 
           <img
-            src="/company-logo/lst-card-logo.png"
+            src="/lst-card-logo.png"
 
             alt="logo"
 

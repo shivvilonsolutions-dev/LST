@@ -245,88 +245,88 @@ const LoginDataPage =
               { /* Password */}
               <Box>
 
-  <Typography
-    variant="body2"
-    sx={{
-      mb: 1,
-    }}
-  >
-    Password
-  </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 1,
+                  }}
+                >
+                  Password
+                </Typography>
 
-  <Box
-    sx={{
-      position: "relative",
-    }}
-  >
+                <Box
+                  sx={{
+                    position: "relative",
+                  }}
+                >
 
-    <TextField
-      fullWidth
+                  <TextField
+                    fullWidth
 
-      size="small"
+                    size="small"
 
-      variant="outlined"
+                    variant="outlined"
 
-      type={
-        showPassword
-          ? "text"
-          : "password"
-      }
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
 
-      name="password"
+                    name="password"
 
-      value={
-        loginData.password
-      }
+                    value={
+                      loginData.password
+                    }
 
-      onChange={
-        handleChange
-      }
+                    onChange={
+                      handleChange
+                    }
 
-      placeholder="Enter your password"
-    />
+                    placeholder="Enter your password"
+                  />
 
-    <IconButton
-      onClick={() =>
-        setShowPassword(
-          !showPassword
-        )
-      }
+                  <IconButton
+                    onClick={() =>
+                      setShowPassword(
+                        !showPassword
+                      )
+                    }
 
-      sx={{
+                    sx={{
 
-        position:
-          "absolute",
+                      position:
+                        "absolute",
 
-        right: 8,
+                      right: 8,
 
-        top: "50%",
+                      top: "50%",
 
-        transform:
-          "translateY(-50%)",
+                      transform:
+                        "translateY(-50%)",
 
-        color:
-          "#162660",
+                      color:
+                        "#162660",
 
-        zIndex: 10,
-      }}
-    >
+                      zIndex: 10,
+                    }}
+                  >
 
-      {showPassword ? (
+                    {showPassword ? (
 
-        <VisibilityOff />
+                      <VisibilityOff />
 
-      ) : (
+                    ) : (
 
-        <Visibility />
+                      <Visibility />
 
-      )}
+                    )}
 
-    </IconButton>
+                  </IconButton>
 
-  </Box>
+                </Box>
 
-</Box>
+              </Box>
 
 
               {/* Forgot Password */}

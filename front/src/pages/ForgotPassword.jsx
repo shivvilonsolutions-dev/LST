@@ -159,6 +159,13 @@ const ForgotPassword =
                 btnWidth="100%"
               />
 
+              <Button
+                btnName="← Back"
+                btnColor="gray"
+                txtCol="black"
+                onClick={() => navi("/")}
+              />
+
             </Stack>
 
           </Box>

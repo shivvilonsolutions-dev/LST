@@ -106,23 +106,29 @@ const SettingsArea = () => {
     };
 
   const handlePickDirectory =
-    async () => {
+  async () => {
 
-      try {
+    try {
 
-        const dirHandle =
-          await window.showDirectoryPicker();
+      const result =
+        await window.electronAPI
+          .selectFolder();
 
-        const fullPath =
-          dirHandle.name;
+      if (
+        !result.canceled &&
+        result.filePaths.length > 0
+      ) {
 
-        setPdfPath(fullPath);
-
-      } catch (error) {
-
-        console.log(error);
+        setPdfPath(
+          result.filePaths[0]
+        );
       }
-    };
+
+    } catch (error) {
+
+      console.log(error);
+    }
+  };
 
   return (
 

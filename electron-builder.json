@@ -1,0 +1,33 @@
+{
+  "appId": "com.quotation.desktop",
+  "productName": "LST Quotation Desktop App",
+  "directories": {
+    "output": "dist"
+  },
+  "files": [
+    "electron/**/*",
+    "front/dist/**/*",
+    "back/**/*",
+    "package.json"
+  ],
+  "asarUnpack": [
+    "electron/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "electron/preload.cjs",
+      "to": "electron/preload.cjs"
+    },
+    {
+      "from": "back/.env",
+      "to": "back/.env"
+    },
+    {
+      "from": "back/template",
+      "to": "back/template"
+    }
+  ],
+  "win": {
+    "target": "nsis"
+  }
+}

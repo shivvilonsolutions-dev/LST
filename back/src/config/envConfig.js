@@ -1,38 +1,38 @@
-import dotenv
-  from "dotenv";
+import dotenv from "dotenv";
 
-import path
-  from "path";
+import path from "path";
 
-import fs
-  from "fs";
+import { app } from "electron";
 
+const envPath = process.versions.electron
 
-let envPath =
-  path.join(
-    process.cwd(),
-    ".env"
-  );
+    ? app.isPackaged
 
+        ? path.join(
+            process.resourcesPath,
+            "back",
+            ".env"
+          )
 
-if (
-  !fs.existsSync(envPath)
-  &&
-  process.resourcesPath
-)
-{
-  envPath =
-    path.join(
-      process.resourcesPath,
-      ".env"
-    );
-}
+        : path.join(
+            process.cwd(),
+            "back",
+            ".env"
+          )
 
+    : path.join(
+        process.cwd(),
+        ".env"
+      );
 
 dotenv.config({
-  path: envPath,
+    path: envPath
 });
 
+console.log(
+    "Loaded ENV from:",
+    envPath
+);
 
 const envConfig = {
 
