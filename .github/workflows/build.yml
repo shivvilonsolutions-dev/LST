@@ -34,8 +34,8 @@ jobs:
           npm install
 
       - name: Build Electron App
-        run: npm run electron:build
-
+        run: npm run electron:build -- --publish never
+  
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
