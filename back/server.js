@@ -56,6 +56,7 @@ const seedDefaultUser =
           );
 
         await User.create({
+          userId: "ADMIN001",
 
           email:
             "admin@gmail.com",
@@ -63,7 +64,6 @@ const seedDefaultUser =
           password:
             hashedPassword,
 
-          role: "admin"
         });
 
         console.log(
@@ -89,7 +89,15 @@ const startServer =
 
     try {
 
-      await seedDefaultUser();
+      setTimeout(
+        async () => {
+
+          await seedDefaultUser();
+
+        },
+        3000
+      );
+
 
       app.listen(
 
