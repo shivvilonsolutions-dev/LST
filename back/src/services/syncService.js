@@ -4,6 +4,7 @@ import AtlasClient from "../models/atlas/Client.js";
 import AtlasInventory from "../models/atlas/Inventory.js";
 import AtlasQuotation from "../models/atlas/Quotation.js";
 import AtlasSettings from "../models/atlas/Settings.js";
+import AtlasUser from "../models/atlas/User.js";
 
 const syncDocument =
   async (
@@ -174,6 +175,28 @@ export const syncAfterLocalSave =
           localDoc,
           AtlasSettings,
           "_id"
+        );
+      }
+
+      if (type === "user") {
+
+        const LocalUser =
+          (
+            await import(
+              "../models/local/User.js"
+            )
+          ).default;
+
+        await syncPendingData(
+          LocalUser,
+          AtlasUser,
+          "email"
+        );
+
+        await syncDocument(
+          localDoc,
+          AtlasUser,
+          "email"
         );
       }
 

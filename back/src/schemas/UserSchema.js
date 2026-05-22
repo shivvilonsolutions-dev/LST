@@ -31,6 +31,15 @@ const UserSchema =
       type: Date,
     },
 
+    isSynced: {
+      type: Boolean,
+      default: false
+    },
+
+    lastSyncedAt: {
+      type: Date
+    }
+
   }, {
     timestamps: true,
   });

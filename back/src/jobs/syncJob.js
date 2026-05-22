@@ -6,11 +6,14 @@ import LocalClient from "../models/local/Client.js";
 import LocalInventory from "../models/local/Inventory.js";
 import LocalQuotation from "../models/local/Quotation.js";
 import LocalSettings from "../models/local/Settings.js";
+import LocalUser from "../models/local/User.js";
 
 import AtlasClient from "../models/atlas/Client.js";
 import AtlasInventory from "../models/atlas/Inventory.js";
 import AtlasQuotation from "../models/atlas/Quotation.js";
 import AtlasSettings from "../models/atlas/Settings.js";
+import AtlasUser from "../models/atlas/User.js";
+
 
 const SYNC_TIME_IN_SEC = 30
 
@@ -55,6 +58,12 @@ const startSyncJob =
             LocalSettings,
             AtlasSettings,
             "_id"
+          );
+
+          await syncPendingData(
+            LocalUser,
+            AtlasUser,
+            "email"
           );
 
         } catch (error) {

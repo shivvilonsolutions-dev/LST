@@ -4,7 +4,6 @@ import ExcelJS
 import path
   from "path";
 
-import { app } from "electron";
 
 const setCommonPageSetup =
   (sheet) => {
