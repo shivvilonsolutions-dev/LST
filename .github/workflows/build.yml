@@ -28,6 +28,11 @@ jobs:
           cd front
           npm install
 
+      - name: Build Frontend
+        run: |
+          cd front
+          npm run build
+
       - name: Install Backend Dependencies
         run: |
           cd back
@@ -35,7 +40,7 @@ jobs:
 
       - name: Build Electron App
         run: npm run electron:build -- --publish never
-  
+
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
