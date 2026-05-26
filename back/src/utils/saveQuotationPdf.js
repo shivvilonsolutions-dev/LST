@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-import Settings from "../models/local/Settings.js";
+import getModels
+  from "../models/getModels.js";
 import generateQuotationExcel from "./excel/generateQuotationExcel.js";
 import convertExcelToPdf from "./pdf/convertExcelToPdf.js";
 
@@ -13,8 +14,13 @@ const saveQuotationPdf =
     try {
 
       // SETTINGS
+      const {
+        LocalSettings
+      } = getModels();
+
+
       const settings =
-        await Settings.findOne();
+        await LocalSettings.findOne();
 
       if (
         !settings

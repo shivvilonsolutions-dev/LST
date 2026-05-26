@@ -36,6 +36,10 @@ const ForgotPassword =
     const [email, setEmail] =
       useState("");
 
+    const [loading,
+      setLoading] =
+      useState(false);
+
     const [popup, setPopup] =
       useState({
         open: false,
@@ -43,53 +47,36 @@ const ForgotPassword =
         message: "",
       });
 
-
     const handleSubmit =
       async (e) => {
 
         e.preventDefault();
+
+        setLoading(true);
 
         const response =
           await sendOtp(
             email
           );
 
+        setLoading(false);
+
         if (response.success) {
+
           setPopup({
+
             open: true,
 
             title: "Success",
 
             message:
-              "OTP sent successfully",
+              "OTP sent successfully.\n\nClick OK to continue.",
           });
-
-
-          setTimeout(() => {
-
-            setPopup({
-
-              open: false,
-
-              title: "",
-
-              message: "",
-            });
-
-            navi(
-              "/reset-password",
-              {
-                state: {
-                  email,
-                },
-              }
-            );
-
-          }, 2000);
 
         } else {
 
           setPopup({
+
             open: true,
 
             title: "Error",
@@ -99,7 +86,6 @@ const ForgotPassword =
           });
         }
       };
-
 
     return (
 
@@ -140,6 +126,16 @@ const ForgotPassword =
 
             <Stack spacing={3}>
 
+              <Box>
+                
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    mb: 1,
+                                  }}
+                                >
+                                  Enter Email
+                                </Typography>
               <Input
                 inpName="email"
                 inpType="email"
@@ -151,12 +147,17 @@ const ForgotPassword =
                   )
                 }
               />
-
+</Box>
               <Button
-                btnName="Send OTP"
+                btnName={
+                  loading
+                    ? "Sending OTP..."
+                    : "Send OTP"
+                }
                 btnColor="secondary.main"
                 btnType="submit"
                 btnWidth="100%"
+                disabled={loading}
               />
 
               <Button
@@ -177,6 +178,45 @@ const ForgotPassword =
           isOpen={popup.open}
           title={popup.title}
           message={popup.message}
+
+          onCancel={() => {
+
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+          }}
+
+          onConfirm={() => {
+
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+
+            if (
+              popup.title ===
+              "Success"
+            ) {
+
+              navi(
+                "/reset-password",
+                {
+                  state: {
+                    email,
+                  },
+                }
+              );
+            }
+          }}
         />
 
       </Box>

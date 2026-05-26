@@ -333,10 +333,35 @@ const LoginDataPage =
               <Box
                 sx={{
                   width: "100%",
+
                   display: "flex",
-                  justifyContent: "flex-end",
+
+                  justifyContent:
+                    "space-between",
+
+                  alignItems:
+                    "center",
                 }}
               >
+
+                <Link
+                  to="/add-user"
+
+                  style={{
+                    textDecoration:
+                      "none",
+                  }}
+                >
+
+                  <Typography
+                    variant="body2"
+
+                    color="primary"
+                  >
+                    Add New User
+                  </Typography>
+
+                </Link>
 
                 <Link
                   to="/forgot-password"

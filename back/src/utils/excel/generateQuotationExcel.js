@@ -4,7 +4,6 @@ import ExcelJS
 import path
   from "path";
 
-
 const setCommonPageSetup =
   (sheet) => {
 
@@ -336,28 +335,20 @@ const generateQuotationExcel =
     const workbook =
       new ExcelJS.Workbook();
 
-
     const templatePath =
-      process.versions.electron
 
-        ? app.isPackaged
+      process.resourcesPath
 
-          ? path.join(
-            process.resourcesPath,
-            "back",
-            "template",
-            "quotation_template.xlsx"
-          )
-
-          : path.join(
-            process.cwd(),
-            "back",
-            "template",
-            "quotation_template.xlsx"
-          )
+        ? path.join(
+          process.resourcesPath,
+          "back",
+          "template",
+          "quotation_template.xlsx"
+        )
 
         : path.join(
           process.cwd(),
+          "back",
           "template",
           "quotation_template.xlsx"
         );

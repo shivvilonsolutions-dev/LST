@@ -1,8 +1,4 @@
-import Quotation
-  from "../models/local/Quotation.js";
-
-import Client
-  from "../models/local/Client.js";
+import getModels from "../models/getModels.js";
 
 import {
   syncAfterLocalSave,
@@ -14,8 +10,13 @@ import saveQuotationPdf
 export const createQuotationService =
   async (data) => {
 
+    const {
+      LocalClient,
+      LocalQuotation
+    } = getModels();
+
     let client =
-      await Client.findOne({
+      await LocalClient.findOne({
         mobile: data.mobile,
       });
 
@@ -49,7 +50,7 @@ export const createQuotationService =
     if (!client) {
 
       client =
-        await Client.create({
+        await LocalClient.create({
           cliId:
             `CLI_${Date.now()}`,
 
@@ -76,7 +77,7 @@ export const createQuotationService =
 
     // CREATE QUOTATION
     const quotation =
-      await Quotation.create({
+      await LocalQuotation.create({
         quotationNo,
 
         cliId: client.cliId,
@@ -119,8 +120,7 @@ export const createQuotationService =
 
     // OPTIONAL:
     // STORE PATHS INSIDE DB
-    if ( savedFiles.success ) 
-    {
+    if (savedFiles.success) {
 
       quotation.excelPath =
         savedFiles.excelPath;
@@ -156,7 +156,12 @@ export const createQuotationService =
 
 export const getAllQuotationsService =
   async () => {
-    return await Quotation.find().sort({
+
+    const {
+      LocalQuotation
+    } = getModels();
+
+    return await LocalQuotation.find().sort({
       createdAt: -1,
     });
   };
@@ -164,7 +169,11 @@ export const getAllQuotationsService =
 export const getSingleQuotationService =
   async (quotationNo) => {
 
-    return await Quotation.findOne({
+    const {
+      LocalQuotation
+    } = getModels();
+
+    return await LocalQuotation.findOne({
       quotationNo,
     });
   };
@@ -172,8 +181,13 @@ export const getSingleQuotationService =
 export const updateQuotationService =
   async (quotationNo, data) => {
 
+    const {
+      LocalClient,
+      LocalQuotation
+    } = getModels();
+
     const updatedQuotation =
-      await Quotation.findOneAndUpdate(
+      await LocalQuotation.findOneAndUpdate(
         { quotationNo },
 
         {
@@ -187,7 +201,7 @@ export const updateQuotationService =
 
     // UPDATE CLIENT CACHE
     const client =
-      await Client.findOne({
+      await LocalClient.findOne({
         cliId:
           updatedQuotation.cliId,
       });
@@ -241,8 +255,13 @@ export const updateQuotationService =
 export const deleteQuotationService =
   async (quotationNo) => {
 
+    const {
+      LocalClient,
+      LocalQuotation
+    } = getModels();
+
     const quotation =
-      await Quotation.findOne({
+      await LocalQuotation.findOne({
         quotationNo,
       });
 
@@ -253,13 +272,13 @@ export const deleteQuotationService =
     }
 
     // DELETE QUOTATION
-    await Quotation.findOneAndDelete({
+    await LocalQuotation.findOneAndDelete({
       quotationNo,
     });
 
     // REMOVE FROM CLIENT CACHE
     const client =
-      await Client.findOne({
+      await LocalClient.findOne({
         cliId: quotation.cliId,
       });
 

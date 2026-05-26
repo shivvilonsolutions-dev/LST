@@ -91,31 +91,17 @@ const ResetPassword =
         if (response.success) {
 
           setPopup({
+
             open: true,
 
             title: "Success",
 
             message:
-              "Password updated successfully",
+              "Password updated successfully.\n\nClick OK to continue.",
           });
 
-
-          setTimeout(() => {
-
-            setPopup({
-
-              open: false,
-
-              title: "",
-
-              message: "",
-            });
-
-            navi("/");
-
-          }, 2000);
-
-        } else {
+        }
+        else {
 
           setPopup({
             open: true,
@@ -126,18 +112,6 @@ const ResetPassword =
               response.message,
           });
 
-          setTimeout(() => {
-
-            setPopup({
-
-              open: false,
-
-              title: "",
-
-              message: "",
-            });
-
-          }, 2000);
         }
       };
 
@@ -179,13 +153,26 @@ const ResetPassword =
 
             <Stack spacing={3}>
 
-              <Input
-                inpName="otp"
-                inpPlaceholder="Enter OTP"
-                inpValue={formData.otp}
-                onChange={handleChange}
-              />
+              <Box>
 
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    mb: 1,
+                  }}
+                >
+                  Enter OTP
+                </Typography>
+
+                <Input
+                  inpName="otp"
+                  inpPlaceholder="Enter OTP"
+                  inpValue={formData.otp}
+                  onChange={handleChange}
+                />
+
+              </Box>
               {/* New Password */}
 
               <Box>
@@ -196,7 +183,7 @@ const ResetPassword =
                     mb: 1,
                   }}
                 >
-                  New Password
+                  Enter New Password
                 </Typography>
 
                 <Box
@@ -289,11 +276,44 @@ const ResetPassword =
 
         </Paper>
 
-
         <Popup
           isOpen={popup.open}
+
           title={popup.title}
+
           message={popup.message}
+
+          onCancel={() => {
+
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+          }}
+
+          onConfirm={() => {
+
+            setPopup({
+
+              open: false,
+
+              title: "",
+
+              message: "",
+            });
+
+            if (
+              popup.title ===
+              "Success"
+            ) {
+
+              navi("/");
+            }
+          }}
         />
 
       </Box>

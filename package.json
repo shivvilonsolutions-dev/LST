@@ -8,7 +8,7 @@
     "electron": "electron .",
     "electron:dev": "concurrently \"npm run back\" \"npm run front\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "build:front": "cd front && npm run build",
-    "electron:build": "npm run build:front && cross-env NODE_ENV=production electron-builder"
+    "electron:build": "cross-env NODE_ENV=production electron-builder"
   },
   "devDependencies": {
     "concurrently": "^9.0.1",

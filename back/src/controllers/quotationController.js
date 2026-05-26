@@ -6,9 +6,10 @@ import {
   deleteQuotationService,
 } from "../services/quotationService.js";
 import saveQuotationPdf from "../utils/saveQuotationPdf.js";
+import getModels from "../models/getModels.js";
 
 import fs from "fs";
-import Quotation from "../models/local/Quotation.js";
+
 
 
 export const createQuotation =
@@ -193,10 +194,14 @@ export const downloadQuotationPdf =
     res
   ) => {
 
+    const {
+      LocalQuotation
+    } = getModels();
+
     try {
 
       const quotation =
-        await Quotation.findById(
+        await LocalQuotation.findById(
           req.params.id
         );
 

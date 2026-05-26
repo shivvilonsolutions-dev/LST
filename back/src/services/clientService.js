@@ -1,5 +1,4 @@
-import Client
-  from "../models/local/Client.js";
+import getModels from "../models/getModels.js";
 
 import {
   syncAfterLocalSave,
@@ -8,8 +7,12 @@ import {
 export const createClientService =
   async (data) => {
 
+    const {
+      LocalClient
+    } = getModels();
+
     const existingClient =
-      await Client.findOne({
+      await LocalClient.findOne({
         mobile: data.mobile,
       });
 
@@ -20,7 +23,7 @@ export const createClientService =
     }
 
     const client =
-      await Client.create({
+      await LocalClient.create({
         cliId: `CLI_${Date.now()}`,
 
         cliName: data.cliName,
@@ -44,21 +47,36 @@ export const createClientService =
 
 export const getAllClientsService =
   async () => {
-    return await Client.find().sort({
+
+    const {
+      LocalClient
+    } = getModels();
+
+    return await LocalClient.find().sort({
       createdAt: -1,
     });
   };
 
 export const getSingleClientService =
   async (cliId) => {
-    return await Client.findOne({
+
+    const {
+      LocalClient
+    } = getModels();
+
+    return await LocalClient.findOne({
       cliId,
     });
   };
 
 export const deleteClientService =
   async (cliId) => {
-    return await Client.findOneAndDelete({
+
+    const {
+      LocalClient
+    } = getModels();
+
+    return await LocalClient.findOneAndDelete({
       cliId,
     });
   };
@@ -66,8 +84,13 @@ export const deleteClientService =
 export const updateClientService =
   async (cliId, data) => {
 
+    const {
+      LocalClient
+    } = getModels();
+
+
     const updatedClient =
-      await Client.findOneAndUpdate(
+      await LocalClient.findOneAndUpdate(
         { cliId },
 
         {
@@ -83,10 +106,10 @@ export const updateClientService =
         }
       );
 
-      await syncAfterLocalSave(
-        updatedClient,
-        "client"
-      );
+    await syncAfterLocalSave(
+      updatedClient,
+      "client"
+    );
 
     return updatedClient;
   };

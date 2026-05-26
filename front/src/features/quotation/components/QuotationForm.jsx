@@ -120,19 +120,43 @@ const QuotationForm = () => {
 
         setIsSending(true);
 
-        const response =
-          await handleCreateQuotation({
+        let response;
 
-            ...formData,
+        try {
 
-            laserCutting:
-              formData.laserCutting || "",
+          response =
+            await handleCreateQuotation({
 
-            whatsapp:
-              formData.whatsapp || "",
+              ...formData,
 
-            status: "PENDING",
+              laserCutting:
+                formData.laserCutting || "",
+
+              whatsapp:
+                formData.whatsapp || "",
+
+              status: "PENDING",
+            });
+
+        }
+
+        catch (error) {
+
+          console.log(
+            "Quotation Create Error:",
+            error
+          );
+
+          setDuplicatePopup({
+
+            open: true,
+
+            message:
+              "Quotation creation failed",
           });
+
+          return;
+        }
 
         if (response.success) {
 
@@ -156,6 +180,8 @@ const QuotationForm = () => {
         setIsSending(false);
       }
     };
+
+
   const handleSubmit =
     async (e) => {
 
@@ -214,7 +240,8 @@ Thank you!`;
 
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-    window.open(url, "_blank");
+
+    window.open(url, "_blank")
   };
 
   return (

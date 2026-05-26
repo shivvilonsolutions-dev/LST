@@ -27,14 +27,34 @@ export const getSingleQuotation =
 // CREATE QUOTATION
 export const createQuotation =
   async (data) => {
+    try {
 
-    const response =
-      await api.post(
-        "/quotations",
-        data
+      const response =
+        await api.post(
+          "/quotations",
+          data
+        );
+
+      return response.data;
+
+    }
+
+    catch (error) {
+
+      console.log(
+        "Create Quotation API Error:",
+        error
       );
 
-    return response.data;
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message
+          || "Quotation creation failed",
+      };
+    }
   };
 
 // UPDATE QUOTATION

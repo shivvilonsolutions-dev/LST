@@ -1,5 +1,5 @@
 import mongoose
-from "mongoose";
+  from "mongoose";
 
 
 const UserSchema =
@@ -11,6 +11,11 @@ const UserSchema =
       unique: true,
     },
 
+    name: {
+      type: String,
+      default: ""
+    },
+    
     email: {
       type: String,
       required: true,

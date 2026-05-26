@@ -1,26 +1,18 @@
 import app from "./src/app.js";
+import bcrypt from "bcryptjs";
+import fs from "fs";
 
-import envConfig
-  from "./src/config/envConfig.js";
+import envConfig from "./src/config/envConfig.js";
+import startSyncJob from "./src/jobs/syncJob.js";
+// DYNAMIC DB CONNECTIONS
 
-import startSyncJob
-  from "./src/jobs/syncJob.js";
-
-
-// INITIALIZE DB CONNECTIONS
-
-import "./src/config/localDb.js";
-
-import "./src/config/atlasDb.js";
+import {
+  connectUserDatabases,
+} from "./src/config/setDatabase.js";
 
 
-// DEFAULT USER SEED
-
-import User
-  from "./src/models/local/User.js";
-
-import bcrypt
-  from "bcryptjs";
+// DYNAMIC MODELS
+import getModels from "./src/models/getModels.js";
 
 
 const PORT =
@@ -34,29 +26,53 @@ console.log(
 
 
 // CREATE DEFAULT ADMIN
-
 const seedDefaultUser =
   async () => {
 
     try {
 
+      // CONNECT DEFAULT ADMIN DB
+
+      await connectUserDatabases(
+        "ADMIN001"
+      );
+
+
+      const {
+
+        LocalUser,
+
+        LocalSettings,
+
+      } = getModels();
+
+
       const existingUser =
-        await User.findOne({
+        await LocalUser.findOne({
 
           email:
-            "admin@gmail.com"
+            "admin@gmail.com",
         });
+
 
       if (!existingUser) {
 
         const hashedPassword =
           await bcrypt.hash(
+
             "admin123",
+
             10
           );
 
-        await User.create({
-          userId: "ADMIN001",
+
+        const userData = {
+
+          name:
+            "Admin",
+
+          userId:
+            "ADMIN001",
 
           email:
             "admin@gmail.com",
@@ -64,14 +80,89 @@ const seedDefaultUser =
           password:
             hashedPassword,
 
-        });
+          isSynced:
+            true,
+
+          lastSyncedAt:
+            new Date(),
+        };
+
+
+        // CREATE ADMIN USER
+
+        await LocalUser.create(
+          userData
+        );
+
 
         console.log(
           "Default Admin Created"
         );
       }
 
-    } catch (error) {
+      else {
+
+        console.log(
+          "Default Admin Already Exists"
+        );
+      }
+
+
+      // DEFAULT STORAGE PATH
+
+      const defaultStoragePath =
+        "D:\\LST_Local_Files\\ADMIN001";
+
+
+      // CREATE ROOT FOLDER
+
+      if (
+        !fs.existsSync(
+          defaultStoragePath
+        )
+      ) {
+
+        fs.mkdirSync(
+
+          defaultStoragePath,
+
+          {
+            recursive: true,
+          }
+        );
+      }
+
+
+      // CREATE DEFAULT SETTINGS
+
+      await LocalSettings.findOneAndUpdate(
+
+        {},
+
+        {
+
+          offlinePdfPath:
+            defaultStoragePath,
+
+          isSynced: false,
+        },
+
+        {
+
+          upsert: true,
+
+          new: true,
+        }
+      );
+
+
+      console.log(
+        "Admin Settings Ready"
+      );
+
+    }
+
+    catch (error) {
 
       console.log(
         "Default User Seed Failed"
@@ -89,14 +180,9 @@ const startServer =
 
     try {
 
-      setTimeout(
-        async () => {
+      // CREATE DEFAULT ADMIN DB + USER
 
-          await seedDefaultUser();
-
-        },
-        3000
-      );
+      await seedDefaultUser();
 
 
       app.listen(

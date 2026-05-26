@@ -13,14 +13,11 @@ import convertExcelToPdf
 
 const saveQuotationFiles =
   async (
-    quotationData,
-    basePath
+    quotationData
   ) => {
 
     const storagePath =
-      createStoragePath(
-        basePath
-      );
+      createStoragePath();
 
     const safeClientName =
       quotationData.cliName

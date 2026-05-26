@@ -9,6 +9,7 @@ import Layout from "./main-layout/Layout";
 import LoginPage from "./pages/LoginPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AddUserPage from "./pages/AddUserPage";
 
 import ProtectedRoute from "./routes/ProtectedRoute.jsx";
 
@@ -48,6 +49,11 @@ function App() {
         <Route
           path="/reset-password"
           element={<ResetPassword />}
+        />
+
+        <Route
+          path="/add-user"
+          element={<AddUserPage />}
         />
 
         {/* MAIN LAYOUT */}

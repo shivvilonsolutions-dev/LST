@@ -4,12 +4,33 @@ from "fs";
 import path
 from "path";
 
+import {
+  getCurrentUserId,
+} from "../../config/setDatabase.js";
+
 
 const createStoragePath =
-  (basePath) => {
+  () => {
+
+    const userId =
+      getCurrentUserId()
+      || "ADMIN001";
+
+
+    // USER ROOT
+
+    const basePath =
+      path.join(
+
+        "D:\\LST_Local_Files",
+
+        userId
+      );
+
 
     const now =
       new Date();
+
 
     const month =
       now.toLocaleString(
@@ -18,6 +39,7 @@ const createStoragePath =
           month: "long",
         }
       );
+
 
     const dayFolder =
       `${now.getDate()}-${month}`;
@@ -45,8 +67,10 @@ const createStoragePath =
       );
     }
 
+
     return finalPath;
   };
+
 
 export default
   createStoragePath;

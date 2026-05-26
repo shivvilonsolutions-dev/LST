@@ -82,3 +82,37 @@ export const resetPassword =
       };
     }
   };
+
+
+export const createUser =
+  async (data) => {
+
+    try {
+
+      const response =
+        await api.post(
+
+          "/auth/create-user",
+
+          data
+        );
+
+      return response.data;
+
+    }
+
+    catch (error) {
+
+      console.log(error);
+
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message ||
+
+          "User creation failed",
+      };
+    }
+  };

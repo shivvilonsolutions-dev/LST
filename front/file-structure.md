@@ -110,6 +110,7 @@
 
 ### 📁 pages/
 
+- AddUserPage.jsx
 - ForgotPassword.jsx
 - LoginPage.jsx
 - ResetPassword.jsx

@@ -1,6 +1,8 @@
 const {
     contextBridge,
-    ipcRenderer
+    ipcRenderer,
+    shell,
+
 } = require("electron");
 
 contextBridge.exposeInMainWorld(
@@ -13,6 +15,12 @@ contextBridge.exposeInMainWorld(
 
             ipcRenderer.invoke(
                 "dialog:select-folder"
+            ),
+
+        openExternal: (url) =>
+
+            shell.openExternal(
+                url
             ),
     }
 );

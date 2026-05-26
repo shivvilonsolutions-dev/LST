@@ -5,8 +5,8 @@ import {
   login,
   sendOtp,
   resetPassword,
+  createUser,
 } from "../controllers/authController.js";
-
 
 const router = express.Router();
 
@@ -24,6 +24,11 @@ router.post(
 router.post(
   "/reset-password",
   resetPassword
+);
+
+router.post(
+  "/create-user",
+  createUser
 );
 
 export default router;

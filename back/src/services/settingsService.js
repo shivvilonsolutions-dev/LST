@@ -1,5 +1,4 @@
-import Settings
-from "../models/local/Settings.js";
+import getModels from "../models/getModels.js";
 
 import {
   syncAfterLocalSave,
@@ -10,8 +9,12 @@ import fs from "fs";
 export const getSettingsService =
   async () => {
 
+    const {
+      LocalSettings
+    } = getModels();
+
     const settings =
-      await Settings.findOne();
+      await LocalSettings.findOne();
 
     return settings;
   };
@@ -19,6 +22,10 @@ export const getSettingsService =
 
 export const updateSettingsService =
   async (data) => {
+
+    const {
+      LocalSettings
+    } = getModels();
 
     if (
       data.offlinePdfPath &&
@@ -33,7 +40,7 @@ export const updateSettingsService =
     }
 
     const settings =
-      await Settings.findOneAndUpdate(
+      await LocalSettings.findOneAndUpdate(
 
         {},
 

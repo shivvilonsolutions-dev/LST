@@ -1,10 +1,6 @@
-import checkInternet from "../utils/checkInternet.js";
-import LocalSettings from "../models/local/Settings.js";
-import AtlasClient from "../models/atlas/Client.js";
-import AtlasInventory from "../models/atlas/Inventory.js";
-import AtlasQuotation from "../models/atlas/Quotation.js";
-import AtlasSettings from "../models/atlas/Settings.js";
-import AtlasUser from "../models/atlas/User.js";
+import getModels
+  from "../models/getModels.js";
+import checkInternet from "../utils/checkInternet.js"
 
 const syncDocument =
   async (
@@ -78,6 +74,22 @@ export const syncAfterLocalSave =
     type
   ) => {
 
+    const {
+
+      LocalClient,
+      LocalInventory,
+      LocalQuotation,
+      LocalSettings,
+      LocalUser,
+
+      AtlasClient,
+      AtlasInventory,
+      AtlasQuotation,
+      AtlasSettings,
+      AtlasUser,
+
+    } = getModels();
+
     try {
 
       const isOnline =
@@ -99,13 +111,6 @@ export const syncAfterLocalSave =
       // SYNC OLDER DATA FIRST
       if (type === "client") {
 
-        const LocalClient =
-          (
-            await import(
-              "../models/local/Client.js"
-            )
-          ).default;
-
         await syncPendingData(
           LocalClient,
           AtlasClient,
@@ -121,13 +126,6 @@ export const syncAfterLocalSave =
 
       if (type === "inventory") {
 
-        const LocalInventory =
-          (
-            await import(
-              "../models/local/Inventory.js"
-            )
-          ).default;
-
         await syncPendingData(
           LocalInventory,
           AtlasInventory,
@@ -142,13 +140,6 @@ export const syncAfterLocalSave =
       }
 
       if (type === "quotation") {
-
-        const LocalQuotation =
-          (
-            await import(
-              "../models/local/Quotation.js"
-            )
-          ).default;
 
         await syncPendingData(
           LocalQuotation,
@@ -179,13 +170,6 @@ export const syncAfterLocalSave =
       }
 
       if (type === "user") {
-
-        const LocalUser =
-          (
-            await import(
-              "../models/local/User.js"
-            )
-          ).default;
 
         await syncPendingData(
           LocalUser,

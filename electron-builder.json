@@ -28,6 +28,7 @@
     }
   ],
   "win": {
-    "target": "nsis"
+    "target": "nsis",
+    "icon": "build/lst-logo.ico"
   }
 }

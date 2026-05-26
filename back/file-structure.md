@@ -16,6 +16,7 @@
 - atlasDb.js
 - envConfig.js
 - localDb.js
+- setDatabase.js
 
 ---
 
@@ -26,6 +27,26 @@
 - inventoryController.js
 - quotationController.js
 - settingsController.js
+
+### 📁 electron/
+
+- ipcHandlers.js
+
+- 📁 ipc/
+  - dialogIPC.js
+  - filesystemIPC.js
+  - notificationIPC.js
+  - printerIPC.js
+  - systemIPC.js
+
+- 📁 native/
+  - appMenu.js
+  - appPaths.js
+  - notifications.js
+  - tray.js
+  - updater.js
+  - windowManager.js
+
 
 ---
 
@@ -43,19 +64,7 @@
 
 ### 📁 models/
 
-- 📁 atlas/
-  - Client.js
-  - Inventory.js
-  - Quotation.js
-  - Settings.js
-  - User.js
-
-- 📁 local/
-  - Client.js
-  - Inventory.js
-  - Quotation.js
-  - Settings.js
-  - User.js
+- getModels.js
 
 ---
 
@@ -87,13 +96,6 @@
 - quotationService.js
 - settingsService.js
 - syncService.js
-
-
----
-
-### 📁 template/
-
-- quotation_template.xlsx
 
 ---
 

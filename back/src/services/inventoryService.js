@@ -1,11 +1,14 @@
-import Inventory
-  from "../models/local/Inventory.js";
+import getModels from "../models/getModels.js";
 
 import {
   syncAfterLocalSave,
 } from "./syncService.js";
 
 export const upsertInventoryService = async (data) => {
+  const {
+    LocalInventory
+  } = getModels();
+
   const {
     inventoryName,
     properties,
@@ -20,7 +23,7 @@ export const upsertInventoryService = async (data) => {
   }
 
   const existingInventory =
-    await Inventory.findOne({
+    await LocalInventory.findOne({
       inventoryName,
     });
 
@@ -75,7 +78,7 @@ export const upsertInventoryService = async (data) => {
   }
 
   const newInventory =
-    await Inventory.create({
+    await LocalInventory.create({
       inventoryId:
         `INV_${Date.now()}`,
 
@@ -96,21 +99,33 @@ export const upsertInventoryService = async (data) => {
 
 export const getAllInventoriesService =
   async () => {
-    return await Inventory.find().sort({
+    const {
+      LocalInventory
+    } = getModels();
+
+    return await LocalInventory.find().sort({
       createdAt: -1,
     });
   };
 
 export const getSingleInventoryService =
   async (id) => {
-    return await Inventory.findOne({
+    const {
+      LocalInventory
+    } = getModels();
+
+    return await LocalInventory.findOne({
       inventoryId: id,
     });
   };
 
 export const deleteInventoryService =
   async (inventoryId) => {
-    return await Inventory.findOneAndDelete({
+    const {
+      LocalInventory
+    } = getModels();
+
+    return await LocalInventory.findOneAndDelete({
       inventoryId,
     });
   };
@@ -120,8 +135,12 @@ export const deletePropertyService =
     inventoryId,
     propertyId
   ) => {
+    const {
+      LocalInventory
+    } = getModels();
+
     const inventory =
-      await Inventory.findOne({
+      await LocalInventory.findOne({
         inventoryId,
       });
 
