@@ -17,6 +17,7 @@ const Button = ({
   btnColor = "blue",
   btnType = "button",
   txtCol = "white",
+  disabled = false
 }) => {
   const isMuiColor = Object.values(colorMap).includes(btnColor);
   const mappedColor = colorMap[btnColor];
@@ -25,6 +26,7 @@ const Button = ({
     <MuiButton
       type={btnType}
       onClick={onClick}
+      disabled={disabled}
       variant="contained"
       color={isMuiColor ? btnColor : mappedColor || "primary"}
       sx={{

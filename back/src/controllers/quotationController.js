@@ -4,13 +4,16 @@ import {
   getSingleQuotationService,
   updateQuotationService,
   deleteQuotationService,
+  updateQuotationStatusService
 } from "../services/quotationService.js";
-import saveQuotationPdf from "../utils/saveQuotationPdf.js";
 import getModels from "../models/getModels.js";
+import createStoragePath
+  from "../utils/storage/createStoragePath.js";
+import generateQuotationExcel from "../utils/excel/generateQuotationExcel.js";
+import convertExcelToPdf from "../utils/pdf/convertExcelToPdf.js";
 
+import path from "path";
 import fs from "fs";
-
-
 
 export const createQuotation =
   async (req, res) => {
@@ -28,6 +31,15 @@ export const createQuotation =
       });
 
     } catch (error) {
+      console.log(
+        "CREATE QUOTATION ERROR:"
+      );
+
+      console.log(error);
+
+      console.log(
+        error.stack
+      );
 
       res.status(500).json({
         success: false,
@@ -131,55 +143,101 @@ export const deleteQuotation =
     }
   };
 
-export const saveQuotationPdfController =
-  async (req, res) => {
+export const downloadQuotationExcel =
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
-      const pdfFile =
-        req.file;
+      const {
+        quotationNo,
+      } = req.params;
 
-      const quotationNo =
-        req.body.quotationNo;
 
-      if (!pdfFile) {
+      const {
+        LocalQuotation,
+      } = getModels();
 
-        return res.status(400).json({
+
+      const quotation =
+        await LocalQuotation.findOne({
+
+          quotationNo,
+        });
+
+
+      if (!quotation) {
+
+        return res.status(404).json({
+
           success: false,
 
           message:
-            "PDF file missing",
+            "Quotation not found",
         });
       }
 
-      const result =
-        await saveQuotationPdf(
-
-          pdfFile.buffer,
-
-          quotationNo
+      const storagePathForExcel =
+        await createStoragePath(
+          "excel-files"
         );
 
-      if (!result.success) {
+      const safeClientName =
+        quotation.cliName
 
-        return res.status(400).json({
-          success: false,
+          ?.replace(
+            /[<>:"/\\|?*]/g,
+            ""
+          )
 
-          message:
-            result.message,
-        });
-      }
+          ?.trim();
 
-      res.status(200).json({
+
+      const fileName =
+        `${safeClientName}_${quotationNo}`;
+
+      const excelPath =
+        path.join(
+
+          storagePathForExcel,
+
+          `${fileName}.xlsx`
+        );
+
+
+      const result =
+        await generateQuotationExcel(
+
+          quotation,
+
+          {
+            outputPath:
+              excelPath,
+          }
+        );
+
+
+      return res.status(200).json({
+
         success: true,
 
-        filePath:
-          result.filePath,
+        excelPath:
+          result.excelPath,
+
+        fileName:
+          `${quotationNo}.xlsx`,
       });
 
-    } catch (error) {
+    }
 
-      res.status(500).json({
+    catch (error) {
+
+      console.log(error);
+
+      return res.status(500).json({
+
         success: false,
 
         message:
@@ -194,65 +252,114 @@ export const downloadQuotationPdf =
     res
   ) => {
 
-    const {
-      LocalQuotation
-    } = getModels();
-
     try {
 
+      const {
+        quotationNo,
+      } = req.params;
+
+
+      const {
+        LocalQuotation,
+      } = getModels();
+
+
       const quotation =
-        await LocalQuotation.findById(
-          req.params.id
-        );
+        await LocalQuotation.findOne({
+
+          quotationNo,
+        });
+
 
       if (!quotation) {
 
-        return res.status(404)
-          .json({
+        return res.status(404).json({
 
-            success: false,
+          success: false,
 
-            message:
-              "Quotation not found",
-          });
+          message:
+            "Quotation not found",
+        });
       }
 
+      const excelStoragePath =
+        await createStoragePath(
+          "excel-files"
+        );
 
-      if (
-        !quotation.pdfPath
-      ) {
+      const pdfStoragePath =
+        await createStoragePath(
+          "pdf-files"
+        );
 
-        return res.status(404)
-          .json({
+      const safeClientName =
+        quotation.cliName
 
-            success: false,
+          ?.replace(
+            /[<>:"/\\|?*]/g,
+            ""
+          )
 
-            message:
-              "PDF not generated",
-          });
-      }
-
-
-      if (
-        !fs.existsSync(
-          quotation.pdfPath
-        )
-      ) {
-
-        return res.status(404)
-          .json({
-
-            success: false,
-
-            message:
-              "PDF file missing",
-          });
-      }
+          ?.trim();
 
 
-      return res.download(
-        quotation.pdfPath
+      const fileName =
+        `${safeClientName}_${quotationNo}`;
+
+      const tempExcelPath =
+        path.join(
+
+          excelStoragePath,
+
+          `${fileName}_TEMP.xlsx`
+        );
+
+
+      const pdfPath =
+        path.join(
+
+          pdfStoragePath,
+
+          `${fileName}.pdf`
+        );
+
+
+      // GENERATE TEMP EXCEL
+      await generateQuotationExcel(
+
+        quotation,
+
+        {
+          outputPath:
+            tempExcelPath,
+        }
       );
+
+
+      // CONVERT TO PDF
+      const pdfResult =
+        await convertExcelToPdf({
+
+          excelPath:
+            tempExcelPath,
+
+          pdfPath,
+
+          deleteExcelAfterConversion:
+            true,
+        });
+
+
+      return res.status(200).json({
+
+        success: true,
+
+        pdfPath:
+          pdfResult.pdfPath,
+
+        fileName:
+          `${quotationNo}.pdf`,
+      });
 
     }
 
@@ -260,13 +367,189 @@ export const downloadQuotationPdf =
 
       console.log(error);
 
-      return res.status(500)
-        .json({
+      return res.status(500).json({
+
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
+
+export const generateWhatsappPdf =
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const {
+        quotationNo,
+      } = req.params;
+
+
+      const {
+        LocalQuotation,
+      } = getModels();
+
+
+      const quotation =
+        await LocalQuotation.findOne({
+
+          quotationNo,
+        });
+
+
+      if (!quotation) {
+
+        return res.status(404).json({
 
           success: false,
 
           message:
-            error.message,
+            "Quotation not found",
         });
+      }
+
+      const excelStoragePath =
+        await createStoragePath(
+          "excel-files"
+        );
+
+      const pdfStoragePath =
+        await createStoragePath(
+          "pdf-files"
+        );
+
+      const safeClientName =
+        quotation.cliName
+
+          ?.replace(
+            /[<>:"/\\|?*]/g,
+            ""
+          )
+
+          ?.trim();
+
+
+      const fileName =
+        `${safeClientName}_${quotationNo}`;
+
+      const tempExcelPath =
+        path.join(
+
+          excelStoragePath,
+
+          `${fileName}_TEMP.xlsx`
+        );
+
+
+      const pdfPath =
+        path.join(
+
+          pdfStoragePath,
+
+          `${fileName}.pdf`
+        );
+
+
+      await generateQuotationExcel(
+
+        quotation,
+
+        {
+          outputPath:
+            tempExcelPath,
+        }
+      );
+
+
+      const pdfResult =
+        await convertExcelToPdf({
+
+          excelPath:
+            tempExcelPath,
+
+          pdfPath,
+
+          deleteExcelAfterConversion:
+            true,
+        });
+
+
+      return res.status(200).json({
+
+        success: true,
+
+        pdfPath:
+          pdfResult.pdfPath,
+      });
+
+    }
+
+    catch (error) {
+
+      console.log(error);
+
+      return res.status(500).json({
+
+        success: false,
+
+        message:
+          error.message,
+      });
+    }
+  };
+
+export const updateQuotationStatus =
+  async (
+    req,
+    res
+  ) => {
+
+    try {
+
+      const {
+        quotationNo,
+      } = req.params;
+
+
+      const {
+        status,
+      } = req.body;
+
+
+      const quotation =
+        await updateQuotationStatusService(
+
+          quotationNo,
+
+          status
+        );
+
+
+      return res.status(200).json({
+
+        success: true,
+
+        data:
+          quotation,
+      });
+
+    }
+
+    catch (error) {
+
+      console.log(error);
+
+      return res.status(500).json({
+
+        success: false,
+
+        message:
+          error.message,
+      });
     }
   };

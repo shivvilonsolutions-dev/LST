@@ -82,29 +82,19 @@ export const deleteQuotation =
     return response.data;
   };
 
-export const downloadQuotationPdf =
-  async (id) => {
+// DOWNLOAD EXCEL
+export const downloadQuotationExcel =
+  async (quotationNo) => {
 
     try {
 
       const response =
         await api.get(
 
-          `/quotations/${id}/pdf`,
-
-          {
-            responseType:
-              "blob",
-          }
+          `/quotations/${quotationNo}/excel`
         );
 
-      return {
-
-        success: true,
-
-        data:
-          response.data,
-      };
+      return response.data;
 
     }
 
@@ -115,8 +105,104 @@ export const downloadQuotationPdf =
         success: false,
 
         message:
-          error.response?.data?.message ||
-          "PDF download failed",
+          error.response?.data?.message
+          || "Excel generation failed",
+      };
+    }
+  };
+
+
+// DOWNLOAD PDF
+export const downloadQuotationPdf =
+  async (quotationNo) => {
+
+    try {
+
+      const response =
+        await api.get(
+
+          `/quotations/${quotationNo}/pdf`
+        );
+
+      return response.data;
+
+    }
+
+    catch (error) {
+
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message
+          || "PDF generation failed",
+      };
+    }
+  };
+
+
+// WHATSAPP PDF
+export const generateWhatsappPdf =
+  async (quotationNo) => {
+
+    try {
+
+      const response =
+        await api.get(
+
+          `/quotations/${quotationNo}/whatsapp-pdf`
+        );
+
+      return response.data;
+
+    }
+
+    catch (error) {
+
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message
+          || "WhatsApp PDF failed",
+      };
+    }
+  };
+
+// UPDATE QUOTATION STATUS
+export const updateQuotationStatus =
+  async (
+    quotationNo,
+    status
+  ) => {
+
+    try {
+
+      const response =
+        await api.patch(
+
+          `/quotations/${quotationNo}/status`,
+
+          {
+            status,
+          }
+        );
+
+      return response.data;
+
+    }
+
+    catch (error) {
+
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message
+          || "Status update failed",
       };
     }
   };

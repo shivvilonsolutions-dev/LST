@@ -79,3 +79,36 @@ export const uploadQuotationPdf =
       };
     }
   };
+
+
+export const importQuotationFolder =
+  async (
+    folderPath
+  ) => {
+
+    try {
+      const response =
+        await api.post(
+          "/settings/quotation-folder",
+
+          {
+            folderPath,
+          }
+        );
+
+      return response.data;
+
+    }
+
+    catch (error) {
+
+      return {
+
+        success: false,
+
+        message:
+          error.response?.data?.message
+          || "Import failed",
+      };
+    }
+  };

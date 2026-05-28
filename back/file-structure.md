@@ -24,6 +24,7 @@
 
 - authController.js
 - clientController.js
+- importController.js
 - inventoryController.js
 - quotationController.js
 - settingsController.js
@@ -64,6 +65,21 @@
 
 ### 📁 models/
 
+
+- 📁 atlas/
+  - Client.js
+  - Inventory.js
+  - Quotation.js
+  - Settings.js
+  - User.js
+
+- 📁 Local/
+  - Client.js
+  - Inventory.js
+  - Quotation.js
+  - Settings.js
+  - User.js
+
 - getModels.js
 
 ---
@@ -92,6 +108,7 @@
 
 - authService.js
 - clientService.js
+- importQuotationService.js
 - inventoryService.js
 - quotationService.js
 - settingsService.js
@@ -108,7 +125,7 @@
   - convertExcelToPdf.js
 
 - 📁 storage/
-  - createStorage.js
+  - createStoragePath.js
   - saveQuotationFiles.js
 
 - checkInternet.js

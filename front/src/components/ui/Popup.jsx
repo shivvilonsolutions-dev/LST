@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 import Button from "./Button";
 
-const Popup = ({ isOpen, title, message, onConfirm, onCancel }) => {
+const Popup = ({ isOpen, title, message, onConfirm, onCancel, isLoading = false, confirmText = "OK", }) => {
   return (
     <Dialog open={isOpen} onClose={onCancel} maxWidth="sm" fullWidth>
       
@@ -33,8 +33,9 @@ const Popup = ({ isOpen, title, message, onConfirm, onCancel }) => {
         />
 
         <Button
-          btnName="OK"
+          btnName={confirmText}
           btnColor="blue"
+          disabled={isLoading}
           onClick={onConfirm}
         />
       </DialogActions>

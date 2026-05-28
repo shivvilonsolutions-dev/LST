@@ -6,23 +6,18 @@ import {
   getSingleQuotation,
   updateQuotation,
   deleteQuotation,
-  saveQuotationPdfController,
   downloadQuotationPdf,
+  downloadQuotationExcel,
+  generateWhatsappPdf,
+  updateQuotationStatus
 } from "../controllers/quotationController.js";
 import authMiddleware
-from "../middleware/authMiddleware.js";
+  from "../middleware/authMiddleware.js";
 
 import multer from "multer";
 
 const upload = multer();
 const router = express.Router();
-
-router.post(
-  "/save-pdf",
-  authMiddleware,
-  upload.single("pdf"),
-  saveQuotationPdfController
-);
 
 // CREATE
 router.post(
@@ -38,12 +33,30 @@ router.get(
   getAllQuotations
 );
 
-// GET PDF
+router.patch(
+  "/:quotationNo/status",
+  authMiddleware,
+  updateQuotationStatus
+);
+
 router.get(
-  "/:id/pdf",
+  "/:quotationNo/excel",
+  authMiddleware,
+  downloadQuotationExcel
+);
+
+router.get(
+  "/:quotationNo/pdf",
   authMiddleware,
   downloadQuotationPdf
 );
+
+router.get(
+  "/:quotationNo/whatsapp-pdf",
+  authMiddleware,
+  generateWhatsappPdf
+);
+
 
 // GET SINGLE
 router.get(

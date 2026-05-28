@@ -1,26 +1,58 @@
 const {
-    contextBridge,
-    ipcRenderer,
-    shell,
-
+  contextBridge,
+  ipcRenderer,
+  shell,
 } = require("electron");
+
 
 contextBridge.exposeInMainWorld(
 
-    "electronAPI",
+  "electronAPI",
 
-    {
+  {
 
-        selectFolder: () =>
+    openFolder:
+      (folderPath) =>
+        ipcRenderer.invoke(
+          "filesystem:open-folder",
+          folderPath
+        ),
 
-            ipcRenderer.invoke(
-                "dialog:select-folder"
-            ),
+    saveFileToDestination: (data) =>
+      ipcRenderer.invoke(
+        "filesystem:save-file-to-destination",
+        data
+      ),
 
-        openExternal: (url) =>
+    saveFileDialog: (options) =>
+      ipcRenderer.invoke(
+        'dialog:save-file',
+        options
+      ),
 
-            shell.openExternal(
-                url
-            ),
-    }
+    openExplorer: (filePath) =>
+      ipcRenderer.invoke(
+        'filesystem:open-explorer',
+        filePath
+      ),
+
+    selectFolder: () =>
+
+      ipcRenderer.invoke(
+        "dialog:select-folder"
+      ),
+
+    openExternal: (url) =>
+
+      shell.openExternal(
+        url
+      ),
+
+    showItemInFolder:
+      (filePath) =>
+
+        shell.showItemInFolder(
+          filePath
+        ),
+  }
 );

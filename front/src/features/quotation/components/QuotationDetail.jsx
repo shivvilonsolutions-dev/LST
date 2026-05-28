@@ -1,8 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
   Paper,
-  Grid,
   Stack,
   Typography,
   Table,
@@ -13,18 +12,15 @@ import {
   TableContainer,
 } from "@mui/material";
 
+import { downloadQuotationPdf, downloadQuotationExcel, generateWhatsappPdf } from "../../../api/quotationApi";
 import { useParams, useNavigate } from "react-router-dom";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
+import { useLocation } from "react-router-dom";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
-import { useLocation } from "react-router-dom";
 import PageLoader from "../../../components/ui/PageLoader"
 import formatDate from "../../../utils/formatDate"
 import Popup from "../../../components/ui/Popup"
-import {
-  downloadQuotationPdf,
-}
-  from "../../../api/quotationApi";
 
 
 const QuotationDetail = () => {
@@ -38,7 +34,19 @@ const QuotationDetail = () => {
   const [isDownloading,
     setIsDownloading] =
     useState(false);
+  const [
+    isDownloadingExcel,
+    setIsDownloadingExcel
+  ] = useState(false);
+  const [
+    isWhatsappLoading,
+    setIsWhatsappLoading
+  ] = useState(false);
   const [warningPopup, setWarningPopup] = useState({
+    open: false,
+    message: "",
+  });
+  const [success, setSuccess] = useState({
     open: false,
     message: "",
   });
@@ -50,13 +58,27 @@ const QuotationDetail = () => {
     );
 
   const [editData, setEditData] = useState(quotation || null);
-  if (quotation && !editData) {
-    setEditData(quotation);
-  }
+  useEffect(() => {
+    if (
+      quotation &&
+      !editData
+    ) {
+      setEditData(
+        quotation
+      );
+    }
+  }, [
+    quotation,
+    editData,
+  ]);
 
-  const [time] = useState(
-    formatDate(new Date())
-  );
+  const displayDate =
+    formatDate(
+
+      editData?.updatedAt
+      ||
+      editData?.quotationDate
+    );
 
   const handleChange = (e) => {
     setEditData({
@@ -92,55 +114,218 @@ const QuotationDetail = () => {
     }
   };
 
+  const handlePdfFile =
+    async () => {
 
-  const handleWhatsApp = () => {
-    if (!editData?.whatsapp) {
-      setWarningPopup({
+      try {
 
-        open: true,
+        setIsDownloading(
+          true
+        );
 
-        message:
-          "Please add WhatsApp number",
-      });
-      return;
+        const response =
+          await downloadQuotationPdf(
+            editData.quotationNo
+          );
+
+
+        if (!response.success) {
+
+          setWarningPopup({
+
+            open: true,
+
+            message:
+              response.message,
+          });
+
+          return;
+        }
+        setSuccess({
+
+          open: true,
+
+          message:
+            `PDF generated successfully.\n\n\nLocation:${response.pdfPath}`,
+        });
+      }
+
+      finally {
+
+        setIsDownloading(
+          false
+        );
+      }
     }
 
-    let phone = editData.whatsapp.toString().replace(/\D/g, "");
+  const handleExcelFile =
+    async () => {
 
-    if (phone.length === 10) {
-      phone = "91" + phone;
+      try {
+
+        setIsDownloadingExcel(
+          true
+        );
+
+        const response =
+          await downloadQuotationExcel(
+            editData.quotationNo
+          );
+
+        if (!response.success) {
+
+          setWarningPopup({
+            open: true,
+            message:
+              response.message,
+          });
+
+          return;
+        }
+
+        setSuccess({
+
+          open: true,
+
+          message:
+            `Excel generated successfully.\n\n\nLocation: ${response.excelPath}`,
+        });
+
+      }
+      finally {
+
+        setIsDownloadingExcel(
+          false
+        );
+      }
     }
 
-    const materialsText = (editData.materials || [])
+  const handleWhatsApp =
+    async () => {
 
-      .filter(
-        (m) =>
-          m.size ||
-          m.piece ||
-          m.gauge
-      )
+      try {
 
-      .map(
-        (m, index) =>
-          `• ${index + 1}. ${m.size || "-"} (${m.piece || 0} pcs | ${m.gauge || "-"} gauge)`
-      )
+        if (!editData?.whatsapp) {
 
-      .join("\n");
+          setWarningPopup({
 
-    const message =
-      `Hello ${editData.cliName},
+            open: true,
 
-         Your quotation:
-         ${materialsText}
+            message:
+              "Please add WhatsApp number",
+          });
 
-         Date: ${editData.quotationDate}
+          return;
+        }
 
-         Thank you!`;
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        setIsWhatsappLoading(
+          true
+        );
 
-    window.open(url, "_blank");
-  };
+
+        const response =
+          await generateWhatsappPdf(
+            editData.quotationNo
+          );
+
+
+        if (!response.success) {
+
+          setWarningPopup({
+
+            open: true,
+
+            message:
+              response.message,
+          });
+
+          return;
+        }
+
+
+        let phone =
+          editData.whatsapp
+            .toString()
+            .replace(/\D/g, "");
+
+
+        if (
+          phone.length === 10
+        ) {
+
+          phone =
+            "91" + phone;
+        }
+
+        const materialsText =
+
+          editData.materials
+
+            ?.filter((m) => m.size)
+
+            ?.map(
+
+              (m, index) =>
+
+                `${index + 1}. ${m.size}`
+
+                +
+
+                (m.piece
+                  ? ` (${m.piece} pcs)`
+                  : "")
+
+                +
+
+                (m.gauge
+                  ? ` | ${m.gauge}`
+                  : "")
+            )
+
+            .join("\n");
+
+
+        const message =
+
+          `Hello ${editData.cliName},
+
+Your quotation details:
+
+${materialsText}
+
+Thank you!`;
+
+
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(url, "_blank");
+
+        // ─── STEP 2: OPEN FILE POPUP 1.5 SECONDS LATER ───
+        if (window.electronAPI?.saveFileDialog && response.pdfPath) {
+          setTimeout(async () => {
+            try {
+              const dialogResult = await window.electronAPI.saveFileDialog({
+                defaultPath: response.pdfPath, // e.g., "C:/path/to/Quotation_123.xlsx"
+              });
+
+              if (!dialogResult.canceled && dialogResult.filePath) {
+                console.log("File marked for save at:", dialogResult.filePath);
+              }
+            } catch (err) {
+              console.error("Delayed file dialog error:", err);
+            }
+          }, 500); // 500ms delay gives WhatsApp room to load comfortably first
+        }
+
+      }
+
+      finally {
+
+        setIsWhatsappLoading(
+          false
+        );
+      }
+    };
 
   const renderCell = (field, index) => {
     const value = editData.materials[index][field];
@@ -200,6 +385,40 @@ const QuotationDetail = () => {
           {/* RIGHT */}
           <Stack direction="row" spacing={1.5}>
 
+            {/* Whatsapp Button */}
+            <Button
+              btnName={
+                isWhatsappLoading
+                  ? "Opening WhatsApp..."
+                  : "Show WhatsApp"
+              }
+              btnColor="green"
+              disabled={isWhatsappLoading}
+              onClick={handleWhatsApp}
+            />
+
+            {/* Excel Button */}
+            <Button
+              btnName={
+                isDownloadingExcel
+                  ? "Generating Excel..."
+                  : "Save Excel"
+              }
+              btnColor="primary.main"
+              onClick={handleExcelFile}
+            />
+
+            {/* PDF Button */}
+            <Button
+              btnName={
+                isDownloading
+                  ? "Generating PDF..."
+                  : "Save PDF"
+              }
+              btnColor="red"
+              onClick={handlePdfFile}
+            />
+            
             {!isEditing ? (
               <Button btnName="Click to Edit" btnColor="secondary.main" onClick={() => { console.log("Before clicking the Edit button: ", isEditing); setIsEditing(true) }} />
             ) : (
@@ -207,84 +426,10 @@ const QuotationDetail = () => {
             )}
 
             <Button
-              btnName="Show WhatsApp"
-              btnColor="green"
-              onClick={handleWhatsApp}
-            />
-
-            <Button
-              btnName={
-                isDownloading
-                  ? "Downloading..."
-                  : "Download PDF"
-              }
-
-              btnColor="red"
-
-              onClick={async () => {
-
-                try {
-
-                  setIsDownloading(true);
-
-                  const response =
-                    await downloadQuotationPdf(
-                      editData._id
-                    );
-
-                  if (response.success) {
-
-                    const url =
-                      window.URL.createObjectURL(
-
-                        new Blob([
-                          response.data,
-                        ])
-                      );
-
-                    const link =
-                      document.createElement(
-                        "a"
-                      );
-
-                    link.href =
-                      url;
-
-                    link.setAttribute(
-
-                      "download",
-
-                      `${editData.cliName}_${editData.quotationNo}.pdf`
-                    );
-
-                    document.body.appendChild(
-                      link
-                    );
-
-                    link.click();
-
-                    link.remove();
-
-                  }
-
-                  else {
-
-                    setWarningPopup({
-
-                      open: true,
-
-                      message:
-                        response.message,
-                    });
-                  }
-
-                }
-
-                finally {
-
-                  setIsDownloading(false);
-                }
-              }}
+              btnName="Close"
+              btnColor="gray"
+              txtCol="black"
+              onClick={() => navi(location.state?.from || "/quotations")}
             />
 
           </Stack>
@@ -314,7 +459,7 @@ const QuotationDetail = () => {
 
             <Typography>Date:</Typography>
             <Input
-              inpValue={time}
+              inpValue={displayDate}
               readOnly
             />
           </Box>
@@ -495,6 +640,42 @@ const QuotationDetail = () => {
             open: false,
 
             message: "",
+          })
+        }
+      />
+
+      <Popup
+        isOpen={
+          success.open
+        }
+
+        title="File saved successfully!"
+
+        message={
+          success.message
+        }
+
+        onConfirm={() => {
+        
+
+          setSuccess({
+
+            open: false,
+
+            message: "",
+
+            filePath: "",
+          });
+        } }
+
+        onCancel={() => 
+          setSuccess({
+
+            open: false,
+
+            message: "",
+
+            filepath: "",
           })
         }
       />

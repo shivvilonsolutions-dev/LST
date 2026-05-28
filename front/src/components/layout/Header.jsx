@@ -15,12 +15,12 @@ import {
 } from "react-router-dom";
 
 const getTitle = (path) => {
+  if (path.startsWith("/quotations/send-quotation")) return "Create Quotation";
   if (path.startsWith("/quotations/")) return "Quotation Detail";
-  if (path.startsWith("/quotations/send-quotation")) return "Send Quotation";
   if (path.startsWith("/quotations")) return "Quotations";
   
-  if (path.startsWith("/inventories/")) return "Inventory Detail";
   if (path.startsWith("/inventories/new-inventory")) return "New Inventory";
+  if (path.startsWith("/inventories/")) return "Inventory Detail";
   if (path.startsWith("/inventories")) return "Inventories";
 
   if (path.startsWith("/payment")) return "Payment";

@@ -2,12 +2,14 @@ import express from "express";
 
 import {
   getSettings,
-
   updateSettings,
 } from "../controllers/settingsController.js";
-import authMiddleware
-from "../middleware/authMiddleware.js";
 
+import {
+  importQuotationFolder,
+} from "../controllers/importController.js";
+
+import authMiddleware from "../middleware/authMiddleware.js";
 
 const router =  express.Router();
 
@@ -28,5 +30,15 @@ router.post(
   authMiddleware,
   updateSettings
 );
+
+
+// EXCEL FOLDER UPLOAD
+
+router.post(
+  "/quotation-folder",
+  authMiddleware,
+  importQuotationFolder
+);
+
 
 export default router;

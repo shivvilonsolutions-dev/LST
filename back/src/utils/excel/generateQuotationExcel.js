@@ -7,6 +7,8 @@ import path
 const setCommonPageSetup =
   (sheet) => {
 
+
+    // PAGE SETUP
     sheet.pageSetup = {
 
       paperSize: 9,
@@ -18,20 +20,7 @@ const setCommonPageSetup =
 
       fitToWidth: 1,
 
-      fitToHeight: 1,
-
-      horizontalCentered: true,
-
-      margins: {
-
-        left: 0.3,
-
-        right: 0.3,
-
-        top: 0.3,
-
-        bottom: 0.3,
-      },
+      fitToHeight: 0,
     };
   };
 
@@ -58,26 +47,6 @@ const fillSmallQuotationSheet =
           `C${startRow}`
         ).value =
           `SHREE:- ${quotationData.cliName}`;
-
-
-        const date =
-          quotationData.createdAt
-            ? new Date(
-              quotationData.createdAt
-            )
-            : new Date();
-
-
-        sheet.getCell(
-          `F${startRow + 1}`
-        ).value =
-          date;
-
-
-        sheet.getCell(
-          `F${startRow + 1}`
-        ).numFmt =
-          "m/d/yyyy hh:mm";
 
 
         sheet.getCell(
@@ -169,26 +138,6 @@ const fillMediumQuotationSheet =
           `SHREE:- ${quotationData.cliName}`;
 
 
-        const date =
-          quotationData.createdAt
-            ? new Date(
-              quotationData.createdAt
-            )
-            : new Date();
-
-
-        sheet.getCell(
-          `F${startRow + 1}`
-        ).value =
-          date;
-
-
-        sheet.getCell(
-          `F${startRow + 1}`
-        ).numFmt =
-          "m/d/yyyy hh:mm";
-
-
         sheet.getCell(
           `F${startRow + 2}`
         ).value =
@@ -262,21 +211,6 @@ const fillLargeQuotationSheet =
       `SHREE:- ${quotationData.cliName}`;
 
 
-    const date =
-      quotationData.createdAt
-        ? new Date(
-          quotationData.createdAt
-        )
-        : new Date();
-
-
-    sheet.getCell("F2").value =
-      date;
-
-    sheet.getCell("F2").numFmt =
-      "m/d/yyyy hh:mm";
-
-
     sheet.getCell("F3").value =
       `MO:- ${quotationData.mobile}`;
 
@@ -329,7 +263,10 @@ const fillLargeQuotationSheet =
 const generateQuotationExcel =
   async (
     quotationData,
-    outputPath
+    {
+      outputPath = null,
+      returnWorkbook = false,
+    } = {}
   ) => {
 
     const workbook =
@@ -337,17 +274,17 @@ const generateQuotationExcel =
 
     const templatePath =
 
-      process.resourcesPath
+      process.env.NODE_ENV ===
+        "development"
 
         ? path.join(
-          process.resourcesPath,
-          "back",
+          process.cwd(),
           "template",
           "quotation_template.xlsx"
         )
 
         : path.join(
-          process.cwd(),
+          process.resourcesPath,
           "back",
           "template",
           "quotation_template.xlsx"
@@ -412,7 +349,7 @@ const generateQuotationExcel =
     }
 
 
-    // HIDE OTHER SHEETS
+    // REMOVE OTHER SHEETS
     const sheetsToRemove =
       workbook.worksheets.filter(
         (ws) =>
@@ -461,9 +398,38 @@ const generateQuotationExcel =
 
 
     // SAVE FILE
-    await workbook.xlsx.writeFile(
-      outputPath
-    );
+    if (outputPath) {
+      await workbook.xlsx.writeFile(
+        outputPath
+      );
+
+      return {
+
+        success: true,
+
+        excelPath:
+          outputPath,
+      };
+    }
+
+
+    if (returnWorkbook) {
+      return {
+
+        success: true,
+
+        workbook,
+      };
+    }
+
+
+    return {
+
+      success: false,
+
+      message:
+        "No output mode selected",
+    };
   };
 
 export default

@@ -1,16 +1,20 @@
 import fs
-from "fs";
+  from "fs";
 
 import path
-from "path";
+  from "path";
 
 import {
   getCurrentUserId,
 } from "../../config/setDatabase.js";
-
+import getModels from "../../models/getModels.js";
 
 const createStoragePath =
-  () => {
+  async (folderName = "") => {
+
+    const {
+      LocalSettings,
+    } = getModels();
 
     const userId =
       getCurrentUserId()
@@ -19,10 +23,23 @@ const createStoragePath =
 
     // USER ROOT
 
+    let rootPath =
+      "D:\\LST_Local_Files";
+
+    const settings = await LocalSettings.findOne();
+
+    if (
+      settings?.offlinePdfPath
+    ) {
+
+      rootPath =
+        settings.offlinePdfPath;
+    }
+
     const basePath =
       path.join(
 
-        "D:\\LST_Local_Files",
+        rootPath,
 
         userId
       );
@@ -49,7 +66,8 @@ const createStoragePath =
       path.join(
         basePath,
         month,
-        dayFolder
+        dayFolder,
+        folderName
       );
 
 

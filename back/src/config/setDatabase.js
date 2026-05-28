@@ -74,17 +74,6 @@ export const connectUserDatabases =
         );
 
 
-      console.log(
-        "LOCAL URI:",
-        localUri
-      );
-
-      console.log(
-        "ATLAS URI:",
-        atlasUri
-      );
-
-
       localConnection =
         mongoose.createConnection(
           localUri

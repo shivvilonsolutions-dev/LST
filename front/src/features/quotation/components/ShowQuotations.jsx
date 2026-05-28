@@ -16,47 +16,96 @@ import {
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import Popup from "../../../components/ui/Popup";
 import { ClientContext } from "../../../contexts/client/clientContext";
+import formatDate from "../../../utils/formatDate";
+import {
+  updateQuotationStatus,
+}
+  from "../../../api/quotationApi";
+
 
 const ShowQuotations = ({ data }) => {
   const {
-    handleUpdateQuotation,
     handleDeleteQuotation,
   } = useContext(QuotationContext);
 
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
-  const rowsPerPage = 4;
+  const rowsPerPage = 5;
   const navi = useNavigate()
 
   const [showPopup, setShowPopup] = useState(false);
   const [confirmPopUp, setConfirmPopUp] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const paginatedData = data.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
 
-  const handleConfirm = async () => {
+  const handleConfirm =
+    async () => {
 
-    const updatedStatus =
-      selectedItem.status === "PENDING"
-        ? "CONFIRM"
-        : "PENDING";
+      try {
 
-    await handleUpdateQuotation(
-      selectedItem.quotationNo,
-      {
-        ...selectedItem,
-        status: updatedStatus,
+        setIsUpdatingStatus(
+          true
+        );
+
+        const updatedStatus =
+
+          selectedItem.status ===
+            "PENDING"
+
+            ? "CONFIRM"
+
+            : "PENDING";
+
+
+
+        const response =
+          await updateQuotationStatus(
+
+            selectedItem.quotationNo,
+
+            updatedStatus
+          );
+
+
+        if (!response.success) {
+
+          throw new Error(
+            response.message
+          );
+        }
+
+        setConfirmPopUp(
+          false
+        );
+
+        setSelectedItem(
+          null
+        );
+
+        // UPDATE TABLE UI
+        selectedItem.status =
+          updatedStatus;
       }
-    );
 
-    setConfirmPopUp(false);
+      catch (error) {
 
-    setSelectedItem(null);
-  };
+        console.log(error);
+
+      }
+
+      finally {
+
+        setIsUpdatingStatus(
+          false
+        );
+      }
+    };
 
   const handleDelete = async (quotationNo) => {
 
@@ -82,6 +131,7 @@ const ShowQuotations = ({ data }) => {
               <TableCell>Name</TableCell>
               <TableCell>Thickness</TableCell>
               <TableCell>WhatsApp</TableCell>
+              <TableCell>Date</TableCell>
               <TableCell>Laser Cutting</TableCell>
               <TableCell>Status Update</TableCell>
               <TableCell>Edit</TableCell>
@@ -110,6 +160,12 @@ const ShowQuotations = ({ data }) => {
 
                   {/* Whatsapp */}
                   <TableCell>{item.whatsapp}</TableCell>
+
+                  <TableCell>
+                    {formatDate(
+                      item.quotationDate
+                    )}
+                  </TableCell>
 
                   {/* Laser Cutting */}
                   <TableCell>{item.laserCutting || "-"}</TableCell>
@@ -222,6 +278,12 @@ const ShowQuotations = ({ data }) => {
 
       {/* Popup Confirm Quotation */}
       <Popup
+        isLoading={isUpdatingStatus}
+        confirmText={
+          isUpdatingStatus
+            ? "Updating..."
+            : "OK"
+        }
         isOpen={confirmPopUp}
         title="Update Status"
         message={
@@ -231,6 +293,9 @@ const ShowQuotations = ({ data }) => {
         }
         onConfirm={handleConfirm}
         onCancel={() => {
+          if (
+            isUpdatingStatus
+          ) return;
           setConfirmPopUp(false);
           setSelectedItem(null);
         }}

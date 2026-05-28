@@ -12,6 +12,7 @@ import Input from "../../components/ui/Input";
 import {
   getSettings,
   updateSettings,
+  importQuotationFolder,
 } from "../../api/settingsApi";
 
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
@@ -34,6 +35,18 @@ const SettingsArea = () => {
         "offline_pdf_path"
       ) || ""
     );
+
+  const [
+    importFolderPath,
+    setImportFolderPath
+  ] = useState("");
+
+
+  const [
+    importLoading,
+    setImportLoading
+  ] = useState(false);
+
 
   const fetchSettings =
     async () => {
@@ -105,30 +118,138 @@ const SettingsArea = () => {
       }
     };
 
-  const handlePickDirectory =
-  async () => {
+  const handleImportQuotationFolder =
+    async () => {
 
-    try {
+      try {
 
-      const result =
-        await window.electronAPI
-          .selectFolder();
+        if (
+          !importFolderPath
+        ) {
 
-      if (
-        !result.canceled &&
-        result.filePaths.length > 0
-      ) {
+          setPopup({
 
-        setPdfPath(
-          result.filePaths[0]
+            open: true,
+
+            title: "Error",
+
+            message:
+              "Please select import folder",
+          });
+
+          return;
+        }
+
+
+        setImportLoading(
+          true
         );
+
+
+        const response =
+          await importQuotationFolder(
+
+            importFolderPath
+          );
+
+
+        setImportLoading(
+          false
+        );
+
+
+        setPopup({
+
+          open: true,
+
+          title: "Import Completed",
+
+          message:
+            response.message,
+        });
+
       }
 
-    } catch (error) {
+      catch (error) {
 
-      console.log(error);
-    }
-  };
+        console.log(error);
+
+        setImportLoading(
+          false
+        );
+
+        setPopup({
+
+          open: true,
+
+          title: "Error",
+
+          message:
+            "Import failed",
+        });
+      }
+    };
+
+  const handlePickDirectory =
+    async () => {
+
+      try {
+
+        const result =
+          await window.electronAPI
+            .selectFolder();
+
+        if (
+          !result.canceled &&
+          result.filePaths.length > 0
+        ) {
+
+          setPdfPath(
+            result.filePaths[0]
+          );
+        }
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+  const handlePickImportFolder =
+    async () => {
+
+      try {
+
+        const result =
+          await window
+            .electronAPI
+            .selectFolder();
+
+        if (
+
+          !result.canceled &&
+
+          result.filePaths.length > 0
+        ) {
+
+          setImportFolderPath(
+
+            result.filePaths[0]
+          );
+        }
+
+      } catch (error) {
+
+        console.log(error);
+      }
+    };
+
+    const user =
+  JSON.parse(
+    localStorage.getItem(
+      "user"
+    )
+  );
 
   return (
 
@@ -142,7 +263,7 @@ const SettingsArea = () => {
         variant="h4"
         fontWeight="bold"
       >
-        Settings
+        Settings - {user.name}
       </Typography>
 
       <Typography
@@ -150,7 +271,7 @@ const SettingsArea = () => {
         color="text.secondary"
         mt={1}
       >
-        Configure offline storage and sync preferences.
+        Configure offline storage, sync preferences, old data to database.
       </Typography>
 
 
@@ -231,11 +352,176 @@ const SettingsArea = () => {
 
       </Paper>
 
+      <Paper
+        elevation={0}
+
+        sx={{
+
+          mt: 4,
+
+          p: 3,
+
+          borderRadius: 3,
+
+          border:
+            "1px solid #e2e8f0",
+        }}
+      >
+
+        <Typography
+          variant="h6"
+          fontWeight={600}
+        >
+          Import Legacy Quotations
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          mt={1}
+        >
+          Import old quotation Excel files
+          to add your records into Database.
+        </Typography>
+
+
+        <Divider sx={{ my: 3 }} />
+
+
+        <Stack spacing={2}>
+
+          <Box
+            sx={{
+
+              display: "flex",
+
+              gap: 2,
+
+              alignItems: "center",
+            }}
+          >
+
+            <Input
+
+              inpName="importFolder"
+
+              inpValue={
+                importFolderPath
+              }
+
+              inpPlaceholder="Select folder containing .xlsx files"
+
+              onChange={(e) =>
+
+                setImportFolderPath(
+                  e.target.value
+                )
+              }
+            />
+
+
+            <Button
+
+              btnName="Browse"
+
+              btnColor="secondary.main"
+
+              btnWidth="auto"
+
+              icon={
+                <FolderOpenIcon />
+              }
+
+              onClick={
+                handlePickImportFolder
+              }
+            />
+
+          </Box>
+
+
+          <Box>
+
+            <Button
+
+              btnName={
+                importLoading
+
+                  ? "Importing..."
+
+                  : "Start Import"
+              }
+
+              btnColor="primary.main"
+
+              btnWidth="auto"
+
+              onClick={
+                handleImportQuotationFolder
+              }
+            />
+
+          </Box>
+
+        </Stack>
+
+      </Paper>
+
+      {importLoading && (
+
+        <Paper
+
+          elevation={6}
+
+          sx={{
+
+            position: "fixed",
+
+            top: "50%",
+
+            left: "50%",
+
+            transform:
+              "translate(-50%, -50%)",
+
+            zIndex: 9999,
+
+            p: 4,
+
+            width: 400,
+
+            borderRadius: 3,
+          }}
+        >
+
+          <Typography
+            variant="h6"
+            fontWeight={700}
+          >
+            Importing Quotations
+          </Typography>
+
+
+          <Typography
+            mt={2}
+          >
+            Uploading data to Database...
+          </Typography>
+
+          <Typography
+            mt={2}
+          >
+            Please wait...
+          </Typography>
+
+        </Paper>
+      )}
+
       <Popup
         isOpen={popup.open}
         title={popup.title}
         message={popup.message}
-        
+
         onConfirm={() =>
           setPopup({
             open: false,

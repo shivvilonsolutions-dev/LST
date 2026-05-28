@@ -10,16 +10,26 @@ import fs
 
 import path
   from "path";
-
+  
 export const loginService =
   async ({
     id,
     password,
   }) => {
 
+    // ALWAYS LOGIN FROM ADMIN DB
+    await connectUserDatabases(
+      "ADMIN001"
+    );
+
     const {
       LocalUser,
     } = getModels();
+
+    console.log({
+      id,
+      password,
+    });
 
     const user =
       await LocalUser.findOne({
@@ -46,6 +56,7 @@ export const loginService =
       );
     }
 
+    // SWITCH TO USER DB
     await connectUserDatabases(
       user.userId
     );
@@ -54,9 +65,11 @@ export const loginService =
       generateToken(user);
 
     return {
+
       token,
 
       user: {
+
         name:
           user.name,
 

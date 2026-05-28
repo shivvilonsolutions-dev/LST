@@ -4,9 +4,6 @@ import {
   syncAfterLocalSave,
 } from "./syncService.js";
 
-import saveQuotationPdf
-  from "../utils/saveQuotationPdf.js";
-
 export const createQuotationService =
   async (data) => {
 
@@ -22,7 +19,10 @@ export const createQuotationService =
 
 
     // DUPLICATE MOBILE CHECK
-    if (client) {
+    if (
+      client &&
+      !data.skipDuplicateValidation
+    ) {
 
       const existingName =
         client.cliName
@@ -51,18 +51,25 @@ export const createQuotationService =
 
       client =
         await LocalClient.create({
+
           cliId:
+            data.cliId ||
             `CLI_${Date.now()}`,
 
-          cliName: data.cliName,
+          cliName:
+            data.cliName,
 
-          mobile: data.mobile,
+          mobile:
+            data.mobile,
 
-          whatsapp: data.whatsapp,
+          whatsapp:
+            data.whatsapp,
 
-          dateOfJoin: new Date(),
+          dateOfJoin:
+            new Date(),
 
-          quotationList: [],
+          quotationList:
+            [],
         });
 
       await syncAfterLocalSave(
@@ -73,6 +80,7 @@ export const createQuotationService =
 
     // GENERATE QUOTATION NUMBER
     const quotationNo =
+      data.quotationNo ||
       `Q_${data.mobile}_${Date.now()}`;
 
     // CREATE QUOTATION
@@ -80,66 +88,76 @@ export const createQuotationService =
       await LocalQuotation.create({
         quotationNo,
 
-        cliId: client.cliId,
+        cliId:
+          client.cliId,
 
-        cliName: data.cliName,
+        cliName:
+          data.cliName,
 
-        mobile: data.mobile,
+        mobile:
+          data.mobile,
 
-        whatsapp: data.whatsapp,
+        whatsapp:
+          data.whatsapp,
 
-        quotationDate: new Date(),
+        quotationDate:
+          data.quotationDate
+          || new Date(),
 
-        materials: data.materials,
+        materials:
+          data.materials,
 
-        rateB1: data.rateB1,
+        rateB1:
+          data.rateB1,
 
-        rateB2: data.rateB2,
+        rateB2:
+          data.rateB2,
 
-        bending: data.bending,
+        bending:
+          data.bending,
 
         laserCutting:
           data.laserCutting,
 
-        add: data.add,
+        add:
+          data.add,
 
         status:
           data.status || "PENDING",
+
+        isImported:
+          data.isImported || false,
+
+        isSynced:
+          data.isSynced ?? false,
+
+        sourceFileName:
+          data.sourceFileName || "",
+
+        excelPath:
+          data.excelPath || "",
+
+        pdfPath:
+          data.pdfPath || "",
       });
 
-    await syncAfterLocalSave(
-      quotation,
-      "quotation"
-    );
+    if (
+      !quotation.isImported
+    ) {
 
-    // AUTO GENERATE XLSX + PDF
-    const savedFiles =
-      await saveQuotationPdf(
-        quotation
+      await syncAfterLocalSave(
+        quotation,
+        "quotation"
       );
-
-    // OPTIONAL:
-    // STORE PATHS INSIDE DB
-    if (savedFiles.success) {
-
-      quotation.excelPath =
-        savedFiles.excelPath;
-
-      quotation.pdfPath =
-        savedFiles.pdfPath;
-
-      await quotation.save();
     }
 
     // UPDATE CLIENT SUMMARY CACHE
     client.quotationList.push({
       quotationNo,
-
       quotationDate:
         quotation.quotationDate,
-
-      status: quotation.status,
-
+      status:
+        quotation.status,
       materials:
         quotation.materials,
     });
@@ -298,6 +316,72 @@ export const deleteQuotationService =
         "client"
       );
     }
+
+    return quotation;
+  };
+
+export const updateQuotationStatusService =
+  async (
+    quotationNo,
+    status
+  ) => {
+
+    const {
+      LocalQuotation,
+      LocalClient,
+    } = getModels();
+
+
+    const quotation =
+      await LocalQuotation.findOneAndUpdate(
+        {
+          quotationNo,
+        },
+        {
+          status,
+          isSynced:
+            false,
+        },
+        {
+          new: true,
+        }
+      );
+
+
+    if (!quotation) {
+
+      throw new Error(
+        "Quotation not found"
+      );
+    }
+
+
+    // UPDATE CLIENT CACHE
+    await LocalClient.updateOne(
+      {
+        cliId:
+          quotation.cliId,
+
+        "quotationList.quotationNo":
+          quotationNo,
+      },
+
+      {
+        $set: {
+
+          "quotationList.$.status":
+            status,
+        },
+      }
+    );
+
+
+    // LIGHTWEIGHT SYNC
+    await syncAfterLocalSave(
+      quotation,
+      "quotation"
+    );
+
 
     return quotation;
   };

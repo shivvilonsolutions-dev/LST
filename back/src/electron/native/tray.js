@@ -1,31 +1,27 @@
-import {
-    Tray,
-    Menu
-} from "electron";
-
-import path from "path";
-
-import {
-    fileURLToPath
-} from "url";
-
-const __filename =
-    fileURLToPath(import.meta.url);
-
-const __dirname =
-    path.dirname(__filename);
-
-let tray = null;
-
 const createTray = () => {
 
-    tray = new Tray(
+    const trayIconPath =
 
         path.join(
-            __dirname,
-            "../../../assets/icon.png"
-        )
+
+            process.cwd(),
+
+            "build",
+
+            "logo.png"
+        );
+
+
+    console.log(
+        "Tray Icon:",
+        trayIconPath
     );
+
+
+    tray = new Tray(
+        trayIconPath
+    );
+
 
     const contextMenu =
         Menu.buildFromTemplate([
@@ -43,17 +39,18 @@ const createTray = () => {
 
             {
                 label: "Quit",
+
                 role: "quit"
             }
         ]);
+
 
     tray.setToolTip(
         "YourApp"
     );
 
+
     tray.setContextMenu(
         contextMenu
     );
 };
-
-export default createTray;

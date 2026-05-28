@@ -77,6 +77,15 @@ const quotationSchema =
         type: String,
       },
 
+      sourceFileName: {
+        type: String,
+      },
+
+      isImported: {
+        type: Boolean,
+        default: false,
+      },
+
       isSynced: {
         type: Boolean,
         default: false,

@@ -7,18 +7,39 @@ const registerDialogIPC = (ipcMain) => {
         const result = await dialog.showOpenDialog({
             properties: ["openDirectory"]
         });
-
+ 
         return result;
     });
 
-    ipcMain.handle("dialog:select-file", async () => {
-
-        const result = await dialog.showOpenDialog({
-            properties: ["openFile"]
+    ipcMain.handle("dialog:save-file", async (event, options) => {
+        const result = await dialog.showSaveDialog({
+            title: "Save Quotation",
+            defaultPath: options.defaultPath, // Suggests a filename or directory
+            filters: [
+                { name: 'PDF Files', extensions: ['pdf'] },
+                { name: 'Excel Files', extensions: ['xlsx'] },
+                { name: 'All Files', extensions: ['*'] }
+            ],
+            properties: ['showOverwriteConfirmation']
         });
 
-        return result;
+        if (result.canceled) {
+            return { canceled: true, filePath: null };
+        }
+
+        // Returns the actual path the user chose (e.g. "C:/Users/Name/Desktop/Quotation.xlsx")
+        return { canceled: false, filePath: result.filePath };
     });
+
+    ipcMain.handle("dialog:save-file", async (_, options) => {
+
+        return await dialog
+            .showSaveDialog({
+                title: "Save File",
+                defaultPath: options.defaultPath,
+            });
+    }
+    );
 };
 
 export default registerDialogIPC;

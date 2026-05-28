@@ -4,6 +4,9 @@ from "libreoffice-convert";
 import fs
 from "fs";
 
+import path
+from "path";
+
 import { promisify }
 from "util";
 
@@ -16,33 +19,120 @@ const convertAsync =
 
 const convertExcelToPdf =
   async (
-    excelPath,
-    pdfPath
+
+    {
+      excelPath,
+      pdfPath,
+      deleteExcelAfterConversion = false,
+      returnPdfBuffer = false,
+    }
   ) => {
 
-    const file =
-      fs.readFileSync(
-        excelPath
+    try {
+
+      // READ EXCEL
+      const fileBuffer =
+        fs.readFileSync(
+          excelPath
+        );
+
+
+      // CONVERT TO PDF BUFFER
+      const pdfBuffer =
+        await convertAsync(
+
+          fileBuffer,
+
+          ".pdf",
+
+          undefined
+        );
+
+
+      // AUTO GENERATE PDF PATH
+      let finalPdfPath =
+        pdfPath;
+
+
+      if (!finalPdfPath) {
+
+        finalPdfPath =
+          excelPath.replace(
+            /\.xlsx$/,
+            ".pdf"
+          );
+      }
+
+
+      // SAVE PDF
+      fs.writeFileSync(
+
+        finalPdfPath,
+
+        pdfBuffer
       );
 
 
-    const pdfBuffer =
-      await convertAsync(
+      // DELETE TEMP EXCEL
+      if (
+        deleteExcelAfterConversion &&
+        fs.existsSync(
+          excelPath
+        )
+      ) {
 
-        file,
+        fs.unlinkSync(
+          excelPath
+        );
+      }
 
-        ".pdf",
 
-        undefined
+      // RETURN BUFFER MODE
+      if (
+        returnPdfBuffer
+      ) {
+
+        return {
+
+          success: true,
+
+          pdfBuffer,
+
+          pdfPath:
+            finalPdfPath,
+        };
+      }
+
+
+      // NORMAL RETURN
+      return {
+
+        success: true,
+
+        pdfPath:
+          finalPdfPath,
+      };
+
+    }
+
+    catch (error) {
+
+      console.log(
+
+        "PDF Conversion Error:",
+
+        error
       );
 
 
-    fs.writeFileSync(
+      return {
 
-      pdfPath,
+        success: false,
 
-      pdfBuffer
-    );
+        message:
+          error.message,
+      };
+    }
   };
 
 export default

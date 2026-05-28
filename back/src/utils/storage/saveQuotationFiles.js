@@ -16,27 +16,39 @@ const saveQuotationFiles =
     quotationData
   ) => {
 
-    const storagePath =
-      createStoragePath();
+    const excelStoragePath =
+      createStoragePath(
+        "excel-files"
+      );
 
+    const pdfStoragePath =
+      createStoragePath(
+        "pdf-files"
+      );
+      
     const safeClientName =
       quotationData.cliName
-        .replace(/[<>:"/\\\\|?*]/g, "")
-        .trim();
+        ?.replace(
+          /[<>:"/\\|?*]/g,
+          ""
+        )
+        ?.trim();
 
-    const fileName = `${quotationData.quotationNo}_${safeClientName}`;
+
+    const fileName = `${safeClientName}_${quotationData.quotationNo}`;
+
     console.log("File name:", fileName)
 
     const excelPath =
       path.join(
-        storagePath,
+        excelStoragePath,
         `${fileName}.xlsx`
       );
 
 
     const pdfPath =
       path.join(
-        storagePath,
+        pdfStoragePath,
         `${fileName}.pdf`
       );
 
@@ -49,10 +61,11 @@ const saveQuotationFiles =
 
 
     // GENERATE PDF
-    await convertExcelToPdf(
+    await convertExcelToPdf({
       excelPath,
-      pdfPath
-    );
+
+      pdfPath,
+    });
 
 
     return {

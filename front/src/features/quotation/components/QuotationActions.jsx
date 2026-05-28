@@ -9,12 +9,32 @@ import {
   InputAdornment,
 } from "@mui/material";
 
+
+import {
+  LocalizationProvider,
+} from "@mui/x-date-pickers/LocalizationProvider";
+
+import {
+  AdapterDayjs,
+} from "@mui/x-date-pickers/AdapterDayjs";
+
+import {
+  DatePicker,
+} from "@mui/x-date-pickers/DatePicker";
+
+import dayjs
+  from "dayjs";
+
 import SearchIcon from "@mui/icons-material/Search";
 import Button from "../../../components/ui/Button";
 
-const QuotationActions = ({ setFilter, setSearch }) => {
+const QuotationActions = ({ setFilter, setSearch, setSelectedMonth }) => {
   const navigate = useNavigate();
   const [value, setValue] = useState("ALL");
+
+  const [monthValue,
+    setMonthValue] =
+    useState(null);
 
   const handleChange = (_, newValue) => {
     if (newValue !== null) {
@@ -22,6 +42,34 @@ const QuotationActions = ({ setFilter, setSearch }) => {
       setFilter(newValue);
     }
   };
+
+  const handleMonthChange =
+    (newValue) => {
+
+      setMonthValue(
+        newValue
+      );
+
+      if (
+        !newValue
+      ) {
+
+        setSelectedMonth(
+          null
+        );
+
+        return;
+      }
+
+
+      setSelectedMonth(
+
+        dayjs(newValue)
+          .startOf("month")
+          .toDate()
+      );
+    };
+
 
   return (
     <Box
@@ -33,7 +81,7 @@ const QuotationActions = ({ setFilter, setSearch }) => {
         gap: 2,
       }}
     >
-      
+
       {/* LEFT: Filters */}
       <ToggleButtonGroup
         value={value}
@@ -64,8 +112,60 @@ const QuotationActions = ({ setFilter, setSearch }) => {
       </ToggleButtonGroup>
 
       {/* RIGHT: Search + Button */}
-      <Stack direction="row" spacing={2} alignItems="center">
-        
+      <Stack direction="row" spacing={2} alignItems="center" >
+
+
+        <LocalizationProvider
+          dateAdapter={
+            AdapterDayjs
+          }
+        >
+          <DatePicker
+
+            views={[
+              "year",
+              "month",
+            ]}
+
+            label="Select Month"
+
+            value={monthValue}
+
+            onChange={
+              handleMonthChange
+            }
+
+            slotProps={{
+
+              textField: {
+
+                size: "small",
+
+                sx: {
+
+                  width: 180,
+
+                  bgcolor:
+                    "white",
+
+                  "& .MuiOutlinedInput-root": {
+
+                    borderRadius: 1,
+                  },
+                },
+              },
+
+              actionBar: {
+
+                actions: [
+                  "clear",
+                ],
+              },
+            }}
+          />
+
+        </LocalizationProvider>
+
         <TextField
           size="small"
           placeholder="Search here..."
@@ -87,7 +187,7 @@ const QuotationActions = ({ setFilter, setSearch }) => {
         />
 
         <Button
-          btnName="+ Send Quotation"
+          btnName="+ Create Quotation"
           btnColor="secondary.main"
           btnWidth="auto"
           onClick={() => navigate("/quotations/send-quotation")}

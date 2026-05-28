@@ -2,7 +2,6 @@ import {
   Box,
   Paper,
   Typography,
-  Grid,
   Stack,
   Table,
   TableHead,
@@ -17,11 +16,17 @@ import {
 import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import Popup from "../../../components/ui/Popup";
+import formatDate from "../../../utils/formatDate";
 import { useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import { ClientContext } from "../../../contexts/client/clientContext"
-import formatDate from "../../../utils/formatDate";
+import {
+  downloadQuotationPdf,
+  downloadQuotationExcel,
+  generateWhatsappPdf,
+} from "../../../api/quotationApi";
+
 
 const QuotationForm = () => {
   const {
@@ -33,15 +38,30 @@ const QuotationForm = () => {
 
   const navi = useNavigate();
   const [showPopup, setShowPopup] = useState(false);
-  const [mobilePopup, setMobilePopup] = useState(false);
   const [duplicatePopup, setDuplicatePopup] = useState({
     open: false,
     message: "",
   });
-
-  const [isSending,
-    setIsSending] =
-    useState(false);
+  const [success, setSuccess] = useState({
+    open: false,
+    message: "",
+  });
+  const [
+    isSending,
+    setIsSending
+  ] = useState(false);
+  const [
+    isDownloading,
+    setIsDownloading
+  ] = useState(false);
+  const [
+    isDownloadingExcel,
+    setIsDownloadingExcel
+  ] = useState(false);
+  const [
+    isWhatsappLoading,
+    setIsWhatsappLoading
+  ] = useState(false);
   const [isNewClient, setIsNewClient] = useState(false);
   const [formData, setFormData] = useState({
     cliId: "",
@@ -60,10 +80,16 @@ const QuotationForm = () => {
     add: "",
     status: "PENDING",
   });
-  const [time] = useState(
-    formatDate(new Date())
-  );
+  const [time] = useState(formatDate(new Date()));
 
+  const [
+    createdQuotation,
+    setCreatedQuotation
+  ] = useState(null);
+  const [warningPopup, setWarningPopup] = useState({
+    open: false,
+    message: "",
+  });
 
   const handleMaterialChange = (index, field, value) => {
     const updatedMaterials = [...formData.materials];
@@ -92,7 +118,6 @@ const QuotationForm = () => {
     });
   };
 
-
   const handleRemoveRow = (index) => {
     const updated = formData.materials.filter((_, i) => i !== index);
 
@@ -109,7 +134,6 @@ const QuotationForm = () => {
     });
   };
 
-
   const handleConfirmQuotation =
     async () => {
 
@@ -118,7 +142,9 @@ const QuotationForm = () => {
 
       try {
 
-        setIsSending(true);
+        setIsSending(
+          true
+        );
 
         let response;
 
@@ -159,8 +185,13 @@ const QuotationForm = () => {
         }
 
         if (response.success) {
+          setCreatedQuotation(
+            response.data || response.quotation
+          );
 
-          navi("/quotations");
+          setIsSending(
+            false
+          );
 
         } else {
 
@@ -177,7 +208,9 @@ const QuotationForm = () => {
 
       finally {
 
-        setIsSending(false);
+        setIsSending(
+          false
+        );
       }
     };
 
@@ -203,46 +236,225 @@ const QuotationForm = () => {
         return;
       }
 
+      console.log(formData)
+
       // ONLY OPEN POPUP
       setShowPopup(true);
     };
 
-  const handleWhatsApp = () => {
-    if (!formData.whatsapp) {
-      setMobilePopup(true);
-      return;
+
+  const handlePdfFile =
+    async () => {
+
+      try {
+
+        setIsDownloading(
+          true
+        );
+
+        const response =
+          await downloadQuotationPdf(
+            createdQuotation?.quotationNo
+          );
+
+
+        if (!response.success) {
+
+          setWarningPopup({
+
+            open: true,
+
+            message:
+              response.message,
+          });
+
+          return;
+        }
+
+        setSuccess({
+
+          open: true,
+
+          message:
+            `PDF generated successfully.\n\n\nLocation:${response.pdfPath}`,
+        });
+      }
+
+      finally {
+
+        setIsDownloading(
+          false
+        );
+      }
     }
 
-    let phone = formData.whatsapp.toString().replace(/\D/g, "");
+  const handleExcelFile =
+    async () => {
 
-    if (phone.length === 10) {
-      phone = "91" + phone;
+      try {
+
+        setIsDownloadingExcel(
+          true
+        );
+
+        const response =
+          await downloadQuotationExcel(
+            createdQuotation?.quotationNo
+          );
+
+        if (!response.success) {
+
+          setWarningPopup({
+            open: true,
+            message:
+              response.message,
+          });
+
+          return;
+        }
+
+        setSuccess({
+
+          open: true,
+
+          message:
+            `Excel generated successfully.\n\n\nLocation: ${response.excelPath}`,
+        });
+
+      }
+      finally {
+
+        setIsDownloadingExcel(
+          false
+        );
+      }
     }
 
-    const materialsText = formData.materials
-      .filter(
-        (m) =>
-          m.size ||
-          m.piece ||
-          m.gauge
-      ).map(
-        (m, index) =>
-          `• ${index + 1}. ${m.size || "-"} (${m.piece || 0} pcs | ${m.gauge || "-"} gauge)`
-      ).join("\n");
+  const handleWhatsApp =
+    async () => {
 
-    const message =
-      `Hello ${formData.cliName},
+      try {
 
-Your quotation: 
+        if (!formData?.whatsapp) {
+
+          setWarningPopup({
+
+            open: true,
+
+            message:
+              "Please add WhatsApp number",
+          });
+
+          return;
+        }
+
+
+        setIsWhatsappLoading(
+          true
+        );
+
+
+        const response =
+          await generateWhatsappPdf(
+            createdQuotation?.quotationNo
+          );
+
+
+        if (!response.success) {
+
+          setWarningPopup({
+
+            open: true,
+
+            message:
+              response.message,
+          });
+
+          return;
+        }
+
+
+        let phone =
+          formData.whatsapp
+            .toString()
+            .replace(/\D/g, "");
+
+
+        if (
+          phone.length === 10
+        ) {
+
+          phone =
+            "91" + phone;
+        }
+
+        const materialsText =
+
+          formData.materials
+
+            ?.filter((m) => m.size)
+
+            ?.map(
+
+              (m, index) =>
+
+                `${index + 1}. ${m.size}`
+
+                +
+
+                (m.piece
+                  ? ` (${m.piece} pcs)`
+                  : "")
+
+                +
+
+                (m.gauge
+                  ? ` | ${m.gauge}`
+                  : "")
+            )
+
+            .join("\n");
+
+
+        const message =
+
+          `Hello ${formData.cliName},
+
+Your quotation details:
+
 ${materialsText}
 
 Thank you!`;
 
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+        window.open(url, "_blank");
 
-    window.open(url, "_blank")
-  };
+        // ─── STEP 2: OPEN FILE POPUP 1.5 SECONDS LATER ───
+        if (window.electronAPI?.saveFileDialog && response.pdfPath) {
+          setTimeout(async () => {
+            try {
+              const dialogResult = await window.electronAPI.saveFileDialog({
+                defaultPath: response.pdfPath, // e.g., "C:/path/to/Quotation_123.xlsx"
+              });
+
+              if (!dialogResult.canceled && dialogResult.filePath) {
+                console.log("File marked for save at:", dialogResult.filePath);
+              }
+            } catch (err) {
+              console.error("Delayed file dialog error:", err);
+            }
+          }, 500); // 500ms delay gives WhatsApp room to load comfortably first
+        }
+      }
+
+      finally {
+
+        setIsWhatsappLoading(
+          false
+        );
+      }
+    };
 
   return (
     <Paper
@@ -280,20 +492,66 @@ Thank you!`;
           {/* RIGHT: Actions */}
           <Stack direction="row" spacing={1.5}>
 
+            {/* Whatsapp Button */}
             <Button
-              btnName="Show WhatsApp"
+              btnName={
+                isWhatsappLoading
+                  ? "Opening WhatsApp..."
+                  : "Show WhatsApp"
+              }
               btnColor="green"
+              disabled={!createdQuotation || isWhatsappLoading}
               onClick={handleWhatsApp}
             />
 
+            {/* Excel Button */}
+            <Button
+              btnName={
+                isDownloadingExcel
+                  ? "Generating Excel..."
+                  : "Save Excel"
+              }
+              btnColor="primary.main"
+              disabled={!createdQuotation || isDownloadingExcel}
+              onClick={handleExcelFile}
+            />
+
+            {/* PDF Button */}
+            <Button
+              btnName={
+                isDownloading
+                  ? "Generating PDF..."
+                  : "Save PDF"
+              }
+              btnColor="red"
+              disabled={!createdQuotation || isDownloading}
+              onClick={handlePdfFile}
+            />
+
+            {/* Create Button */}
             <Button
               btnName={
                 isSending
-                  ? "Saving Data & Generating Files..."
-                  : "Send Quotation →"
+                  ? "Saving Data..."
+                  : createdQuotation
+                    ? "Quotation Created ✓"
+                    : "Create Quotation →"
               }
               btnType="submit"
-              btnColor="secondary.main"
+              btnColor={
+                createdQuotation
+                  ? "green"
+                  : "secondary.main"
+              }
+              disabled={createdQuotation}
+            />
+
+            <Button
+              btnName="Close"
+              btnColor="gray"
+              txtCol="black"
+              disabled={!createdQuotation}
+              onClick={() => navi("/quotations")}
             />
 
           </Stack>
@@ -568,7 +826,7 @@ Thank you!`;
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography sx={{ minWidth: "40%" }}>Rate B1:</Typography>
                 <Box sx={{ width: "60%" }}>
-                  <Input inpName="rateB1" inpValue={formData.rateB1} onChange={handleChange} isReq={true} />
+                  <Input inpName="rateB1" inpValue={formData.rateB1} onChange={handleChange} />
                 </Box>
               </Box>
 
@@ -611,7 +869,7 @@ Thank you!`;
 
         {/* Footer */}
         <Box sx={{ textAlign: "center" }}>
-          <Typography sx={{ marginTop: "5px" }} textAlign="center" variant="h5" color="text.secondary">
+          <Typography sx={{ marginTop: "35px" }} textAlign="center" variant="h5" color="text.secondary">
             માપ ચેક કરી ને રજા લેવી
             <br />
             કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
@@ -630,28 +888,50 @@ Thank you!`;
         onCancel={() => setShowPopup(false)}
       />
 
+
       <Popup
-        isOpen={mobilePopup}
-        title="Requirement"
-        message="Please add 10 digit WhatsApp number"
+        isOpen={
+          success.open
+        }
+
+        title="File saved successfully!"
+
+        message={
+          success.message
+        }
+        
         onConfirm={() => {
-          navi("/quotations/send-quotation");
-          setMobilePopup(false);
+
+          setSuccess({
+
+            open: false,
+
+            message: "",
+
+            filePath: "",
+          });
         }}
-        onCancel={() => setMobilePopup(false)}
+
+        onCancel={() =>
+          setSuccess({
+
+            open: false,
+
+            message: "",
+
+            filePath: "",
+          })
+        }
       />
 
       <Popup
         isOpen={
           duplicatePopup.open
         }
-
         title="Duplicate Mobile Number"
-
         message={
           duplicatePopup.message
         }
-
         onConfirm={() =>
           setDuplicatePopup({
 
@@ -660,9 +940,38 @@ Thank you!`;
             message: "",
           })
         }
-
         onCancel={() =>
           setDuplicatePopup({
+
+            open: false,
+
+            message: "",
+          })
+        }
+      />
+
+      <Popup
+        isOpen={
+          warningPopup.open
+        }
+
+        title="Requirement"
+
+        message={
+          warningPopup.message
+        }
+
+        onConfirm={() =>
+          setWarningPopup({
+
+            open: false,
+
+            message: "",
+          })
+        }
+
+        onCancel={() =>
+          setWarningPopup({
 
             open: false,
 
