@@ -60,6 +60,11 @@ const quotationSchema =
 
       add: String,
 
+      totalPieces: {
+        type: Number,
+        default: 0,
+      },
+
       status: {
         type: String,
         enum: [

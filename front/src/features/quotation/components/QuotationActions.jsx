@@ -6,6 +6,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Box,
+  Typography,
   InputAdornment,
 } from "@mui/material";
 
@@ -28,7 +29,7 @@ import dayjs
 import SearchIcon from "@mui/icons-material/Search";
 import Button from "../../../components/ui/Button";
 
-const QuotationActions = ({ setFilter, setSearch, setSelectedMonth }) => {
+const QuotationActions = ({ setFilter, setSearch, setSelectedMonth, search, filteredCount }) => {
   const navigate = useNavigate();
   const [value, setValue] = useState("ALL");
 
@@ -114,6 +115,38 @@ const QuotationActions = ({ setFilter, setSearch, setSelectedMonth }) => {
       {/* RIGHT: Search + Button */}
       <Stack direction="row" spacing={2} alignItems="center" >
 
+        {(search || monthValue)&& (
+
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              bgcolor:
+                filteredCount === 0
+                  ? "#fdecea"
+                  : "#e6edf7",
+
+              color:
+                filteredCount === 0
+                  ? "error.main"
+                  : "inherit",
+
+              borderRadius: 1,
+              fontSize: "15px",
+              fontWeight: 500,
+              border:
+                "1px solid #cbd5e1",
+
+              whiteSpace:
+                "nowrap",
+            }}
+          >
+            {filteredCount}
+            {" "}result
+            {filteredCount !== 1 && "s"}
+          </Box>
+
+        )}
 
         <LocalizationProvider
           dateAdapter={
@@ -169,6 +202,7 @@ const QuotationActions = ({ setFilter, setSearch, setSelectedMonth }) => {
         <TextField
           size="small"
           placeholder="Search here..."
+          value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{
             width: 260,
@@ -183,6 +217,25 @@ const QuotationActions = ({ setFilter, setSearch, setSelectedMonth }) => {
                 <SearchIcon fontSize="small" />
               </InputAdornment>
             ),
+
+            endAdornment:
+              search && (
+
+                <Typography
+                  sx={{
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    px: 1,
+                    color: "text.secondary",
+                  }}
+                  onClick={() =>
+                    setSearch("")
+                  }
+                >
+                  ✕
+                </Typography>
+
+              ),
           }}
         />
 

@@ -215,6 +215,9 @@ export const downloadQuotationExcel =
           {
             outputPath:
               excelPath,
+            
+            templateType:
+              "excel",
           }
         );
 
@@ -332,6 +335,9 @@ export const downloadQuotationPdf =
         {
           outputPath:
             tempExcelPath,
+
+          templateType:
+            "pdf",
         }
       );
 
@@ -462,6 +468,9 @@ export const generateWhatsappPdf =
         {
           outputPath:
             tempExcelPath,
+          
+          templateType:
+            "pdf",
         }
       );
 

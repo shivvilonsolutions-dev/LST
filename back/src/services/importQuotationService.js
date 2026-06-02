@@ -24,22 +24,32 @@ const cleanValue =
     ).trim();
   };
 
+const extractText = (
+  value,
+  prefix
+) => {
 
-const extractText =
-  (
-    value,
-    prefix
-  ) => {
+  const text =
+    cleanValue(value);
 
-    return cleanValue(
-      value
+  if (!text) {
+    return "";
+  }
+
+  const index =
+    text.indexOf(prefix);
+
+  if (index === -1) {
+    return "";
+  }
+
+  return text
+    .substring(
+      index + prefix.length
     )
-      .replace(
-        prefix,
-        ""
-      )
-      .trim();
-  };
+    .trim();
+};
+
 const parseExcelDate =
   (rawDate) => {
 
@@ -124,110 +134,14 @@ const parseExcelDate =
     return null;
   };
 
-const parseBlock =
+const getMaterials =
   (
     sheet,
     startRow,
-    maxRows,
-    filePaths
+    maxRows
   ) => {
 
-    const header =
-      cleanValue(
-
-        sheet.getCell(
-          `C${startRow}`
-        ).value
-      );
-
-
-    if (
-      !header.includes(
-        "SHREE"
-      )
-    ) {
-
-      return null;
-    }
-
-
-
-    const cliName =
-      extractText(
-        header,
-        "SHREE:-"
-      );
-
-
-    const rawDate =
-      sheet.getCell(
-        `F${startRow + 1}`
-      ).value;
-
-    console.log("Date from excel: ", rawDate)
-
-    const quotationDate =
-      parseExcelDate(
-        rawDate
-      );
-
-    const mobile =
-      extractText(
-
-        sheet.getCell(
-          `F${startRow + 2}`
-        ).value,
-
-        "MO:-"
-      );
-
-
-    const rateB1 =
-      extractText(
-
-        sheet.getCell(
-          `F${startRow + 3}`
-        ).value,
-
-        "RATE B:-"
-      );
-
-
-    const rateB2 =
-      extractText(
-
-        sheet.getCell(
-          `F${startRow + 4}`
-        ).value,
-
-        "RATE B:-"
-      );
-
-
-    const add =
-      extractText(
-
-        sheet.getCell(
-          `F${startRow + 5}`
-        ).value,
-
-        "ADD:-"
-      );
-
-
-    const bending =
-      extractText(
-
-        sheet.getCell(
-          `F${startRow + 6}`
-        ).value,
-
-        "BENDING:-"
-      )
-
-    const materials =
-      [];
-
+    const materials = [];
 
     for (
       let i = 0;
@@ -238,33 +152,33 @@ const parseBlock =
       const row =
         startRow + 2 + i;
 
-
       const size =
         cleanValue(
-
           sheet.getCell(
             `C${row}`
           ).value
         );
 
+      const rawPiece =
+        sheet.getCell(
+          `D${row}`
+        ).value;
 
       const piece =
-        cleanValue(
+        rawPiece === null ||
+          rawPiece === undefined ||
+          rawPiece === ""
 
-          sheet.getCell(
-            `D${row}`
-          ).value
-        );
+          ? ""
 
+          : Number(rawPiece);
 
       const gauge =
         cleanValue(
-
           sheet.getCell(
             `E${row}`
           ).value
         );
-
 
       if (
         size &&
@@ -282,32 +196,127 @@ const parseBlock =
       }
     }
 
+    return materials;
+  };
+
+const calculateTotalPieces =
+  (materials = []) => {
+
+    return materials.reduce(
+
+      (sum, item) =>
+
+        sum +
+        (
+          Number(item.piece) || 0
+        ),
+
+      0
+    );
+  };
+
+const parseSmallQuotation =
+  (
+    sheet,
+    startRow,
+    fileName
+  ) => {
+
+    const header =
+      cleanValue(
+        sheet.getCell(
+          `C${startRow}`
+        ).value
+      );
 
     if (
+      !header.includes(
+        "SHREE"
+      )
+    ) {
+
+      return null;
+    }
+
+    const cliName =
+      extractText(
+        header,
+        "SHREE:-"
+      );
+
+    const rawDate =
+      sheet.getCell(
+        `F${startRow + 1}`
+      ).value;
+
+    const quotationDate =
+      parseExcelDate(
+        rawDate
+      );
+
+    const mobile =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 2}`
+        ).value,
+        "MO:-"
+      );
+
+    const rateB1 =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 3}`
+        ).value,
+        "RATE B:-"
+      );
+
+    const rateB2 =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 4}`
+        ).value,
+        "RATE B:-"
+      );
+
+    const add =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 5}`
+        ).value,
+        "ADD:-"
+      );
+
+    const bending =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 6}`
+        ).value,
+        "BENDING:-"
+      );
+
+    const materials =
+      getMaterials(
+        sheet,
+        startRow,
+        6
+      );
+
+    if (
+      !quotationDate ||
+      !mobile ||
       materials.length === 0
     ) {
 
       return null;
     }
 
-
-    if (!mobile) {
-      return null;
-    }
-
-    const timestamp = Date.now() + Math.random();
-
-    if (
-      !quotationDate
-    ) {
-
-      console.log(
-        "Invalid quotation date:",
-        rawDate
+    const totalPieces =
+      calculateTotalPieces(
+        materials
       );
 
-      return null;
-    }
+    const timestamp =
+      Date.now() + Math.random();
 
     return {
 
@@ -328,16 +337,17 @@ const parseBlock =
 
       materials,
 
+      totalPieces,
+
       rateB1,
 
       rateB2,
 
+      add,
+
       bending,
 
-      laserCutting:
-        "",
-
-      add,
+      laserCutting: "",
 
       status:
         "CONFIRM",
@@ -346,59 +356,363 @@ const parseBlock =
         false,
 
       sourceFileName:
-        filePaths.fileName,
+        fileName,
 
       isImported:
         true,
     };
   };
 
+const parseMediumQuotation =
+  (
+    sheet,
+    startRow,
+    fileName
+  ) => {
 
-const getSheetConfig =
-  (sheetName) => {
-
-    if (
-      sheetName ===
-      "11092017"
-    ) {
-
-      return {
-
-        blockRows:
-          [1, 11, 21],
-
-        maxRows:
-          6,
-      };
-    }
-
+    const header =
+      cleanValue(
+        sheet.getCell(
+          `C${startRow}`
+        ).value
+      );
 
     if (
-      sheetName ===
-      "Sheet2"
+      !header.includes(
+        "SHREE"
+      )
     ) {
 
-      return {
-
-        blockRows:
-          [1, 16],
-
-        maxRows:
-          12,
-      };
+      return null;
     }
 
+    const cliName =
+      extractText(
+        header,
+        "SHREE:-"
+      );
+
+    const rawDate =
+      sheet.getCell(
+        `F${startRow + 1}`
+      ).value;
+
+    const quotationDate =
+      parseExcelDate(
+        rawDate
+      );
+
+    const mobile =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 2}`
+        ).value,
+        "MO:-"
+      );
+
+    const f4 =
+      cleanValue(
+        sheet.getCell(`F${startRow + 3}`).value
+      );
+
+    const f5 =
+      cleanValue(
+        sheet.getCell(`F${startRow + 4}`).value
+      );
+
+    let rateB1 = "";
+    let rateB2 = "";
+
+    if (
+      f4.includes("RATE B:-") &&
+      f4.replace("RATE B:-", "").trim()
+    ) {
+
+      rateB1 =
+        extractText(
+          f4,
+          "RATE B:-"
+        );
+    }
+    else {
+
+      rateB2 =
+        extractText(
+          f5,
+          "RATE B:-"
+        );
+    }
+
+    const add =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 5}`
+        ).value,
+        "ADD:-"
+      );
+
+    const laserCutting =
+      extractText(
+        sheet.getCell(
+          `F${startRow + 6}`
+        ).value,
+        "CUTTING:-"
+      );
+
+    const materials =
+      getMaterials(
+        sheet,
+        startRow,
+        11
+      );
+
+    if (
+      !quotationDate ||
+      !mobile ||
+      materials.length === 0
+    ) {
+
+      return null;
+    }
+
+    const totalPieces =
+      calculateTotalPieces(
+        materials
+      );
+
+    const timestamp =
+      Date.now() + Math.random();
 
     return {
 
-      blockRows:
-        [1],
+      quotationNo:
+        `Q_${mobile}_${timestamp}`,
 
-      maxRows:
-        26,
+      cliId:
+        `CLI_${mobile}`,
+
+      cliName,
+
+      mobile,
+
+      whatsapp:
+        mobile,
+
+      quotationDate,
+
+      materials,
+
+      totalPieces,
+
+      rateB1,
+
+      rateB2,
+
+      add,
+
+      bending:
+        "",
+
+      laserCutting,
+
+      status:
+        "CONFIRM",
+
+      isSynced:
+        false,
+
+      sourceFileName:
+        fileName,
+
+      isImported:
+        true,
     };
   };
 
+const parseLargeQuotation =
+  (
+    sheet,
+    fileName
+  ) => {
+
+    const header =
+      cleanValue(
+        sheet.getCell(
+          "C1"
+        ).value
+      );
+
+    if (
+      !header.includes(
+        "SHREE"
+      )
+    ) {
+
+      return null;
+    }
+
+    const cliName =
+      extractText(
+        header,
+        "SHREE:-"
+      );
+
+    const rawDate =
+      sheet.getCell(
+        "F2"
+      ).value;
+
+    const quotationDate =
+      parseExcelDate(
+        rawDate
+      );
+
+    const mobile =
+      extractText(
+        sheet.getCell(
+          "F3"
+        ).value,
+        "MO:-"
+      );
+
+    const f4 =
+      cleanValue(
+        sheet.getCell("F4").value
+      );
+
+    const f5 =
+      cleanValue(
+        sheet.getCell("F5").value
+      );
+
+    let rateB1 = "";
+    let rateB2 = "";
+
+    if (
+      f4.includes("RATE W:-")
+    ) {
+
+      rateB1 =
+        extractText(
+          f4,
+          "RATE W:-"
+        );
+    }
+
+    if (
+      f5.includes("RATE B:-")
+    ) {
+
+      rateB2 =
+        extractText(
+          f5,
+          "RATE B:-"
+        );
+    }
+
+    const add =
+      extractText(
+        sheet.getCell(
+          "F6"
+        ).value,
+        "ADD:-"
+      );
+
+    const f7 =
+      cleanValue(
+        sheet.getCell("F7").value
+      );
+
+    let bending = "";
+    let laserCutting = "";
+
+    if (
+      f7.startsWith("BENDING:-")
+    ) {
+      bending =
+        extractText(
+          f7,
+          "BENDING:-"
+        );
+    }
+    else if (
+      f7.startsWith("CUTTING:-")
+    ) {
+      laserCutting =
+        extractText(
+          f7,
+          "CUTTING:-"
+        );
+    }
+
+    const materials =
+      getMaterials(
+        sheet,
+        1,
+        26
+      );
+
+    if (
+      !quotationDate ||
+      !mobile ||
+      materials.length === 0
+    ) {
+
+      return null;
+    }
+
+    const totalPieces =
+      calculateTotalPieces(
+        materials
+      );
+
+    const timestamp =
+      Date.now() + Math.random();
+
+    return {
+
+      quotationNo:
+        `Q_${mobile}_${timestamp}`,
+
+      cliId:
+        `CLI_${mobile}`,
+
+      cliName,
+
+      mobile,
+
+      whatsapp:
+        mobile,
+
+      quotationDate,
+
+      materials,
+
+      totalPieces,
+
+      rateB1,
+
+      rateB2,
+
+      add,
+
+      bending,
+
+      laserCutting,
+
+      status:
+        "CONFIRM",
+
+      isSynced:
+        false,
+
+      sourceFileName:
+        fileName,
+
+      isImported:
+        true,
+    };
+  };
 
 export const importQuotationFolderService =
   async (
@@ -496,49 +810,103 @@ export const importQuotationFolderService =
           of workbook.worksheets
         ) {
 
-          const config =
-            getSheetConfig(
-              sheet.name
-            );
+          const quotations =
+            [];
 
+          if (
+            sheet.name ===
+            "11092017"
+          ) {
 
-          for (
-            const startRow
-            of config.blockRows
+            [1, 11, 21]
+              .forEach(
+                (startRow) => {
+
+                  const quotation =
+                    parseSmallQuotation(
+                      sheet,
+                      startRow,
+                      file
+                    );
+
+                  if (
+                    quotation
+                  ) {
+
+                    quotations.push(
+                      quotation
+                    );
+                  }
+                }
+              );
+          }
+
+          else if (
+            sheet.name ===
+            "Sheet2"
+          ) {
+
+            [1, 16]
+              .forEach(
+                (startRow) => {
+
+                  const quotation =
+                    parseMediumQuotation(
+                      sheet,
+                      startRow,
+                      file
+                    );
+
+                  if (
+                    quotation
+                  ) {
+
+                    quotations.push(
+                      quotation
+                    );
+                  }
+                }
+              );
+          }
+
+          else if (
+            sheet.name ===
+            "Sheet3"
           ) {
 
             const quotation =
-              parseBlock(
-
+              parseLargeQuotation(
                 sheet,
-
-                startRow,
-
-                config.maxRows,
-
-                {
-                  fileName:
-                    file,
-                }
+                file
               );
-
 
             if (
               quotation
             ) {
-              await createQuotationService({
 
-                ...quotation,
-
-                isImported:
-                  true,
-
-                skipDuplicateValidation:
-                  true,
-              });
-
-              totalInserted++;
+              quotations.push(
+                quotation
+              );
             }
+          }
+
+          for (
+            const quotation
+            of quotations
+          ) {
+
+            await createQuotationService({
+
+              ...quotation,
+
+              isImported:
+                true,
+
+              skipDuplicateValidation:
+                true,
+            });
+
+            totalInserted++;
           }
         }
 

@@ -4,7 +4,7 @@ import fs from "fs";
 
 import envConfig from "./src/config/envConfig.js";
 import startSyncJob from "./src/jobs/syncJob.js";
-// DYNAMIC DB CONNECTIONS
+import { syncAfterLocalSave } from "./src/services/syncService.js";
 
 import {
   connectUserDatabases,
@@ -81,7 +81,7 @@ const seedDefaultUser =
             hashedPassword,
 
           isSynced:
-            true,
+            false,
 
           lastSyncedAt:
             new Date(),
@@ -92,6 +92,11 @@ const seedDefaultUser =
 
         await LocalUser.create(
           userData
+        );
+
+        await syncAfterLocalSave(
+          userData,
+          "user"
         );
 
 
@@ -109,13 +114,11 @@ const seedDefaultUser =
 
 
       // DEFAULT STORAGE PATH
-
       const defaultStoragePath =
-        "D:\\LST_Local_Files\\ADMIN001";
+        "D:\\LST_Local_Files";
 
 
       // CREATE ROOT FOLDER
-
       if (
         !fs.existsSync(
           defaultStoragePath
@@ -134,7 +137,6 @@ const seedDefaultUser =
 
 
       // CREATE DEFAULT SETTINGS
-
       await LocalSettings.findOneAndUpdate(
 
         {},

@@ -7,6 +7,16 @@ import {
 export const createQuotationService =
   async (data) => {
 
+    console.log(
+      "REQ TOTAL PIECES:",
+      data.totalPieces
+    );
+
+    console.log(
+      "REQ BODY:",
+      data
+    );
+
     const {
       LocalClient,
       LocalQuotation
@@ -121,6 +131,9 @@ export const createQuotationService =
 
         add:
           data.add,
+
+        totalPieces:
+          data.totalPieces,
 
         status:
           data.status || "PENDING",

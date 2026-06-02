@@ -32,6 +32,21 @@ const buildDbUri =
 export const connectUserDatabases =
   async (userId) => {
 
+    // ALREADY CONNECTED TO SAME USER DB
+    if (
+      currentUserId === userId &&
+      localConnection &&
+      atlasConnection
+    ) {
+
+      return {
+
+        localConnection,
+
+        atlasConnection,
+      };
+    }
+
     currentUserId =
       userId;
 

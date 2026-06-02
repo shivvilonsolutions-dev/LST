@@ -22,14 +22,15 @@ import {
 }
   from "../../../api/quotationApi";
 
-
-const ShowQuotations = ({ data }) => {
+const ShowQuotations = ({
+  data,
+  page,
+  setPage,
+}) => {
   const {
     handleDeleteQuotation,
   } = useContext(QuotationContext);
 
-  const [page, setPage] = useState(0);
-  const navigate = useNavigate();
   const rowsPerPage = 5;
   const navi = useNavigate()
 
@@ -132,7 +133,6 @@ const ShowQuotations = ({ data }) => {
               <TableCell>Thickness</TableCell>
               <TableCell>WhatsApp</TableCell>
               <TableCell>Date</TableCell>
-              <TableCell>Laser Cutting</TableCell>
               <TableCell>Status Update</TableCell>
               <TableCell>Edit</TableCell>
               <TableCell>Delete</TableCell>
@@ -150,7 +150,9 @@ const ShowQuotations = ({ data }) => {
                 >
 
                   {/* Index */}
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
+                    {page * rowsPerPage + index + 1}
+                  </TableCell>
 
                   {/* Name */}
                   <TableCell>{item.cliName}</TableCell>
@@ -166,9 +168,6 @@ const ShowQuotations = ({ data }) => {
                       item.quotationDate
                     )}
                   </TableCell>
-
-                  {/* Laser Cutting */}
-                  <TableCell>{item.laserCutting || "-"}</TableCell>
 
                   {/* Status */}
                   <TableCell>
@@ -201,7 +200,7 @@ const ShowQuotations = ({ data }) => {
                       }}
                       onClick={() => {
                         navi(`/quotations/${item.quotationNo}`, {
-                          state: { from: "/quotations" }
+                          state: { from: "/quotations", page }
                         });
                       }}
                     >
@@ -238,16 +237,11 @@ const ShowQuotations = ({ data }) => {
                           textDecoration: "underline",
                         },
                       }}
-                      onClick={() =>
-                        navigate(
-                          `/quotations/${item.quotationNo}`,
-                          {
-                            state: {
-                              from: "/quotations",
-                            },
-                          }
-                        )
-                      }
+                      onClick={() => {
+                        navi(`/quotations/${item.quotationNo}`, {
+                          state: { from: "/quotations", page }
+                        });
+                      }}
                     >
                       View Detail →
                     </Typography>

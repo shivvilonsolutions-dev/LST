@@ -74,10 +74,20 @@ const QuotationDetail = () => {
 
   const displayDate =
     formatDate(
-
-      editData?.updatedAt
-      ||
       editData?.quotationDate
+    );
+
+  const totalPieces =
+    editData.materials.reduce(
+      (sum, row) =>
+        sum +
+        (
+          parseInt(
+            row.piece || 0,
+            10
+          ) || 0
+        ),
+      0
     );
 
   const handleChange = (e) => {
@@ -294,6 +304,21 @@ Your quotation details:
 
 ${materialsText}
 
+Total Pieces : ${totalPieces}
+
+--------------------------------
+
+Rate B1      : ${editData.rateB1 || "-"}
+Rate B2      : ${editData.rateB2 || "-"}
+Add          : ${editData.add || "-"}
+Bending      : ${editData.bending || "-"}
+Laser Cutting: ${editData.laserCutting || "-"}
+
+--------------------------------
+
+માપ ચેક કરી ને રજા લેવી
+કટિંગ કરેલ માલ પાછો રાખવામાં નહિ આવે
+
 Thank you!`;
 
 
@@ -418,7 +443,7 @@ Thank you!`;
               btnColor="red"
               onClick={handlePdfFile}
             />
-            
+
             {!isEditing ? (
               <Button btnName="Click to Edit" btnColor="secondary.main" onClick={() => { console.log("Before clicking the Edit button: ", isEditing); setIsEditing(true) }} />
             ) : (
@@ -608,6 +633,17 @@ Thank you!`;
                 </Box>
               </Box>
 
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography>Total Pieces:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input
+                    inpName="totalPieces"
+                    inpValue={totalPieces}
+                    readOnly={!isEditing}
+                  />
+                </Box>
+              </Box>
+
             </Box>
           </Box>
         </Box>
@@ -656,7 +692,7 @@ Thank you!`;
         }
 
         onConfirm={() => {
-        
+
 
           setSuccess({
 
@@ -666,9 +702,9 @@ Thank you!`;
 
             filePath: "",
           });
-        } }
+        }}
 
-        onCancel={() => 
+        onCancel={() =>
           setSuccess({
 
             open: false,

@@ -32,7 +32,6 @@ const QuotationForm = () => {
   const {
     handleCreateQuotation,
   } = useContext(QuotationContext);
-
   const { clients } =
     useContext(ClientContext);
 
@@ -78,10 +77,10 @@ const QuotationForm = () => {
     bending: "",
     laserCutting: "",
     add: "",
+    totalPieces: 0,
     status: "PENDING",
   });
   const [time] = useState(formatDate(new Date()));
-
   const [
     createdQuotation,
     setCreatedQuotation
@@ -134,6 +133,23 @@ const QuotationForm = () => {
     });
   };
 
+  const totalPieces =
+    formData.materials.reduce(
+
+      (sum, row) =>
+
+        sum +
+
+        (
+          parseInt(
+            row.piece || 0,
+            10
+          ) || 0
+        ),
+
+      0
+    );
+
   const handleConfirmQuotation =
     async () => {
 
@@ -155,6 +171,8 @@ const QuotationForm = () => {
 
               ...formData,
 
+              totalPieces,
+
               laserCutting:
                 formData.laserCutting || "",
 
@@ -164,6 +182,10 @@ const QuotationForm = () => {
               status: "PENDING",
             });
 
+          console.log({
+            totalPieces,
+            formData,
+          });
         }
 
         catch (error) {
@@ -415,14 +437,28 @@ const QuotationForm = () => {
 
             .join("\n");
 
+const message =
 
-        const message =
-
-          `Hello ${formData.cliName},
+`Hello ${formData.cliName},
 
 Your quotation details:
 
 ${materialsText}
+
+Total Pieces : ${totalPieces}
+
+--------------------------------
+
+Rate B1      : ${formData.rateB1 || "-"}
+Rate B2      : ${formData.rateB2 || "-"}
+Add          : ${formData.add || "-"}
+Bending      : ${formData.bending || "-"}
+Laser Cutting: ${formData.laserCutting || "-"}
+
+--------------------------------
+
+માપ ચેક કરી ને રજા લેવી
+કટિંગ કરેલ માલ પાછો રાખવામાં નહિ આવે
 
 Thank you!`;
 
@@ -854,11 +890,14 @@ Thank you!`;
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography sx={{ minWidth: "40%" }}>Laser Cutting:</Typography>
                 <Box sx={{ width: "60%" }}>
-                  <Input
-                    inpName="laserCutting"
-                    inpValue={formData.laserCutting}
-                    onChange={handleChange}
-                  />
+                  <Input inpName="laserCutting" inpValue={formData.laserCutting} onChange={handleChange} />
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography sx={{ minWidth: "40%" }}>Total Pieces:</Typography>
+                <Box sx={{ width: "60%" }}>
+                  <Input inpName="totalPieces" inpValue={totalPieces} disabled />
                 </Box>
               </Box>
 
@@ -899,7 +938,7 @@ Thank you!`;
         message={
           success.message
         }
-        
+
         onConfirm={() => {
 
           setSuccess({
@@ -907,8 +946,6 @@ Thank you!`;
             open: false,
 
             message: "",
-
-            filePath: "",
           });
         }}
 
@@ -918,8 +955,6 @@ Thank you!`;
             open: false,
 
             message: "",
-
-            filePath: "",
           })
         }
       />

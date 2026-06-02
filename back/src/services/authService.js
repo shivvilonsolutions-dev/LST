@@ -26,11 +26,6 @@ export const loginService =
       LocalUser,
     } = getModels();
 
-    console.log({
-      id,
-      password,
-    });
-
     const user =
       await LocalUser.findOne({
         email: id,

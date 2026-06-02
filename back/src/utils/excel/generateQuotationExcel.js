@@ -1,43 +1,62 @@
-import ExcelJS
-  from "exceljs";
-
-import path
-  from "path";
+import ExcelJS from "exceljs";
+import path from "path";
 
 const setCommonPageSetup =
   (sheet) => {
 
-
-    // PAGE SETUP
     sheet.pageSetup = {
 
       paperSize: 9,
 
-      orientation:
-        "portrait",
+      orientation: "portrait",
 
-      fitToPage: true,
+      scale: 89,
 
-      fitToWidth: 1,
+      margins: {
 
-      fitToHeight: 0,
+        left: 2.01,
+        right: 2.05,
+
+        top: 0.16,
+        bottom: 5.88,
+
+        header: 0.16,
+        footer: 0.3,
+      },
     };
+  };
+
+const calculateTotalPieces =
+  (materials = []) => {
+
+    return materials.reduce(
+
+      (total, item) =>
+
+        total +
+        (
+          Number(item.piece) || 0
+        ),
+
+      0
+    );
   };
 
 const fillSmallQuotationSheet =
   (
     sheet,
-    quotationData
+    quotationData,
+    templateType
   ) => {
 
     setCommonPageSetup(
       sheet
     );
 
-
     const blockRows =
-      [1, 11, 21];
-
+      templateType === "pdf"
+        ? [1]
+        : [1, 11, 21];
 
     blockRows.forEach(
       (startRow) => {
@@ -48,6 +67,19 @@ const fillSmallQuotationSheet =
         ).value =
           `SHREE:- ${quotationData.cliName}`;
 
+        const date =
+          new Date(
+            quotationData.quotationDate
+          );
+
+        sheet.getCell(
+          `F${startRow + 1}`
+        ).value =
+          `${String(date.getMonth() + 1).padStart(2, "0")}/` +
+          `${String(date.getDate()).padStart(2, "0")}/` +
+          `${date.getFullYear()} ` +
+          `${String(date.getHours()).padStart(2, "0")}:` +
+          `${String(date.getMinutes()).padStart(2, "0")}`;
 
         sheet.getCell(
           `F${startRow + 2}`
@@ -78,6 +110,12 @@ const fillSmallQuotationSheet =
         ).value =
           `BENDING:- ${quotationData.bending}`;
 
+        sheet.getCell(
+          `D${startRow + 9}`
+        ).value =
+          calculateTotalPieces(
+            quotationData.materials
+          );
 
         // MATERIALS
         quotationData.materials.forEach(
@@ -102,7 +140,7 @@ const fillSmallQuotationSheet =
             sheet.getCell(
               `D${row}`
             ).value =
-              item.piece;
+              Number(item.piece) || "";
 
             sheet.getCell(
               `E${row}`
@@ -117,7 +155,8 @@ const fillSmallQuotationSheet =
 const fillMediumQuotationSheet =
   (
     sheet,
-    quotationData
+    quotationData,
+    templateType
   ) => {
 
     setCommonPageSetup(
@@ -126,7 +165,9 @@ const fillMediumQuotationSheet =
 
 
     const blockRows =
-      [1, 16];
+      templateType === "pdf"
+        ? [1]
+        : [1, 16];
 
 
     blockRows.forEach(
@@ -137,6 +178,19 @@ const fillMediumQuotationSheet =
         ).value =
           `SHREE:- ${quotationData.cliName}`;
 
+        const date =
+          new Date(
+            quotationData.quotationDate
+          );
+
+        sheet.getCell(
+          `F${startRow + 1}`
+        ).value =
+          `${String(date.getMonth() + 1).padStart(2, "0")}/` +
+          `${String(date.getDate()).padStart(2, "0")}/` +
+          `${date.getFullYear()} ` +
+          `${String(date.getHours()).padStart(2, "0")}:` +
+          `${String(date.getMinutes()).padStart(2, "0")}`;
 
         sheet.getCell(
           `F${startRow + 2}`
@@ -145,9 +199,14 @@ const fillMediumQuotationSheet =
 
 
         sheet.getCell(
-          `F${startRow + 4}`
+          `F${startRow + 3}`
         ).value =
           `RATE B:- ${quotationData.rateB1}`;
+
+        sheet.getCell(
+          `F${startRow + 4}`
+        ).value =
+          `RATE B:- ${quotationData.rateB2}`;
 
 
         sheet.getCell(
@@ -159,7 +218,15 @@ const fillMediumQuotationSheet =
         sheet.getCell(
           `F${startRow + 6}`
         ).value =
-          `CUTTING:- ${quotationData.bending}`;
+          `CUTTING:- ${quotationData.laserCutting}`;
+
+
+        sheet.getCell(
+          `D${startRow + 14}`
+        ).value =
+          calculateTotalPieces(
+            quotationData.materials
+          );
 
 
         quotationData.materials.forEach(
@@ -184,7 +251,7 @@ const fillMediumQuotationSheet =
             sheet.getCell(
               `D${row}`
             ).value =
-              item.piece;
+              Number(item.piece) || "";
 
             sheet.getCell(
               `E${row}`
@@ -210,13 +277,29 @@ const fillLargeQuotationSheet =
     sheet.getCell("C1").value =
       `SHREE:- ${quotationData.cliName}`;
 
+    const date =
+      new Date(
+        quotationData.quotationDate
+      );
+
+    sheet.getCell(
+      "F2"
+    ).value =
+      `${String(date.getMonth() + 1).padStart(2, "0")}/` +
+      `${String(date.getDate()).padStart(2, "0")}/` +
+      `${date.getFullYear()} ` +
+      `${String(date.getHours()).padStart(2, "0")}:` +
+      `${String(date.getMinutes()).padStart(2, "0")}`;
 
     sheet.getCell("F3").value =
       `MO:- ${quotationData.mobile}`;
 
 
+    sheet.getCell("F4").value =
+      `RATE W:- ${quotationData.rateB1}`;
+
     sheet.getCell("F5").value =
-      `RATE B:- ${quotationData.rateB1}`;
+      `RATE B:- ${quotationData.rateB2}`;
 
 
     sheet.getCell("F6").value =
@@ -226,6 +309,10 @@ const fillLargeQuotationSheet =
     sheet.getCell("F7").value =
       `BENDING:- ${quotationData.bending}`;
 
+    sheet.getCell("D30").value =
+      calculateTotalPieces(
+        quotationData.materials
+      );
 
     quotationData.materials.forEach(
       (
@@ -249,7 +336,7 @@ const fillLargeQuotationSheet =
         sheet.getCell(
           `D${row}`
         ).value =
-          item.piece;
+          Number(item.piece) || "";
 
         sheet.getCell(
           `E${row}`
@@ -266,28 +353,33 @@ const generateQuotationExcel =
     {
       outputPath = null,
       returnWorkbook = false,
+      templateType = "excel",
     } = {}
   ) => {
 
     const workbook =
       new ExcelJS.Workbook();
 
+    const isPackaged =
+      !!process.resourcesPath;
+
+    const templateFile =
+      templateType === "pdf"
+        ? "quotation_pdf_template.xlsx"
+        : "quotation_template.xlsx";
+
     const templatePath =
-
-      process.env.NODE_ENV ===
-        "development"
-
+      isPackaged
         ? path.join(
-          process.cwd(),
-          "template",
-          "quotation_template.xlsx"
-        )
-
-        : path.join(
           process.resourcesPath,
           "back",
           "template",
-          "quotation_template.xlsx"
+          templateFile
+        )
+        : path.join(
+          process.cwd(),
+          "template",
+          templateFile
         );
 
     await workbook.xlsx.readFile(
@@ -375,7 +467,8 @@ const generateQuotationExcel =
 
       fillSmallQuotationSheet(
         sheet,
-        quotationData
+        quotationData,
+        templateType
       );
     }
     else if (
@@ -385,7 +478,8 @@ const generateQuotationExcel =
 
       fillMediumQuotationSheet(
         sheet,
-        quotationData
+        quotationData,
+        templateType
       );
     }
     else {

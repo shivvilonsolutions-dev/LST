@@ -25,7 +25,7 @@ const saveQuotationFiles =
       createStoragePath(
         "pdf-files"
       );
-      
+
     const safeClientName =
       quotationData.cliName
         ?.replace(
@@ -56,7 +56,13 @@ const saveQuotationFiles =
     // GENERATE EXCEL
     await generateQuotationExcel(
       quotationData,
-      excelPath
+      {
+        outputPath:
+          excelPath,
+          
+        templateType:
+          "excel",
+      }
     );
 
 

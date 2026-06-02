@@ -44,6 +44,8 @@ const QuotationArea = () => {
   const [search, setSearch] =
     useState("");
 
+  const [page, setPage] = useState(0);
+
   const [
     selectedMonth,
 
@@ -53,9 +55,11 @@ const QuotationArea = () => {
   if (loading) {
     return <PageLoader />;
   }
+
   const filteredData =
     quotations
 
+      // STATUS FILTER
       .filter((item) =>
 
         filter === "ALL"
@@ -65,6 +69,7 @@ const QuotationArea = () => {
           : item.status === filter
       )
 
+      // MONTH FILTER
       .filter((item) => {
 
         if (!selectedMonth) {
@@ -76,53 +81,22 @@ const QuotationArea = () => {
             item.quotationDate
           );
 
+        return (
 
-        const sameMonth =
-          quotationDate
-            .getMonth()
-
-          ===
-
-          selectedMonth
-            .getMonth();
-
-
-        const sameYear =
-          quotationDate
-            .getFullYear()
+          quotationDate.getMonth()
 
           ===
 
-          selectedMonth
-            .getFullYear();
+          selectedMonth.getMonth()
 
+        ) && (
 
-        // IF USER SELECTED SPECIFIC DATE
-        if (
-          selectedMonth.getDate() > 1
-        ) {
-          return (
-
-            sameMonth &&
-
-            sameYear &&
-
-            quotationDate
-              .getDate()
+            quotationDate.getFullYear()
 
             ===
 
-            selectedMonth
-              .getDate()
+            selectedMonth.getFullYear()
           );
-        }
-
-
-        // ONLY MONTH + YEAR
-        return (
-          sameMonth &&
-          sameYear
-        );
       })
 
       // SEARCH FILTER
@@ -133,80 +107,70 @@ const QuotationArea = () => {
             .toLowerCase()
             .trim();
 
+        if (!query) {
+          return true;
+        }
 
         const quotationDate =
           new Date(
             item.quotationDate
           );
 
-
-        const formattedDate =
+        const fullDate =
           quotationDate
-            .getDate()
-            .toString();
-
-
-        const formattedMonth =
-          quotationDate
-            .toLocaleString(
-              "default",
-              {
-                month: "long",
-              }
+            .toLocaleDateString(
+              "en-GB"
             )
             .toLowerCase();
 
+        const searchableText = [
 
-        const formattedYear =
-          quotationDate
-            .getFullYear()
-            .toString();
+          item.cliName,
 
+          item.mobile,
 
-        const fullDate =
-          `${formattedDate} ${formattedMonth} ${formattedYear}`;
+          item.whatsapp,
 
+          item.rateB1,
 
-        const matchDate =
-          formattedDate.includes(query)
-          ||
-          formattedMonth.includes(query)
-          ||
-          formattedYear.includes(query)
-          ||
-          fullDate.includes(query);
+          item.rateB2,
 
+          item.add,
 
-        const matchName =
-          item?.cliName
-            ?.toLowerCase()
-            .includes(query);
+          item.bending,
 
-        const matchThickness =
-          item.materials?.some(
-            (m) =>
-              m.gauge
-                ?.toString()
-                .toLowerCase()
-                .includes(query)
-          );
+          item.laserCutting,
 
-        const matchWhatsapp =
-          item.whatsapp
-            ?.toString()
-            .toLowerCase()
-            .includes(query);
+          item.totalPieces,
 
-        const matchLaserCutting =
-          item.laserCutting
-            ?.toString()
-            .toLowerCase()
-            .includes(query);
+          item.status,
 
-        return (
-          matchName || matchThickness || matchWhatsapp || matchLaserCutting || matchDate
+          fullDate,
+
+          ...(item.materials || [])
+            .flatMap(
+              (m) => [
+
+                m.size,
+
+                m.piece,
+
+                m.gauge,
+              ]
+            ),
+
+        ]
+
+          .filter(Boolean)
+
+          .join(" ")
+
+          .toLowerCase();
+
+        return searchableText.includes(
+          query
         );
-      })
+      });
 
   return (
 
@@ -244,6 +208,8 @@ const QuotationArea = () => {
           setSelectedMonth={
             setSelectedMonth
           }
+          search={search}
+          filteredCount={filteredData.length}
         />
 
         {/* Data */}
@@ -251,6 +217,8 @@ const QuotationArea = () => {
 
           <ShowQuotations
             data={filteredData}
+            page={page}
+            setPage={setPage}
           />
 
         ) : (

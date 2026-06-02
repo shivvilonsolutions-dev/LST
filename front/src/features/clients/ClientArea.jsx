@@ -379,7 +379,7 @@ const ClientArea = () => {
                       >
 
                         <TableCell>
-                          {i + 1}
+                          {page * rowsPerPage + i + 1}
                         </TableCell>
 
                         <TableCell>

@@ -1,5 +1,4 @@
-import getModels
-  from "../models/getModels.js";
+import getModels from "../models/getModels.js";
 import checkInternet from "../utils/checkInternet.js"
 
 const syncDocument =
@@ -92,15 +91,12 @@ export const syncAfterLocalSave =
 
     try {
 
-      const isOnline =
-        await checkInternet();
+      const isOnline = await checkInternet();
 
       if (!isOnline) {
-
         console.log(
           "Offline Mode - Stored Locally"
         );
-
         return;
       }
 

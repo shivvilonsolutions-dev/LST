@@ -1,14 +1,11 @@
 import libre
-from "libreoffice-convert";
+  from "libreoffice-convert";
 
 import fs
-from "fs";
-
-import path
-from "path";
+  from "fs";
 
 import { promisify }
-from "util";
+  from "util";
 
 
 const convertAsync =
@@ -16,43 +13,30 @@ const convertAsync =
     libre.convert
   );
 
-
 const convertExcelToPdf =
-  async (
-
-    {
-      excelPath,
-      pdfPath,
-      deleteExcelAfterConversion = false,
-      returnPdfBuffer = false,
-    }
-  ) => {
+  async ({
+    excelPath,
+    pdfPath,
+    deleteExcelAfterConversion = false,
+    returnPdfBuffer = false,
+  }) => {
 
     try {
 
-      // READ EXCEL
       const fileBuffer =
         fs.readFileSync(
           excelPath
         );
 
-
-      // CONVERT TO PDF BUFFER
       const pdfBuffer =
         await convertAsync(
-
           fileBuffer,
-
           ".pdf",
-
           undefined
         );
 
-
-      // AUTO GENERATE PDF PATH
       let finalPdfPath =
         pdfPath;
-
 
       if (!finalPdfPath) {
 
@@ -63,17 +47,11 @@ const convertExcelToPdf =
           );
       }
 
-
-      // SAVE PDF
       fs.writeFileSync(
-
         finalPdfPath,
-
         pdfBuffer
       );
 
-
-      // DELETE TEMP EXCEL
       if (
         deleteExcelAfterConversion &&
         fs.existsSync(
@@ -86,8 +64,6 @@ const convertExcelToPdf =
         );
       }
 
-
-      // RETURN BUFFER MODE
       if (
         returnPdfBuffer
       ) {
@@ -103,8 +79,6 @@ const convertExcelToPdf =
         };
       }
 
-
-      // NORMAL RETURN
       return {
 
         success: true,
@@ -118,12 +92,9 @@ const convertExcelToPdf =
     catch (error) {
 
       console.log(
-
         "PDF Conversion Error:",
-
         error
       );
-
 
       return {
 
