@@ -18,14 +18,18 @@ import Button from "../../../components/ui/Button";
 import Popup from "../../../components/ui/Popup";
 import formatDate from "../../../utils/formatDate";
 import { useNavigate } from "react-router-dom";
-import { useState, useContext } from "react";
+import { useState, useContext, useRef } from "react";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import { ClientContext } from "../../../contexts/client/clientContext"
 import {
   downloadQuotationPdf,
   downloadQuotationExcel,
-  generateWhatsappPdf,
 } from "../../../api/quotationApi";
+import { generateQuotationJpg } from "../../../utils/handleDownloadPDF";
+import { printQuotationQuarter } from "../../../utils/printQuotation";
+import QuotationPdfTemplate from "./QuotationPdfTemplate";
+
+
 
 
 const QuotationForm = () => {
@@ -89,6 +93,8 @@ const QuotationForm = () => {
     open: false,
     message: "",
   });
+  const [isPrinting, setIsPrinting] = useState(false);
+  const pdfRef = useRef(null);
 
   const handleMaterialChange = (index, field, value) => {
     const updatedMaterials = [...formData.materials];
@@ -352,145 +358,52 @@ const QuotationForm = () => {
       }
     }
 
-  const handleWhatsApp =
-    async () => {
-
-      try {
-
-        if (!formData?.whatsapp) {
-
-          setWarningPopup({
-
-            open: true,
-
-            message:
-              "Please add WhatsApp number",
-          });
-
-          return;
-        }
-
-
-        setIsWhatsappLoading(
-          true
-        );
-
-
-        const response =
-          await generateWhatsappPdf(
-            createdQuotation?.quotationNo
-          );
-
-
-        if (!response.success) {
-
-          setWarningPopup({
-
-            open: true,
-
-            message:
-              response.message,
-          });
-
-          return;
-        }
-
-
-        let phone =
-          formData.whatsapp
-            .toString()
-            .replace(/\D/g, "");
-
-
-        if (
-          phone.length === 10
-        ) {
-
-          phone =
-            "91" + phone;
-        }
-
-        const materialsText =
-
-          formData.materials
-
-            ?.filter((m) => m.size)
-
-            ?.map(
-
-              (m, index) =>
-
-                `${index + 1}. ${m.size}`
-
-                +
-
-                (m.piece
-                  ? ` (${m.piece} pcs)`
-                  : "")
-
-                +
-
-                (m.gauge
-                  ? ` | ${m.gauge}`
-                  : "")
-            )
-
-            .join("\n");
-
-const message =
-
-`Hello ${formData.cliName},
-
-Your quotation details:
-
-${materialsText}
-
-Total Pieces : ${totalPieces}
-
---------------------------------
-
-Rate B1      : ${formData.rateB1 || "-"}
-Rate B2      : ${formData.rateB2 || "-"}
-Add          : ${formData.add || "-"}
-Bending      : ${formData.bending || "-"}
-Laser Cutting: ${formData.laserCutting || "-"}
-
---------------------------------
-
-માપ ચેક કરી ને રજા લેવી
-કટિંગ કરેલ માલ પાછો રાખવામાં નહિ આવે
-
-Thank you!`;
-
-
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        window.open(url, "_blank");
-
-        // ─── STEP 2: OPEN FILE POPUP 1.5 SECONDS LATER ───
-        if (window.electronAPI?.saveFileDialog && response.pdfPath) {
-          setTimeout(async () => {
-            try {
-              const dialogResult = await window.electronAPI.saveFileDialog({
-                defaultPath: response.pdfPath, // e.g., "C:/path/to/Quotation_123.xlsx"
-              });
-
-              if (!dialogResult.canceled && dialogResult.filePath) {
-                console.log("File marked for save at:", dialogResult.filePath);
-              }
-            } catch (err) {
-              console.error("Delayed file dialog error:", err);
-            }
-          }, 500); // 500ms delay gives WhatsApp room to load comfortably first
-        }
+  const handleWhatsApp = async () => {
+    try {
+      if (!formData?.whatsapp) {
+        setWarningPopup({
+          open: true,
+          message: "Please add WhatsApp number",
+        });
+        return;
       }
 
-      finally {
+      setIsWhatsappLoading(true);
 
-        setIsWhatsappLoading(
-          false
-        );
+      // ── STEP 1: Generate JPG from the hidden template ──────────────────
+      const jpgBlobUrl = await generateQuotationJpg(pdfRef, formData);
+
+      if (!jpgBlobUrl) {
+        setWarningPopup({
+          open: true,
+          message: "Could not generate quotation image. Please try again.",
+        });
+        return;
       }
-    };
+
+      // ── STEP 2: Build WhatsApp phone number ────────────────────────────
+      let phone = formData.whatsapp.toString().replace(/\D/g, "");
+      if (phone.length === 10) {
+        phone = "91" + phone;
+      }
+
+      // ── STEP 3: Open WhatsApp chat — image is in clipboard, paste Ctrl+V
+      const url = `https://wa.me/${phone}`;
+      window.open(url, "_blank");
+
+    } finally {
+      setIsWhatsappLoading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+      await printQuotationQuarter(pdfRef);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
 
   return (
     <Paper
@@ -528,12 +441,24 @@ Thank you!`;
           {/* RIGHT: Actions */}
           <Stack direction="row" spacing={1.5}>
 
-            {/* Whatsapp Button */}
+            {/* Print Button — 1/4 A4 direct print */}
+            <Button
+              btnName={
+                isPrinting
+                  ? "Printing..."
+                  : "🖨 Print (A4 ÷4)"
+              }
+              btnColor="#7c3aed"
+              disabled={!createdQuotation || isPrinting}
+              onClick={handlePrint}
+            />
+
+            {/* Whatsapp Button — sends JPG image */}
             <Button
               btnName={
                 isWhatsappLoading
-                  ? "Opening WhatsApp..."
-                  : "Show WhatsApp"
+                  ? "Generating Image..."
+                  : "📷 WhatsApp (JPG)"
               }
               btnColor="green"
               disabled={!createdQuotation || isWhatsappLoading}
@@ -593,6 +518,7 @@ Thank you!`;
           </Stack>
 
         </Box>
+
 
         {/* Client + Time */}
         <Box sx={{ display: "flex", gap: 2, justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -1014,6 +940,25 @@ Thank you!`;
           })
         }
       />
+      {/* ── Hidden quotation template used by Print & WhatsApp JPG ─────── */}
+      <Box
+        sx={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      >
+        <QuotationPdfTemplate
+          ref={pdfRef}
+          data={{
+            ...formData,
+            totalPieces,
+            quotationDate: new Date().toISOString(),
+          }}
+        />
+      </Box>
 
     </Paper>
   );

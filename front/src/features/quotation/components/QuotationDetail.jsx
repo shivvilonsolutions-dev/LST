@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import {
   Box,
   Paper,
@@ -21,6 +21,10 @@ import Input from "../../../components/ui/Input";
 import PageLoader from "../../../components/ui/PageLoader"
 import formatDate from "../../../utils/formatDate"
 import Popup from "../../../components/ui/Popup"
+import { generateQuotationJpg } from "../../../utils/handleDownloadPDF";
+import { printQuotationQuarter } from "../../../utils/printQuotation";
+import QuotationPdfTemplate from "./QuotationPdfTemplate";
+
 
 
 const QuotationDetail = () => {
@@ -50,7 +54,10 @@ const QuotationDetail = () => {
     open: false,
     message: "",
   });
+  const [isPrinting, setIsPrinting] = useState(false);
+  const pdfRef = useRef(null);
   const navi = useNavigate();
+
   const quotation =
     quotations.find(
       (q) =>
@@ -210,147 +217,61 @@ const QuotationDetail = () => {
       }
     }
 
-  const handleWhatsApp =
-    async () => {
-
-      try {
-
-        if (!editData?.whatsapp) {
-
-          setWarningPopup({
-
-            open: true,
-
-            message:
-              "Please add WhatsApp number",
-          });
-
-          return;
-        }
-
-
-        setIsWhatsappLoading(
-          true
-        );
-
-
-        const response =
-          await generateWhatsappPdf(
-            editData.quotationNo
-          );
-
-
-        if (!response.success) {
-
-          setWarningPopup({
-
-            open: true,
-
-            message:
-              response.message,
-          });
-
-          return;
-        }
-
-
-        let phone =
-          editData.whatsapp
-            .toString()
-            .replace(/\D/g, "");
-
-
-        if (
-          phone.length === 10
-        ) {
-
-          phone =
-            "91" + phone;
-        }
-
-        const materialsText =
-
-          editData.materials
-
-            ?.filter((m) => m.size)
-
-            ?.map(
-
-              (m, index) =>
-
-                `${index + 1}. ${m.size}`
-
-                +
-
-                (m.piece
-                  ? ` (${m.piece} pcs)`
-                  : "")
-
-                +
-
-                (m.gauge
-                  ? ` | ${m.gauge}`
-                  : "")
-            )
-
-            .join("\n");
-
-
-        const message =
-
-          `Hello ${editData.cliName},
-
-Your quotation details:
-
-${materialsText}
-
-Total Pieces : ${totalPieces}
-
---------------------------------
-
-Rate B1      : ${editData.rateB1 || "-"}
-Rate B2      : ${editData.rateB2 || "-"}
-Add          : ${editData.add || "-"}
-Bending      : ${editData.bending || "-"}
-Laser Cutting: ${editData.laserCutting || "-"}
-
---------------------------------
-
-માપ ચેક કરી ને રજા લેવી
-કટિંગ કરેલ માલ પાછો રાખવામાં નહિ આવે
-
-Thank you!`;
-
-
-        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-        window.open(url, "_blank");
-
-        // ─── STEP 2: OPEN FILE POPUP 1.5 SECONDS LATER ───
-        if (window.electronAPI?.saveFileDialog && response.pdfPath) {
-          setTimeout(async () => {
-            try {
-              const dialogResult = await window.electronAPI.saveFileDialog({
-                defaultPath: response.pdfPath, // e.g., "C:/path/to/Quotation_123.xlsx"
-              });
-
-              if (!dialogResult.canceled && dialogResult.filePath) {
-                console.log("File marked for save at:", dialogResult.filePath);
-              }
-            } catch (err) {
-              console.error("Delayed file dialog error:", err);
-            }
-          }, 500); // 500ms delay gives WhatsApp room to load comfortably first
-        }
-
+  const handleWhatsApp = async () => {
+    try {
+      if (!editData?.whatsapp) {
+        setWarningPopup({
+          open: true,
+          message: "Please add WhatsApp number",
+        });
+        return;
       }
 
-      finally {
+      setIsWhatsappLoading(true);
 
-        setIsWhatsappLoading(
-          false
-        );
+      // ── STEP 1: Generate JPG image of the quotation ────────────────────
+      const jpgBlobUrl = await generateQuotationJpg(pdfRef, editData);
+
+      if (!jpgBlobUrl) {
+        setWarningPopup({
+          open: true,
+          message: "Could not generate quotation image. Please try again.",
+        });
+        return;
       }
-    };
+
+      // ── STEP 2: Build WhatsApp phone number ────────────────────────────
+      let phone = editData.whatsapp.toString().replace(/\D/g, "");
+      if (phone.length === 10) {
+        phone = "91" + phone;
+      }
+
+      // ── STEP 3: Open WhatsApp chat for that number ─────────────────────
+      // The JPG is already copied to clipboard — user can paste with Ctrl+V
+      const url = `https://wa.me/${phone}`;
+      window.open(url, "_blank");
+
+      setSuccess({
+        open: true,
+        message:
+          "✅ Quotation image saved & copied to clipboard!\n\nWhatsApp has been opened.\nPress Ctrl+V in the chat to paste and send the image.",
+      });
+
+    } finally {
+      setIsWhatsappLoading(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+      await printQuotationQuarter(pdfRef);
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+
 
   const renderCell = (field, index) => {
     const value = editData.materials[index][field];
@@ -410,12 +331,24 @@ Thank you!`;
           {/* RIGHT */}
           <Stack direction="row" spacing={1.5}>
 
-            {/* Whatsapp Button */}
+            {/* Print Button — 1/4 A4 direct print */}
+            <Button
+              btnName={
+                isPrinting
+                  ? "Printing..."
+                  : "🖨 Print (A4 ÷4)"
+              }
+              btnColor="#7c3aed"
+              disabled={isPrinting}
+              onClick={handlePrint}
+            />
+
+            {/* Whatsapp Button — sends JPG image */}
             <Button
               btnName={
                 isWhatsappLoading
-                  ? "Opening WhatsApp..."
-                  : "Show WhatsApp"
+                  ? "Generating Image..."
+                  : "📷 WhatsApp (JPG)"
               }
               btnColor="green"
               disabled={isWhatsappLoading}
@@ -460,6 +393,7 @@ Thank you!`;
           </Stack>
 
         </Box>
+
 
         {/* MAIN CONTAINER (MATCHED) */}
         <Box>
@@ -648,6 +582,19 @@ Thank you!`;
           </Box>
         </Box>
 
+      </Box>
+
+      {/* ── Hidden quotation template used by Print & WhatsApp JPG ─────── */}
+      <Box
+        sx={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+        }}
+      >
+        <QuotationPdfTemplate ref={pdfRef} data={editData} />
       </Box>
 
       <Popup
