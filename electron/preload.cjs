@@ -54,5 +54,11 @@ contextBridge.exposeInMainWorld(
         shell.showItemInFolder(
           filePath
         ),
+
+    copyImageToClipboard: (dataUrl) =>
+      ipcRenderer.invoke("system:copy-image", dataUrl),
+
+    sendWhatsAppImage: (dataUrl, url) =>
+      ipcRenderer.invoke("system:send-whatsapp-image", { dataUrl, url }),
   }
 );

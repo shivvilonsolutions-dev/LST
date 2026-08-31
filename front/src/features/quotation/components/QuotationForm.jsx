@@ -26,7 +26,7 @@ import {
   downloadQuotationExcel,
 } from "../../../api/quotationApi";
 import { generateQuotationJpg } from "../../../utils/handleDownloadPDF";
-import { printQuotationQuarter } from "../../../utils/printQuotation";
+import { printQuotationWithSize } from "../../../utils/printQuotation";
 import QuotationPdfTemplate from "./QuotationPdfTemplate";
 
 
@@ -49,6 +49,7 @@ const QuotationForm = () => {
     open: false,
     message: "",
   });
+  const [shouldResetOnSuccess, setShouldResetOnSuccess] = useState(false);
   const [
     isSending,
     setIsSending
@@ -94,6 +95,7 @@ const QuotationForm = () => {
     message: "",
   });
   const [isPrinting, setIsPrinting] = useState(false);
+  const [printSize, setPrintSize] = useState("small");
   const pdfRef = useRef(null);
 
   const handleMaterialChange = (index, field, value) => {
@@ -358,6 +360,21 @@ const QuotationForm = () => {
       }
     }
 
+  const INITIAL_FORM = {
+    cliId: "",
+    cliName: "",
+    mobile: "",
+    whatsapp: "",
+    materials: Array(6).fill(null).map(() => ({ size: "", piece: "", gauge: "" })),
+    rateB1: "",
+    rateB2: "",
+    bending: "",
+    laserCutting: "",
+    add: "",
+    totalPieces: 0,
+    status: "PENDING",
+  };
+
   const handleWhatsApp = async () => {
     try {
       if (!formData?.whatsapp) {
@@ -370,10 +387,10 @@ const QuotationForm = () => {
 
       setIsWhatsappLoading(true);
 
-      // ── STEP 1: Generate JPG from the hidden template ──────────────────
-      const jpgBlobUrl = await generateQuotationJpg(pdfRef, formData);
+      // ── STEP 1: Generate JPG from hidden QuotationPdfTemplate ──────────
+      const dataUrl = await generateQuotationJpg(pdfRef);
 
-      if (!jpgBlobUrl) {
+      if (!dataUrl) {
         setWarningPopup({
           open: true,
           message: "Could not generate quotation image. Please try again.",
@@ -383,27 +400,49 @@ const QuotationForm = () => {
 
       // ── STEP 2: Build WhatsApp phone number ────────────────────────────
       let phone = formData.whatsapp.toString().replace(/\D/g, "");
+      if (phone.startsWith("0")) {
+        phone = phone.substring(1);
+      }
       if (phone.length === 10) {
         phone = "91" + phone;
       }
 
-      // ── STEP 3: Open WhatsApp chat — image is in clipboard, paste Ctrl+V
-      const url = `https://wa.me/${phone}`;
-      window.open(url, "_blank");
+      const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}`;
+
+      // ── STEP 3: Auto-send if in Electron, or fallback to browser copy/paste ──
+      if (window.electronAPI?.sendWhatsAppImage) {
+        await window.electronAPI.sendWhatsAppImage(dataUrl, whatsappUrl);
+        setSuccess({
+          open: true,
+          message: "🚀 WhatsApp Auto-Send Initiated!\n\nWhatsApp Web is opening. The app will automatically open the chat window, paste the image, and send it directly.\n\n👉 Please do not click away from the WhatsApp tab while it loads (takes about 8-10 seconds).",
+        });
+      } else {
+        window.open(whatsappUrl, "WhatsAppWebWindow");
+        setSuccess({
+          open: true,
+          message: "📋 JPG Quotation Image Copied to Clipboard!\n\nWhatsApp Web is opening in your browser.\n\n👉 Please click inside the WhatsApp chat box and press CTRL + V (Paste) to send the image.",
+        });
+      }
+      setShouldResetOnSuccess(true);
 
     } finally {
       setIsWhatsappLoading(false);
     }
   };
 
-  const handlePrint = async () => {
+  const handlePrint = async (size = "small") => {
     try {
       setIsPrinting(true);
-      await printQuotationQuarter(pdfRef);
+      setPrintSize(size);
+      // Wait one tick for React to rerender the template with the new size
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await printQuotationWithSize(pdfRef, size);
     } finally {
       setIsPrinting(false);
     }
   };
+
+
 
   return (
     <Paper
@@ -441,16 +480,24 @@ const QuotationForm = () => {
           {/* RIGHT: Actions */}
           <Stack direction="row" spacing={1.5}>
 
-            {/* Print Button — 1/4 A4 direct print */}
+            {/* Print Buttons — Small (3 slips), Mid (2 slips), Large (1 slip) */}
             <Button
-              btnName={
-                isPrinting
-                  ? "Printing..."
-                  : "🖨 Print (A4 ÷4)"
-              }
+              btnName={isPrinting ? "Printing..." : "🖨 Small (3)"}
               btnColor="#7c3aed"
               disabled={!createdQuotation || isPrinting}
-              onClick={handlePrint}
+              onClick={() => handlePrint("small")}
+            />
+            <Button
+              btnName={isPrinting ? "Printing..." : "🖨 Mid (2)"}
+              btnColor="#6d28d9"
+              disabled={!createdQuotation || isPrinting}
+              onClick={() => handlePrint("mid")}
+            />
+            <Button
+              btnName={isPrinting ? "Printing..." : "🖨 Large (1)"}
+              btnColor="#5b21b6"
+              disabled={!createdQuotation || isPrinting}
+              onClick={() => handlePrint("large")}
             />
 
             {/* Whatsapp Button — sends JPG image */}
@@ -859,30 +906,35 @@ const QuotationForm = () => {
           success.open
         }
 
-        title="File saved successfully!"
+        title="Action Complete"
 
         message={
           success.message
         }
 
         onConfirm={() => {
-
           setSuccess({
-
             open: false,
-
             message: "",
           });
+          if (shouldResetOnSuccess) {
+            setFormData(INITIAL_FORM);
+            setCreatedQuotation(null);
+            setShouldResetOnSuccess(false);
+          }
         }}
 
-        onCancel={() =>
+        onCancel={() => {
           setSuccess({
-
             open: false,
-
             message: "",
-          })
-        }
+          });
+          if (shouldResetOnSuccess) {
+            setFormData(INITIAL_FORM);
+            setCreatedQuotation(null);
+            setShouldResetOnSuccess(false);
+          }
+        }}
       />
 
       <Popup
@@ -952,6 +1004,7 @@ const QuotationForm = () => {
       >
         <QuotationPdfTemplate
           ref={pdfRef}
+          size={printSize}
           data={{
             ...formData,
             totalPieces,

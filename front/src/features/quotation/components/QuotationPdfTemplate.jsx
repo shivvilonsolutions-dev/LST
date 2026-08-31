@@ -1,451 +1,280 @@
-import React,
-{
-  forwardRef,
-} from "react";
+import React, { forwardRef } from "react";
 
-import {
-  Box,
-  Typography,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-} from "@mui/material";
+/**
+ * QuotationPdfTemplate
+ *
+ * Replica of the blue spreadsheet layout provided by the user.
+ * Supports dynamic row sizes (small = 9 rows, mid = 13 rows, large = 26 rows).
+ */
+const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
+  const materials = data?.materials || [];
 
-import formatDate
-from "../../../utils/formatDate";
+  // Determine row count based on print size
+  let rowCount = 9;
+  if (size === "mid") rowCount = 13;
+  if (size === "large") rowCount = 26;
 
+  // Always show exactly `rowCount` rows
+  const rows = Array.from({ length: rowCount }, (_, index) => {
+    return materials[index] || { size: "", piece: "", gauge: "" };
+  });
 
-const QuotationPdfTemplate =
-  forwardRef(
-    ({ data }, ref) => {
+  // Date formatting helper to match DD-MM-YYYY HH:mm
+  const formatDateTime = (dateVal) => {
+    if (!dateVal) return "";
+    const d = new Date(dateVal);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, "0");
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
 
-      return (
+  const BLUE = "#8db4e2"; // Soft steel blue from user's uploaded image
+  const BORDER_STYLE = "2px solid #000000";
 
-        <Box
-          ref={ref}
-        >
-
-          {/* MAIN CONTAINER */}
-          <Box>
-
-            {/* Client + Date */}
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "center",
-                mb: 2,
-                justifyContent: "specify-around",
+  return (
+    <div
+      ref={ref}
+      style={{
+        width: 794,
+        background: "#ffffff",
+        fontFamily: "'Segoe UI', Arial, sans-serif",
+        padding: "10px",
+        boxSizing: "border-box",
+        color: "#000000",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          border: "3px solid #000000",
+          fontSize: "18px",
+          fontWeight: "bold",
+        }}
+      >
+        <tbody>
+          {/* Row 1: Shree (Client Name) & Deli Time Header */}
+          <tr>
+            <td
+              colSpan={4}
+              style={{
+                border: BORDER_STYLE,
+                backgroundColor: BLUE,
+                padding: "8px 12px",
+                textAlign: "left",
+                fontSize: "22px",
+                color: "#000000",
               }}
             >
-
-              <Typography
-                sx={{
-                  minWidth: 95
-                }}
-              >
-                Client Name:
-              </Typography>
-
-              <Box
-                sx={{
-                  flex: 1,
-                  border:
-                    "1px solid #d1d5db",
-                  borderRadius: 1,
-                  px: 1.5,
-                  py: 1,
-                  minHeight: 40,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-
-                <Typography>
-                  {data?.cliName}
-                </Typography>
-
-              </Box>
-
-              <Typography>
-                Date:
-              </Typography>
-
-              <Box
-                sx={{
-                  border:
-                    "1px solid #d1d5db",
-                  borderRadius: 1,
-                  px: 1.5,
-                  py: 1,
-                  minHeight: 40,
-                  minWidth: 220,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-
-                <Typography>
-                  {formatDate(
-                    data?.quotationDate
-                  )}
-                </Typography>
-
-              </Box>
-
-            </Box>
-
-
-            {/* MAIN SECTION */}
-            <Box
-              sx={{
-                display: "flex",
-                gap: 3,
-                mt: 3,
-                width: "100%",
-                alignItems: "center",
+              SHREE:- {data?.cliName || ""}
+            </td>
+            <td
+              style={{
+                border: BORDER_STYLE,
+                padding: "8px 12px",
+                textAlign: "left",
+                width: "32%",
+                fontSize: "18px",
+                color: "#000000",
               }}
             >
+              DELI TIME:-
+            </td>
+          </tr>
 
-              {/* TABLE */}
-              <Box
-                sx={{
-                  flex: 1
-                }}
-              >
+          {/* Row 2: Sub-headers (SIZE, PC, GEJ) & Formatted Date */}
+          <tr>
+            <td
+              style={{
+                border: BORDER_STYLE,
+                width: "6%",
+                textAlign: "center",
+                padding: "8px 4px",
+                color: "#000000",
+              }}
+            ></td>
+            <td
+              style={{
+                border: BORDER_STYLE,
+                width: "38%",
+                textAlign: "center",
+                padding: "8px",
+                fontSize: "20px",
+                color: "#000000",
+              }}
+            >
+              SIZE
+            </td>
+            <td
+              style={{
+                border: BORDER_STYLE,
+                width: "12%",
+                textAlign: "center",
+                padding: "8px",
+                fontSize: "20px",
+                color: "#000000",
+              }}
+            >
+              PC
+            </td>
+            <td
+              style={{
+                border: BORDER_STYLE,
+                width: "12%",
+                textAlign: "center",
+                padding: "8px",
+                fontSize: "20px",
+                color: "#000000",
+              }}
+            >
+              GEJ
+            </td>
+            <td
+              style={{
+                border: BORDER_STYLE,
+                padding: "8px 12px",
+                textAlign: "left",
+                fontSize: "16px",
+                color: "#000000",
+                fontWeight: "bold",
+              }}
+            >
+              {formatDateTime(data?.quotationDate || new Date())}
+            </td>
+          </tr>
 
-                <Table
-                  sx={{
-                    width: "100%",
-                    tableLayout: "fixed",
+          {/* Rows 3 to N (Materials 1 to rowCount) & Right side parameters */}
+          {rows.map((row, i) => {
+            let rightLabel = "";
+            let rightVal = "";
+            let isBlueBg = false;
 
-                    "& th, & td": {
-                      padding: "3px",
-                    },
+            if (i === 0) {
+              rightLabel = "MO:-";
+              rightVal = data?.mobile || "";
+              isBlueBg = true;
+            } else if (i === 2) {
+              rightLabel = "RATE B:-";
+              rightVal = data?.rateB1 || "";
+            } else if (i === 3) {
+              rightLabel = "ADD:-";
+              rightVal = data?.add || "";
+              isBlueBg = true;
+            } else if (i === 4) {
+              rightLabel = "BENDING:-";
+              rightVal = data?.bending || "";
+            } else if (i === 6) {
+              rightLabel = "MO";
+              rightVal = "";
+            } else if (i === 7) {
+              rightLabel = "9925018479";
+              rightVal = "";
+            } else if (i === 8) {
+              rightLabel = "9925018420";
+              rightVal = "";
+            }
+
+            return (
+              <tr key={i} style={{ height: "42px" }}>
+                <td
+                  style={{
+                    border: BORDER_STYLE,
+                    textAlign: "center",
+                    fontSize: "20px",
+                    color: "#000000",
                   }}
                 >
-
-                  <TableHead>
-
-                    <TableRow>
-
-                      <TableCell
-                        sx={{
-                          width: "5%"
-                        }}
-                      >
-                        No.
-                      </TableCell>
-
-                      <TableCell
-                        sx={{
-                          width: "55%"
-                        }}
-                      >
-                        Size
-                      </TableCell>
-
-                      <TableCell
-                        sx={{
-                          width: "15%"
-                        }}
-                      >
-                        Peice
-                      </TableCell>
-
-                      <TableCell
-                        sx={{
-                          width: "15%"
-                        }}
-                      >
-                        Gauge
-                      </TableCell>
-
-                    </TableRow>
-
-                  </TableHead>
-
-                  <TableBody>
-
-                    {data?.materials?.map(
-                      (
-                        row,
-                        i
-                      ) => (
-
-                        <TableRow
-                          key={i}
-                        >
-
-                          <TableCell
-                            sx={{
-                              p: "3px"
-                            }}
-                          >
-                            {i + 1}
-                          </TableCell>
-
-                          <TableCell
-                            sx={{
-                              p: "3px"
-                            }}
-                          >
-
-                            <Box
-                              sx={{
-                                border:
-                                  "1px solid #d1d5db",
-
-                                borderRadius: 1,
-
-                                px: 1.5,
-
-                                py: 1,
-
-                                minHeight: 40,
-
-                                display: "flex",
-
-                                alignItems: "center",
-                              }}
-                            >
-
-                              <Typography>
-                                {row.size}
-                              </Typography>
-
-                            </Box>
-
-                          </TableCell>
-
-                          <TableCell
-                            sx={{
-                              p: "3px"
-                            }}
-                          >
-
-                            <Box
-                              sx={{
-                                border:
-                                  "1px solid #d1d5db",
-
-                                borderRadius: 1,
-
-                                px: 1.5,
-
-                                py: 1,
-
-                                minHeight: 40,
-
-                                display: "flex",
-
-                                alignItems: "center",
-                              }}
-                            >
-
-                              <Typography>
-                                {row.piece}
-                              </Typography>
-
-                            </Box>
-
-                          </TableCell>
-
-                          <TableCell
-                            sx={{
-                              p: "3px"
-                            }}
-                          >
-
-                            <Box
-                              sx={{
-                                border:
-                                  "1px solid #d1d5db",
-
-                                borderRadius: 1,
-
-                                px: 1.5,
-
-                                py: 1,
-
-                                minHeight: 40,
-
-                                display: "flex",
-
-                                alignItems: "center",
-                              }}
-                            >
-
-                              <Typography>
-                                {row.gauge}
-                              </Typography>
-
-                            </Box>
-
-                          </TableCell>
-
-                        </TableRow>
-                      )
-                    )}
-
-                  </TableBody>
-
-                </Table>
-
-              </Box>
-
-
-              {/* RIGHT SECTION */}
-              <Box
-                sx={{
-                  flexShrink: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                }}
-              >
-
-                {[
-                  [
-                    "Mobile No.",
-                    data?.mobile,
-                  ],
-
-                  [
-                    "WhatsApp No.",
-                    data?.whatsapp,
-                  ],
-
-                  [
-                    "Rate B1",
-                    data?.rateB1,
-                  ],
-
-                  [
-                    "Rate B2",
-                    data?.rateB2,
-                  ],
-
-                  [
-                    "Bending",
-                    data?.bending,
-                  ],
-
-                  [
-                    "Laser Cutting",
-                    data?.laserCutting,
-                  ],
-
-                  [
-                    "Add",
-                    data?.add,
-                  ],
-                ].map(
-                  (
-                    item,
-                    index
-                  ) => (
-
-                    <Box
-                      key={index}
-
-                      sx={{
-                        display: "flex",
-
-                        flexDirection:
-                          "row",
-
-                        gap: "10px",
-
-                        justifyContent:
-                          "space-between",
-
-                        alignItems:
-                          "center",
-                      }}
-                    >
-
-                      <Typography>
-                        {item[0]}:
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          width: "60%"
-                        }}
-                      >
-
-                        <Box
-                          sx={{
-                            border:
-                              "1px solid #d1d5db",
-
-                            borderRadius: 1,
-
-                            px: 1.5,
-
-                            py: 1,
-
-                            minHeight: 40,
-
-                            display: "flex",
-
-                            alignItems: "center",
-                          }}
-                        >
-
-                          <Typography>
-                            {item[1]}
-                          </Typography>
-
-                        </Box>
-
-                      </Box>
-
-                    </Box>
-                  )
-                )}
-
-              </Box>
-
-            </Box>
-
-          </Box>
-
-
-          {/* FOOTER */}
-          <Box
-            sx={{
-              textAlign:
-                "center",
-            }}
-          >
-
-            <Typography
-              sx={{
-                marginTop:
-                  "5px"
-              }}
-
-              textAlign="center"
-
-              variant="h5"
-
-              color="text.secondary"
-            >
-              માપ ચેક કરી ને રજા લેવી
-              <br />
-              કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
-            </Typography>
-
-          </Box>
-
-        </Box>
-      );
-    }
+                  {i + 1}
+                </td>
+                <td
+                  style={{
+                    border: BORDER_STYLE,
+                    padding: "6px 12px",
+                    fontSize: "20px",
+                    color: "#000000",
+                    textAlign: "left",
+                  }}
+                >
+                  {row.size || ""}
+                </td>
+                <td
+                  style={{
+                    border: BORDER_STYLE,
+                    textAlign: "center",
+                    fontSize: "20px",
+                    color: "#000000",
+                  }}
+                >
+                  {row.piece || ""}
+                </td>
+                <td
+                  style={{
+                    border: BORDER_STYLE,
+                    textAlign: "center",
+                    fontSize: "20px",
+                    color: "#000000",
+                  }}
+                >
+                  {row.gauge || ""}
+                </td>
+                <td
+                  style={{
+                    border: BORDER_STYLE,
+                    backgroundColor: isBlueBg ? BLUE : "transparent",
+                    padding: "6px 12px",
+                    textAlign: "left",
+                    fontSize: "18px",
+                    color: "#000000",
+                  }}
+                >
+                  {rightLabel} {rightVal}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Bottom Footer Section with clean black borders matching spreadsheet layout */}
+      <div
+        style={{
+          width: "100%",
+          borderLeft: "3px solid #000000",
+          borderRight: "3px solid #000000",
+          borderBottom: "3px solid #000000",
+          backgroundColor: "#ffffff",
+          boxSizing: "border-box",
+          fontWeight: "bold",
+          color: "#000000",
+        }}
+      >
+        <div
+          style={{
+            textAlign: "center",
+            padding: "8px 0",
+            borderBottom: "2px solid #000000",
+            fontSize: "22px",
+          }}
+        >
+          માપ ચેક કરી ને રજા લેવી
+        </div>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "8px 0",
+            fontSize: "22px",
+          }}
+        >
+          કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
+        </div>
+      </div>
+    </div>
   );
+});
 
-export default
-QuotationPdfTemplate;
+QuotationPdfTemplate.displayName = "QuotationPdfTemplate";
+
+export default QuotationPdfTemplate;

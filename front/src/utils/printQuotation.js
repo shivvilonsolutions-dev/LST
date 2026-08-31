@@ -1,15 +1,18 @@
 import html2canvas from "html2canvas";
 
 /**
- * printQuotationQuarter
+ * printQuotationWithSize
  *
  * Renders the quotation element as a high-res canvas image and opens a
- * browser print dialog with 4 identical copies arranged on a single A4 page
- * (each copy occupies exactly 1/4 of the A4 height = A6 size slip).
+ * browser print dialog with the requested number of copies on a single A4 page:
+ * - "small": 3 copies per page (height split in 3)
+ * - "mid": 2 copies per page (height split in 2)
+ * - "large": 1 copy per page (full height)
  *
- * @param {React.RefObject} pdfRef  - ref attached to the quotation DOM element
+ * @param {React.RefObject} pdfRef - ref attached to the quotation DOM element
+ * @param {string} size            - "small", "mid", or "large"
  */
-export const printQuotationQuarter = async (pdfRef) => {
+export const printQuotationWithSize = async (pdfRef, size = "small") => {
   const originalElement = pdfRef?.current;
   if (!originalElement) return;
 
@@ -24,12 +27,29 @@ export const printQuotationQuarter = async (pdfRef) => {
   const imgDataUrl = canvas.toDataURL("image/jpeg", 0.95);
 
   // ── Build an isolated print window ─────────────────────────────────────
-  // A4 = 210mm × 297mm  →  each quarter slip = 210mm × 74.25mm  (≈ A6 width)
-  // We render 4 copies per page separated by a dashed cut line.
   const printWindow = window.open("", "_blank", "width=900,height=700");
   if (!printWindow) {
     alert("Pop-up blocked! Please allow pop-ups for this site and try again.");
     return;
+  }
+
+  // Generate the requested number of slips
+  let slipsHtml = "";
+  if (size === "small") {
+    slipsHtml = `
+      <div class="slip"><img src="${imgDataUrl}" /></div>
+      <div class="slip"><img src="${imgDataUrl}" /></div>
+      <div class="slip"><img src="${imgDataUrl}" /></div>
+    `;
+  } else if (size === "mid") {
+    slipsHtml = `
+      <div class="slip"><img src="${imgDataUrl}" /></div>
+      <div class="slip"><img src="${imgDataUrl}" /></div>
+    `;
+  } else {
+    slipsHtml = `
+      <div class="slip"><img src="${imgDataUrl}" /></div>
+    `;
   }
 
   printWindow.document.write(`<!DOCTYPE html>
@@ -59,7 +79,7 @@ export const printQuotationQuarter = async (pdfRef) => {
       overflow: hidden;
     }
 
-    /* Each slip = exactly 1/4 of A4 height */
+    /* flex: 1 automatically scales the height based on number of child slips */
     .slip {
       flex: 1;
       display: flex;
@@ -93,10 +113,7 @@ export const printQuotationQuarter = async (pdfRef) => {
 </head>
 <body>
   <div class="page">
-    <div class="slip"><img src="${imgDataUrl}" /></div>
-    <div class="slip"><img src="${imgDataUrl}" /></div>
-    <div class="slip"><img src="${imgDataUrl}" /></div>
-    <div class="slip"><img src="${imgDataUrl}" /></div>
+    ${slipsHtml}
   </div>
   <script>
     window.onload = function () {
@@ -110,4 +127,11 @@ export const printQuotationQuarter = async (pdfRef) => {
 </html>`);
 
   printWindow.document.close();
+};
+
+/**
+ * For backwards compatibility
+ */
+export const printQuotationQuarter = async (pdfRef) => {
+  return printQuotationWithSize(pdfRef, "mid");
 };

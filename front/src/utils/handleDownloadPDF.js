@@ -218,172 +218,59 @@ export const generateImageFromRef = async (ref) => {
 /**
  * generateQuotationJpg
  *
- * Captures the quotation DOM element as a high-quality JPEG, copies it to the
- * system clipboard (for instant Ctrl+V into WhatsApp Desktop/Web), and
- * triggers a file-save download.
+ * Captures the quotation DOM element (QuotationPdfTemplate) as a
+ * high-quality JPEG of just the single quotation, copies it to the
+ * system clipboard (for Ctrl+V into WhatsApp), and returns the blob URL.
  *
- * @param {React.RefObject} pdfRef  - ref attached to the quotation DOM element
- * @param {object}          data    - quotation data (used for the file name)
- * @returns {string|null}           - object URL of the JPEG blob, or null on error
+ * NO local file download is triggered — the image only goes to clipboard
+ * and the caller opens WhatsApp directly.
+ *
+ * @param {React.RefObject} pdfRef - ref attached to QuotationPdfTemplate
+ * @returns {Blob|null}            - raw JPEG Blob, or null on error
  */
-export const generateQuotationJpg = async (pdfRef, data) => {
-  const originalElement = pdfRef?.current;
-  if (!originalElement) return null;
-
-  // ── 1. Build the same 4-slot A4 layout used by the PDF generator ────────
-  const A4_WIDTH_PX  = 794;
-  const A4_HEIGHT_PX = 1123;
-  const PADDING_X    = 30;
-  const PADDING_Y    = 40;
-  const DIVIDER_HEIGHT = 21; // 3 dividers × 7px
-  const availableWidth  = A4_WIDTH_PX  - PADDING_X * 2;
-  const availableHeight = A4_HEIGHT_PX - PADDING_Y * 2 - DIVIDER_HEIGHT;
-  const slotHeight = Math.floor(availableHeight / 4);
-
-  const originalRect   = originalElement.getBoundingClientRect();
-  const originalWidth  = originalRect.width;
-  const originalHeight = originalRect.height;
-  const scaleX = availableWidth  / originalWidth;
-  const scaleY = slotHeight      / originalHeight;
-
-  const prepareClone = (original) => {
-    const clone = original.cloneNode(true);
-
-    clone.querySelectorAll("input").forEach((inp) => {
-      const div = document.createElement("div");
-      div.innerText = inp.value;
-      Object.assign(div.style, {
-        display: "inline-flex",
-        alignItems: "center",
-        width: inp.offsetWidth ? `${inp.offsetWidth}px` : "100%",
-        minHeight: "20px",
-        fontSize: "12px",
-        padding: "2px 4px",
-        border: "1px solid #000",
-        borderRadius: "0",
-        background: "#fff",
-        whiteSpace: "normal",
-        overflowWrap: "break-word",
-        wordBreak: "break-word",
-        lineHeight: "1.4",
-        fontFamily: "inherit",
-        boxSizing: "border-box",
-      });
-      inp.parentNode.replaceChild(div, inp);
-    });
-
-    clone.querySelectorAll(".MuiOutlinedInput-root").forEach((el) => {
-      el.style.border = "none";
-      el.style.outline = "none";
-      el.style.boxShadow = "none";
-      el.style.background = "transparent";
-    });
-    clone.querySelectorAll("fieldset").forEach((el) => { el.style.border = "none"; });
-    clone.querySelectorAll("p, span, th, td, label, div").forEach((el) => {
-      el.style.fontSize = "14px";
-    });
-
-    Object.assign(clone.style, {
-      width: `${originalWidth}px`,
-      height: `${originalHeight}px`,
-      transform: `scale(${scaleX}, ${scaleY})`,
-      transformOrigin: "top left",
-      display: "block",
-      margin: "0",
-      padding: "0",
-      border: "none",
-      flexShrink: "0",
-    });
-
-    const wrapper = document.createElement("div");
-    Object.assign(wrapper.style, {
-      width: `${availableWidth}px`,
-      height: `${slotHeight}px`,
-      overflow: "hidden",
-      flexShrink: "0",
-      position: "relative",
-    });
-    wrapper.appendChild(clone);
-    return wrapper;
-  };
-
-  const printContainer = document.createElement("div");
-  Object.assign(printContainer.style, {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    padding: `${PADDING_Y}px ${PADDING_X}px`,
-    width: `${A4_WIDTH_PX}px`,
-    height: `${A4_HEIGHT_PX}px`,
-    position: "fixed",
-    left: "-9999px",
-    top: "0",
-    backgroundColor: "#ffffff",
-    boxSizing: "border-box",
-    overflow: "hidden",
-  });
-
-  for (let i = 0; i < 4; i++) {
-    printContainer.appendChild(prepareClone(originalElement));
-    if (i < 3) {
-      const divider = document.createElement("div");
-      Object.assign(divider.style, {
-        width: `${availableWidth}px`,
-        height: "0",
-        borderTop: "1.5px dashed #888",
-        margin: "5px 0 2px 0",
-        flexShrink: "0",
-      });
-      printContainer.appendChild(divider);
-    }
-  }
-
-  document.body.appendChild(printContainer);
+export const generateQuotationJpg = async (pdfRef) => {
+  const el = pdfRef?.current;
+  if (!el) return null;
 
   try {
-    const canvas = await html2canvas(printContainer, {
+    // Capture the element at 2× resolution
+    const canvas = await html2canvas(el, {
       scale: 2,
       useCORS: true,
+      allowTaint: true,
       backgroundColor: "#ffffff",
-      width: A4_WIDTH_PX,
-      height: A4_HEIGHT_PX,
-      windowWidth: A4_WIDTH_PX,
-      windowHeight: A4_HEIGHT_PX,
+      logging: false,
     });
 
-    // ── 2. Convert to JPEG blob ──────────────────────────────────────────
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.95)
-    );
-    if (!blob) return null;
+    const dataUrl = canvas.toDataURL("image/png");
 
-    // ── 3. Copy to clipboard (if supported) ─────────────────────────────
-    if (navigator.clipboard && window.ClipboardItem) {
+    // Check if running inside Electron and use native clipboard API (bulletproof)
+    if (window.electronAPI?.copyImageToClipboard) {
       try {
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": blob }),
-        ]);
-      } catch (_) {
-        // clipboard access denied silently
+        await window.electronAPI.copyImageToClipboard(dataUrl);
+      } catch (err) {
+        console.error("Native clipboard write failed:", err);
+      }
+    } else if (navigator.clipboard && window.ClipboardItem) {
+      // Fallback for standard browsers
+      try {
+        const pngBlob = await new Promise((resolve) =>
+          canvas.toBlob((b) => resolve(b), "image/png")
+        );
+        if (pngBlob) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ "image/png": pngBlob }),
+          ]);
+        }
+      } catch (err) {
+        console.error("Web clipboard write failed:", err);
       }
     }
 
-    // ── 4. Trigger file download ─────────────────────────────────────────
-    const blobUrl = URL.createObjectURL(blob);
-    const safeName = (data?.cliName || "Quotation").replace(/[^a-zA-Z0-9_\-]/g, "_");
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = `Quotation_${safeName}_${data?.mobile || ""}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    return blobUrl;
+    return dataUrl;
 
   } catch (error) {
     console.error("JPG Generation Error:", error);
     return null;
-  } finally {
-    document.body.removeChild(printContainer);
   }
-};
+};

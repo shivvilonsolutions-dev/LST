@@ -22,7 +22,7 @@ import PageLoader from "../../../components/ui/PageLoader"
 import formatDate from "../../../utils/formatDate"
 import Popup from "../../../components/ui/Popup"
 import { generateQuotationJpg } from "../../../utils/handleDownloadPDF";
-import { printQuotationQuarter } from "../../../utils/printQuotation";
+import { printQuotationWithSize } from "../../../utils/printQuotation";
 import QuotationPdfTemplate from "./QuotationPdfTemplate";
 
 
@@ -55,6 +55,7 @@ const QuotationDetail = () => {
     message: "",
   });
   const [isPrinting, setIsPrinting] = useState(false);
+  const [printSize, setPrintSize] = useState("small");
   const pdfRef = useRef(null);
   const navi = useNavigate();
 
@@ -78,6 +79,10 @@ const QuotationDetail = () => {
     quotation,
     editData,
   ]);
+
+  if (!editData) {
+    return <PageLoader />;
+  }
 
   const displayDate =
     formatDate(
@@ -229,10 +234,10 @@ const QuotationDetail = () => {
 
       setIsWhatsappLoading(true);
 
-      // ── STEP 1: Generate JPG image of the quotation ────────────────────
-      const jpgBlobUrl = await generateQuotationJpg(pdfRef, editData);
+      // ── STEP 1: Generate JPG from hidden QuotationPdfTemplate ──────────
+      const dataUrl = await generateQuotationJpg(pdfRef);
 
-      if (!jpgBlobUrl) {
+      if (!dataUrl) {
         setWarningPopup({
           open: true,
           message: "Could not generate quotation image. Please try again.",
@@ -242,30 +247,43 @@ const QuotationDetail = () => {
 
       // ── STEP 2: Build WhatsApp phone number ────────────────────────────
       let phone = editData.whatsapp.toString().replace(/\D/g, "");
+      if (phone.startsWith("0")) {
+        phone = phone.substring(1);
+      }
       if (phone.length === 10) {
         phone = "91" + phone;
       }
 
-      // ── STEP 3: Open WhatsApp chat for that number ─────────────────────
-      // The JPG is already copied to clipboard — user can paste with Ctrl+V
-      const url = `https://wa.me/${phone}`;
-      window.open(url, "_blank");
+      const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}`;
 
-      setSuccess({
-        open: true,
-        message:
-          "✅ Quotation image saved & copied to clipboard!\n\nWhatsApp has been opened.\nPress Ctrl+V in the chat to paste and send the image.",
-      });
+      // ── STEP 3: Auto-send if in Electron, or fallback to browser copy/paste ──
+      if (window.electronAPI?.sendWhatsAppImage) {
+        await window.electronAPI.sendWhatsAppImage(dataUrl, whatsappUrl);
+        setSuccess({
+          open: true,
+          message: "🚀 WhatsApp Auto-Send Initiated!\n\nWhatsApp Web is opening. The app will automatically open the chat window, paste the image, and send it directly.\n\n👉 Please do not click away from the WhatsApp tab while it loads (takes about 8-10 seconds).",
+        });
+      } else {
+        window.open(whatsappUrl, "WhatsAppWebWindow");
+        setSuccess({
+          open: true,
+          message: "📋 JPG Quotation Image Copied to Clipboard!\n\nWhatsApp Web is opening in your browser.\n\n👉 Please click inside the WhatsApp chat box and press CTRL + V (Paste) to send the image.",
+        });
+      }
 
     } finally {
       setIsWhatsappLoading(false);
     }
   };
 
-  const handlePrint = async () => {
+
+  const handlePrint = async (size = "small") => {
     try {
       setIsPrinting(true);
-      await printQuotationQuarter(pdfRef);
+      setPrintSize(size);
+      // Wait for react rerender state cycle
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await printQuotationWithSize(pdfRef, size);
     } finally {
       setIsPrinting(false);
     }
@@ -331,16 +349,24 @@ const QuotationDetail = () => {
           {/* RIGHT */}
           <Stack direction="row" spacing={1.5}>
 
-            {/* Print Button — 1/4 A4 direct print */}
+            {/* Print Buttons — Small (3 slips), Mid (2 slips), Large (1 slip) */}
             <Button
-              btnName={
-                isPrinting
-                  ? "Printing..."
-                  : "🖨 Print (A4 ÷4)"
-              }
+              btnName={isPrinting ? "Printing..." : "🖨 Small (3)"}
               btnColor="#7c3aed"
               disabled={isPrinting}
-              onClick={handlePrint}
+              onClick={() => handlePrint("small")}
+            />
+            <Button
+              btnName={isPrinting ? "Printing..." : "🖨 Mid (2)"}
+              btnColor="#6d28d9"
+              disabled={isPrinting}
+              onClick={() => handlePrint("mid")}
+            />
+            <Button
+              btnName={isPrinting ? "Printing..." : "🖨 Large (1)"}
+              btnColor="#5b21b6"
+              disabled={isPrinting}
+              onClick={() => handlePrint("large")}
             />
 
             {/* Whatsapp Button — sends JPG image */}
@@ -594,7 +620,7 @@ const QuotationDetail = () => {
           zIndex: -1,
         }}
       >
-        <QuotationPdfTemplate ref={pdfRef} data={editData} />
+        <QuotationPdfTemplate ref={pdfRef} size={printSize} data={editData} />
       </Box>
 
       <Popup
