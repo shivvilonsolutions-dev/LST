@@ -1,56 +1,46 @@
+import { Tray, Menu, app } from "electron";
+import path from "path";
+import fs from "fs";
+
+let tray = null;
+
 const createTray = () => {
-
-    const trayIconPath =
-
-        path.join(
-
-            process.cwd(),
-
+    try {
+        const trayIconPath = path.join(
+            app.isPackaged ? process.resourcesPath : process.cwd(),
             "build",
-
-            "logo.png"
+            "lst-logo.ico"
         );
 
+        if (!fs.existsSync(trayIconPath)) {
+            console.log("Tray icon not found at:", trayIconPath);
+            return;
+        }
 
-    console.log(
-        "Tray Icon:",
-        trayIconPath
-    );
+        tray = new Tray(trayIconPath);
 
-
-    tray = new Tray(
-        trayIconPath
-    );
-
-
-    const contextMenu =
-        Menu.buildFromTemplate([
-
+        const contextMenu = Menu.buildFromTemplate([
             {
                 label: "Open App",
-
                 click: () => {
-
-                    console.log(
-                        "Open App"
-                    );
+                    const allWindows = require("electron").BrowserWindow.getAllWindows();
+                    if (allWindows.length > 0) {
+                        allWindows[0].show();
+                        allWindows[0].focus();
+                    }
                 }
             },
-
             {
                 label: "Quit",
-
                 role: "quit"
             }
         ]);
 
-
-    tray.setToolTip(
-        "YourApp"
-    );
-
-
-    tray.setContextMenu(
-        contextMenu
-    );
+        tray.setToolTip("LST Quotation Desktop App");
+        tray.setContextMenu(contextMenu);
+    } catch (error) {
+        console.error("Failed to create tray:", error);
+    }
 };
+
+export default createTray;

@@ -1,167 +1,123 @@
-const { app } = require("electron");
+const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
+process.on("uncaughtException", (error) => {
+    console.error("Uncaught exception in Electron Main:", error);
+});
 
-// WINDOW
-const createMainWindow =
-    require(
-        "../back/src/electron/native/windowManager.js"
-    ).default;
+process.on("unhandledRejection", (reason) => {
+    console.error("Unhandled rejection in Electron Main:", reason);
+});
 
-
-// IPC
-
-const registerIPCHandlers =
-    require("../back/src/electron/ipcHandlers.js").default;
-
-
-// NATIVE FEATURES
-
-const createAppMenu =
-    require("../back/src/electron/native/appMenu.js").default;
-
-const createTray =
-    require("../back/src/electron/native/tray.js").default;
-
-
-
-if (
-    process.env.NODE_ENV !==
-    "development"
-) {
-
-    require("../back/server");
+// START BACKEND SERVER IN PRODUCTION
+if (process.env.NODE_ENV !== "development") {
+    try {
+        console.log("Starting backend server in production...");
+        // Use dynamic import for ES module server.js
+        import("../back/server.js").then(() => {
+            console.log("Backend server imported successfully.");
+        }).catch((err) => {
+            console.error("Failed to start backend server:", err);
+        });
+    } catch (error) {
+        console.error("Error starting backend:", error);
+    }
 }
 
-// MAIN WINDOW REFERENCE
+// WINDOW
+const createMainWindow = require("../back/src/electron/native/windowManager.js").default;
 
+// IPC
+const registerIPCHandlers = require("../back/src/electron/ipcHandlers.js").default;
+
+// NATIVE FEATURES
+const createAppMenu = require("../back/src/electron/native/appMenu.js").default;
+const createTray = require("../back/src/electron/native/tray.js").default;
+
+// MAIN WINDOW REFERENCE
 let mainWindow = null;
 
-
 // CREATE APPLICATION
-
 const initializeApplication = async () => {
+    try {
+        // CREATE WINDOW
+        mainWindow = createMainWindow();
 
-    if (
-        process.env.NODE_ENV !==
-        "development"
-    ) {
+        // DEV TOOLS SHORTCUT (Ctrl+Shift+I or F12)
+        globalShortcut.register("CommandOrControl+Shift+I", () => {
+            if (mainWindow) mainWindow.webContents.toggleDevTools();
+        });
+        globalShortcut.register("F12", () => {
+            if (mainWindow) mainWindow.webContents.toggleDevTools();
+        });
 
-        await new Promise(
-            (resolve) => {
+        // HANDLE LOAD ERRORS
+        mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription, validatedURL) => {
+            console.error(`Failed to load URL: ${validatedURL}, Error: ${errorDescription} (${errorCode})`);
+        });
 
-                setTimeout(
-                    resolve,
-                    7000
-                );
-            }
-        );
-    }
+        // LOAD FRONTEND
+        if (process.env.NODE_ENV === "development") {
+            console.log("Loading development frontend from localhost:5173");
+            await mainWindow.loadURL("http://localhost:5173");
+        } else {
+            // Find index.html reliably
+            const possibleHtmlPaths = [
+                path.join(__dirname, "../front/dist/index.html"),
+                path.join(app.getAppPath(), "front/dist/index.html"),
+                path.join(process.resourcesPath, "front/dist/index.html"),
+            ];
 
-    // CREATE WINDOW
-
-    mainWindow = createMainWindow();
-
-    const {
-        globalShortcut
-    } = require("electron");
-
-    globalShortcut.register(
-
-        "CommandOrControl+Shift+I",
-
-        () => {
-
-            mainWindow.webContents
-                .toggleDevTools();
+            const htmlPath = possibleHtmlPaths.find(p => fs.existsSync(p)) || possibleHtmlPaths[0];
+            console.log("Loading frontend from:", htmlPath);
+            await mainWindow.loadFile(htmlPath);
         }
-    );
 
-    // LOAD FRONTEND
+        // REGISTER IPC
+        try {
+            registerIPCHandlers(ipcMain);
+        } catch (err) {
+            console.error("Failed to register IPC handlers:", err);
+        }
 
-    if (process.env.NODE_ENV === "development") {
+        // CREATE MENU
+        try {
+            createAppMenu();
+        } catch (err) {
+            console.error("Failed to create app menu:", err);
+        }
 
-        await mainWindow.loadURL(
-            "http://localhost:5173"
-        );
+        // CREATE TRAY
+        try {
+            createTray();
+        } catch (err) {
+            console.error("Failed to create tray:", err);
+        }
 
-    } else {
-
-        await mainWindow.loadFile(
-            path.join(
-                __dirname,
-                "../front/dist/index.html"
-            )
-        );
-    }
-
-
-    // REGISTER IPC
-
-    registerIPCHandlers(
-        require("electron").ipcMain
-    );
-
-
-    // CREATE MENU
-
-    createAppMenu();
-
-
-    // CREATE TRAY
-
-    createTray();
-
-
-    // WINDOW EVENTS
-
-    mainWindow.on(
-        "closed",
-        () => {
-
+        // WINDOW EVENTS
+        mainWindow.on("closed", () => {
             mainWindow = null;
-        }
-    );
+        });
+
+    } catch (error) {
+        console.error("Error during application initialization:", error);
+    }
 };
 
-
 // ELECTRON READY
-
-app.whenReady().then(
-    initializeApplication
-);
-
+app.whenReady().then(initializeApplication);
 
 // MACOS SUPPORT
-
-app.on(
-    "activate",
-    () => {
-
-        if (
-            require("electron")
-                .BrowserWindow
-                .getAllWindows()
-                .length === 0
-        ) {
-
-            initializeApplication();
-        }
+app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        initializeApplication();
     }
-);
-
+});
 
 // CLOSE APPLICATION
-
-app.on(
-    "window-all-closed",
-    () => {
-
-        if (
-            process.platform !== "darwin"
-        ) {
-
-            app.quit();
-        }
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+        app.quit();
     }
-);
+});

@@ -9,7 +9,27 @@
     "electron": "electron .",
     "electron:dev": "concurrently \"npm run back\" \"npm run front\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
     "build:front": "cd front && npm run build",
-    "electron:build": "cross-env NODE_ENV=production electron-builder"
+    "electron:build": "npm run build:front && cross-env NODE_ENV=production electron-builder"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.17",
+    "axios": "^1.16.1",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "csv-parser": "^3.2.1",
+    "dns": "^0.2.2",
+    "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "fs-extra": "^11.3.5",
+    "jsonwebtoken": "^9.0.3",
+    "libreoffice-convert": "^1.8.1",
+    "mongoose": "^9.6.2",
+    "multer": "^2.1.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.7",
+    "nodemon": "^3.1.14",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "concurrently": "^9.0.1",
