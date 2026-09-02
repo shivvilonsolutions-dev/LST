@@ -4,6 +4,7 @@
   "directories": {
     "output": "dist"
   },
+  "npmRebuild": false,
   "files": [
     "electron/**/*",
     "front/dist/**/*",
@@ -28,7 +29,7 @@
     }
   ],
   "win": {
-    "target": "nsis",
+    "target": "dir",
     "icon": "build/lst-logo.ico"
   }
 }

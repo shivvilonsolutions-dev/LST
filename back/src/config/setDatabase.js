@@ -14,19 +14,12 @@ let atlasConnection =
 let currentUserId =
   "ADMIN001";
 
-const buildDbUri =
-  (
-    baseUri,
-    newDbName
-  ) => {
-
-    return baseUri.replace(
-
-      /\/([^/?]+)(\?|$)/,
-
-      `/${newDbName}$2`
-    );
-  };
+const buildDbUri = (baseUri, newDbName) => {
+  if (!baseUri) {
+    return `mongodb://127.0.0.1:27017/${newDbName}`;
+  }
+  return baseUri.replace(/\/([^/?]+)(\?|$)/, `/${newDbName}$2`);
+};
 
 
 export const connectUserDatabases =
