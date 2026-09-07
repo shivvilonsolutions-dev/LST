@@ -18,7 +18,7 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
 
   // ── Capture the quotation as a high-res canvas ──────────────────────────
   const canvas = await html2canvas(originalElement, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     backgroundColor: "#ffffff",
     logging: false,

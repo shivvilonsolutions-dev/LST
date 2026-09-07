@@ -1,22 +1,26 @@
 import React, { forwardRef } from "react";
 
+const EMPTY_ROW = { size: "", piece: "", gauge: "" };
+
 /**
  * QuotationPdfTemplate
  *
- * Replica of the blue spreadsheet layout provided by the user.
- * Supports dynamic row sizes (small = 9 rows, mid = 13 rows, large = 26 rows).
+ * Replica of the quotation spreadsheet layout.
+ * Print/Share sizes:
+ * - "small": 6 rows, Green theme (#92d050), headers PIC / GEJ
+ * - "mid":   13 rows, Blue theme (#8db4e2), headers PC / GUJ
+ * - "large": 26 rows, Blue theme (#8db4e2), headers PC / GEJ
  */
 const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
   const materials = data?.materials || [];
 
-  // Determine row count based on print size
-  let rowCount = 9;
+  let rowCount = 6;
   if (size === "mid") rowCount = 13;
   if (size === "large") rowCount = 26;
 
-  // Always show exactly `rowCount` rows
+  rowCount = Math.max(rowCount, materials.length);
   const rows = Array.from({ length: rowCount }, (_, index) => {
-    return materials[index] || { size: "", piece: "", gauge: "" };
+    return materials[index] || EMPTY_ROW;
   });
 
   // Date formatting helper to match DD-MM-YYYY HH:mm
@@ -31,8 +35,12 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
 
-  const BLUE = "#8db4e2"; // Soft steel blue from user's uploaded image
+  // Color theme: Small is Green (#92d050), Mid & Large are Blue (#8db4e2)
+  const THEME_COLOR = size === "small" ? "#92d050" : "#8db4e2";
   const BORDER_STYLE = "2px solid #000000";
+
+  const pcHeader = size === "small" ? "PIC" : "PC";
+  const gejHeader = size === "mid" ? "GUJ" : "GEJ";
 
   return (
     <div
@@ -53,6 +61,7 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
           border: "3px solid #000000",
           fontSize: "18px",
           fontWeight: "bold",
+          backgroundColor: "#ffffff",
         }}
       >
         <tbody>
@@ -62,8 +71,8 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
               colSpan={4}
               style={{
                 border: BORDER_STYLE,
-                backgroundColor: BLUE,
-                padding: "8px 12px",
+                backgroundColor: THEME_COLOR,
+                padding: "6px 12px",
                 textAlign: "left",
                 fontSize: "22px",
                 color: "#000000",
@@ -74,11 +83,12 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                padding: "8px 12px",
+                padding: "6px 12px",
                 textAlign: "left",
                 width: "32%",
                 fontSize: "18px",
                 color: "#000000",
+                backgroundColor: "#ffffff",
               }}
             >
               DELI TIME:-
@@ -92,8 +102,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 border: BORDER_STYLE,
                 width: "6%",
                 textAlign: "center",
-                padding: "8px 4px",
+                padding: "6px 4px",
                 color: "#000000",
+                backgroundColor: "#ffffff",
               }}
             ></td>
             <td
@@ -101,9 +112,10 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 border: BORDER_STYLE,
                 width: "38%",
                 textAlign: "center",
-                padding: "8px",
+                padding: "6px",
                 fontSize: "20px",
                 color: "#000000",
+                backgroundColor: "#ffffff",
               }}
             >
               SIZE
@@ -113,78 +125,132 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 border: BORDER_STYLE,
                 width: "12%",
                 textAlign: "center",
-                padding: "8px",
+                padding: "6px",
                 fontSize: "20px",
                 color: "#000000",
+                backgroundColor: "#ffffff",
               }}
             >
-              PC
+              {pcHeader}
             </td>
             <td
               style={{
                 border: BORDER_STYLE,
                 width: "12%",
                 textAlign: "center",
-                padding: "8px",
+                padding: "6px",
                 fontSize: "20px",
                 color: "#000000",
+                backgroundColor: "#ffffff",
               }}
             >
-              GEJ
+              {gejHeader}
             </td>
             <td
               style={{
                 border: BORDER_STYLE,
-                padding: "8px 12px",
+                padding: "6px 12px",
                 textAlign: "left",
                 fontSize: "16px",
                 color: "#000000",
                 fontWeight: "bold",
+                backgroundColor: "#ffffff",
               }}
             >
               {formatDateTime(data?.quotationDate || new Date())}
             </td>
           </tr>
 
-          {/* Rows 3 to N (Materials 1 to rowCount) & Right side parameters */}
+          {/* Material rows */}
           {rows.map((row, i) => {
             let rightLabel = "";
             let rightVal = "";
-            let isBlueBg = false;
+            let isThemeBg = false;
 
-            if (i === 0) {
-              rightLabel = "MO:-";
-              rightVal = data?.mobile || "";
-              isBlueBg = true;
-            } else if (i === 2) {
-              rightLabel = "RATE B:-";
-              rightVal = data?.rateB1 || "";
-            } else if (i === 3) {
-              rightLabel = "ADD:-";
-              rightVal = data?.add || "";
-              isBlueBg = true;
-            } else if (i === 4) {
-              rightLabel = "BENDING:-";
-              rightVal = data?.bending || "";
-            } else if (i === 6) {
-              rightLabel = "MO";
-              rightVal = "";
-            } else if (i === 7) {
-              rightLabel = "9925018479";
-              rightVal = "";
-            } else if (i === 8) {
-              rightLabel = "9925018420";
-              rightVal = "";
+            if (size === "small") {
+              if (i === 0) {
+                rightLabel = "MO:-";
+                rightVal = data?.mobile || "";
+                isThemeBg = true;
+              } else if (i === 1) {
+                rightLabel = "RATE B:-";
+                rightVal = data?.rateB1 || "";
+              } else if (i === 2) {
+                rightLabel = "RATE B:-";
+                rightVal = data?.rateB2 || "";
+              } else if (i === 3) {
+                rightLabel = "ADD:-";
+                rightVal = data?.add || "";
+                isThemeBg = true;
+              } else if (i === 4) {
+                rightLabel = "BENDING:-";
+                rightVal = data?.bending || "";
+              } else if (i === 5) {
+                rightLabel = "MO:-9925018479";
+                rightVal = "";
+              }
+            } else if (size === "mid") {
+              if (i === 0) {
+                rightLabel = "MO:-";
+                rightVal = data?.mobile || "";
+                isThemeBg = true;
+              } else if (i === 2) {
+                rightLabel = "RATE B:-";
+                rightVal = data?.rateB1 || "";
+              } else if (i === 3) {
+                rightLabel = "ADD:-";
+                rightVal = data?.add || "";
+                isThemeBg = true;
+              } else if (i === 4) {
+                rightLabel = "CUTTING:-";
+                rightVal = data?.bending || "";
+              } else if (i === 6) {
+                rightLabel = "MO:-9925018479";
+                rightVal = "";
+              } else if (i === 7) {
+                rightLabel = "9925018479";
+                rightVal = "";
+              } else if (i === 8) {
+                rightLabel = "9925018420";
+                rightVal = "";
+              }
+            } else {
+              // Large (26 rows)
+              if (i === 0) {
+                rightLabel = "MO:-";
+                rightVal = data?.mobile || "";
+                isThemeBg = true;
+              } else if (i === 2) {
+                rightLabel = "RATE B:-";
+                rightVal = data?.rateB1 || "";
+              } else if (i === 3) {
+                rightLabel = "ADD:-";
+                rightVal = data?.add || "";
+                isThemeBg = true;
+              } else if (i === 4) {
+                rightLabel = "BENDING:-";
+                rightVal = data?.bending || "";
+              } else if (i === 6) {
+                rightLabel = "MO";
+                rightVal = "";
+              } else if (i === 7) {
+                rightLabel = "9925018479";
+                rightVal = "";
+              } else if (i === 8) {
+                rightLabel = "9925018420";
+                rightVal = "";
+              }
             }
 
             return (
-              <tr key={i} style={{ height: "42px" }}>
+              <tr key={i} style={{ height: "38px" }}>
                 <td
                   style={{
                     border: BORDER_STYLE,
                     textAlign: "center",
-                    fontSize: "20px",
+                    fontSize: "18px",
                     color: "#000000",
+                    backgroundColor: "#ffffff",
                   }}
                 >
                   {i + 1}
@@ -192,10 +258,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 <td
                   style={{
                     border: BORDER_STYLE,
-                    padding: "6px 12px",
-                    fontSize: "20px",
+                    padding: "4px 8px",
+                    fontSize: "18px",
                     color: "#000000",
                     textAlign: "left",
+                    backgroundColor: "#ffffff",
                   }}
                 >
                   {row.size || ""}
@@ -204,8 +271,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   style={{
                     border: BORDER_STYLE,
                     textAlign: "center",
-                    fontSize: "20px",
+                    fontSize: "18px",
                     color: "#000000",
+                    backgroundColor: "#ffffff",
                   }}
                 >
                   {row.piece || ""}
@@ -214,8 +282,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   style={{
                     border: BORDER_STYLE,
                     textAlign: "center",
-                    fontSize: "20px",
+                    fontSize: "18px",
                     color: "#000000",
+                    backgroundColor: "#ffffff",
                   }}
                 >
                   {row.gauge || ""}
@@ -223,9 +292,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 <td
                   style={{
                     border: BORDER_STYLE,
-                    backgroundColor: isBlueBg ? BLUE : "transparent",
-                    padding: "6px 12px",
-                    textAlign: "left",
+                    backgroundColor: isThemeBg ? THEME_COLOR : "#ffffff",
+                    padding: "4px 8px",
+                    textAlign: rightLabel && (rightLabel === "9925018479" || rightLabel === "9925018420") ? "right" : "left",
                     fontSize: "18px",
                     color: "#000000",
                   }}
@@ -238,7 +307,7 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
         </tbody>
       </table>
 
-      {/* Bottom Footer Section with clean black borders matching spreadsheet layout */}
+      {/* Bottom Gujarati Footer */}
       <div
         style={{
           width: "100%",
@@ -254,9 +323,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
         <div
           style={{
             textAlign: "center",
-            padding: "8px 0",
+            padding: "6px 0",
             borderBottom: "2px solid #000000",
-            fontSize: "22px",
+            fontSize: "20px",
           }}
         >
           માપ ચેક કરી ને રજા લેવી
@@ -264,8 +333,8 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
         <div
           style={{
             textAlign: "center",
-            padding: "8px 0",
-            fontSize: "22px",
+            padding: "6px 0",
+            fontSize: "20px",
           }}
         >
           કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે

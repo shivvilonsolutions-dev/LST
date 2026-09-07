@@ -233,9 +233,9 @@ export const generateQuotationJpg = async (pdfRef) => {
   if (!el) return null;
 
   try {
-    // Capture the element at 2× resolution
+    // Capture the element at 3× high resolution to prevent line removal on high DPI
     const canvas = await html2canvas(el, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
