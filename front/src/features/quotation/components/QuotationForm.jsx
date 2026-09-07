@@ -17,8 +17,8 @@ import Input from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import Popup from "../../../components/ui/Popup";
 import formatDate from "../../../utils/formatDate";
-import { useNavigate } from "react-router-dom";
-import { useState, useContext, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useContext, useRef, useEffect } from "react";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import { ClientContext } from "../../../contexts/client/clientContext"
 import {
@@ -32,14 +32,22 @@ import QuotationPdfTemplate from "./QuotationPdfTemplate";
 
 
 
-const QuotationForm = () => {
+const QuotationForm = ({ initialData = null }) => {
   const {
     handleCreateQuotation,
+    handleUpdateQuotation,
+    quotations,
   } = useContext(QuotationContext);
   const { clients } =
     useContext(ClientContext);
 
   const navi = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+  
+  // Fetch quotation data when in edit mode
+  const quotation = quotations.find((q) => String(q.quotationNo) === String(id));
+  
   const [showPopup, setShowPopup] = useState(false);
   const [duplicatePopup, setDuplicatePopup] = useState({
     open: false,
@@ -67,24 +75,81 @@ const QuotationForm = () => {
     setIsWhatsappLoading
   ] = useState(false);
   const [isNewClient, setIsNewClient] = useState(false);
-  const [formData, setFormData] = useState({
-    cliId: "",
-    cliName: "",
-    mobile: "",
-    whatsapp: "",
-    materials: Array(6).fill().map(() => ({
-      size: "",
-      piece: "",
-      gauge: "",
-    })),
-    rateB1: "",
-    rateB2: "",
-    bending: "",
-    laserCutting: "",
-    add: "",
-    totalPieces: 0,
-    status: "PENDING",
+  
+  // Initialize form data with quotation data (edit mode) or defaults (create mode)
+  const [formData, setFormData] = useState(() => {
+    const dataToUse = isEditMode && quotation ? quotation : initialData;
+    
+    if (dataToUse) {
+      return {
+        cliId: dataToUse.cliId || "",
+        cliName: dataToUse.cliName || "",
+        mobile: dataToUse.mobile || "",
+        whatsapp: dataToUse.whatsapp || "",
+        materials: dataToUse.materials || Array(6).fill().map(() => ({
+          size: "",
+          piece: "",
+          gauge: "",
+        })),
+        rateB1: dataToUse.rateB1 || "",
+        rateB2: dataToUse.rateB2 || "",
+        bending: dataToUse.bending || "",
+        laserCutting: dataToUse.laserCutting || "",
+        add: dataToUse.add || "",
+        totalPieces: dataToUse.totalPieces || 0,
+        status: dataToUse.status || "PENDING",
+        quotationNo: dataToUse.quotationNo || null,
+        quotationDate: dataToUse.quotationDate || new Date().toISOString(),
+      };
+    }
+    return {
+      cliId: "",
+      cliName: "",
+      mobile: "",
+      whatsapp: "",
+      materials: Array(6).fill().map(() => ({
+        size: "",
+        piece: "",
+        gauge: "",
+      })),
+      rateB1: "",
+      rateB2: "",
+      bending: "",
+      laserCutting: "",
+      add: "",
+      totalPieces: 0,
+      status: "PENDING",
+      quotationNo: null,
+      quotationDate: new Date().toISOString(),
+    };
   });
+  
+  // Update form data when quotation is loaded in edit mode
+  useEffect(() => {
+    if (isEditMode && quotation && !formData.quotationNo) {
+      setFormData({
+        cliId: quotation.cliId || "",
+        cliName: quotation.cliName || "",
+        mobile: quotation.mobile || "",
+        whatsapp: quotation.whatsapp || "",
+        materials: quotation.materials || Array(6).fill().map(() => ({
+          size: "",
+          piece: "",
+          gauge: "",
+        })),
+        rateB1: quotation.rateB1 || "",
+        rateB2: quotation.rateB2 || "",
+        bending: quotation.bending || "",
+        laserCutting: quotation.laserCutting || "",
+        add: quotation.add || "",
+        totalPieces: quotation.totalPieces || 0,
+        status: quotation.status || "PENDING",
+        quotationNo: quotation.quotationNo || null,
+        quotationDate: quotation.quotationDate || new Date().toISOString(),
+      });
+    }
+  }, [isEditMode, quotation, formData.quotationNo]);
+  
   const [time] = useState(formatDate(new Date()));
   const [
     createdQuotation,
@@ -173,9 +238,22 @@ const QuotationForm = () => {
         let response;
 
         try {
-
-          response =
-            await handleCreateQuotation({
+          if (isEditMode && formData.quotationNo) {
+            // UPDATE EXISTING QUOTATION
+            response =
+              await handleUpdateQuotation(
+                formData.quotationNo,
+                {
+                  ...formData,
+                  totalPieces,
+                  laserCutting: formData.laserCutting || "",
+                  whatsapp: formData.whatsapp || "",
+                }
+              );
+          } else {
+            // CREATE NEW QUOTATION
+            response =
+              await handleCreateQuotation({
 
               ...formData,
 
@@ -189,17 +267,19 @@ const QuotationForm = () => {
 
               status: "PENDING",
             });
+          }
 
           console.log({
             totalPieces,
             formData,
+            isEditMode,
           });
         }
 
         catch (error) {
 
           console.log(
-            "Quotation Create Error:",
+            "Quotation Error:",
             error
           );
 
@@ -208,7 +288,7 @@ const QuotationForm = () => {
             open: true,
 
             message:
-              "Quotation creation failed",
+              isEditMode ? "Quotation update failed" : "Quotation creation failed",
           });
 
           return;
@@ -375,6 +455,24 @@ const QuotationForm = () => {
     status: "PENDING",
   };
 
+  // Helper: Get only filled quotation rows
+  const getFilledRows = () => {
+    return formData.materials.filter(row => 
+      String(row?.size || "").trim() || 
+      String(row?.piece || "").trim() || 
+      String(row?.gauge || "").trim()
+    );
+  };
+
+  // Helper: Automatically select print size based on filled row count
+  const getAutoPrintSize = () => {
+    const filledCount = getFilledRows().length;
+    if (filledCount <= 6) return "small";
+    if (filledCount <= 13) return "mid";
+    if (filledCount <= 26) return "large";
+    return "large"; // More than 26 rows still uses large layout
+  };
+
   const handleWhatsApp = async () => {
     try {
       if (!formData?.whatsapp) {
@@ -386,6 +484,8 @@ const QuotationForm = () => {
       }
 
       setIsWhatsappLoading(true);
+      setPrintSize("share");
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       // ── STEP 1: Generate JPG from hidden QuotationPdfTemplate ──────────
       const dataUrl = await generateQuotationJpg(pdfRef);
@@ -398,7 +498,7 @@ const QuotationForm = () => {
         return;
       }
 
-      // ── STEP 2: Build WhatsApp phone number ────────────────────────────
+      // ── STEP 2: Build WhatsApp phone number (Image only, no text parameter) ──
       let phone = formData.whatsapp.toString().replace(/\D/g, "");
       if (phone.startsWith("0")) {
         phone = phone.substring(1);
@@ -409,12 +509,12 @@ const QuotationForm = () => {
 
       const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}`;
 
-      // ── STEP 3: Auto-send if in Electron, or fallback to browser copy/paste ──
+      // ── STEP 3: Auto-send image if in Electron, or copy to clipboard + open WhatsApp ──
       if (window.electronAPI?.sendWhatsAppImage) {
         await window.electronAPI.sendWhatsAppImage(dataUrl, whatsappUrl);
         setSuccess({
           open: true,
-          message: "🚀 WhatsApp Auto-Send Initiated!\n\nWhatsApp Web is opening. The app will automatically open the chat window, paste the image, and send it directly.\n\n👉 Please do not click away from the WhatsApp tab while it loads (takes about 8-10 seconds).",
+          message: "🚀 WhatsApp Image Auto-Send Initiated!\n\nWhatsApp Web is opening. The quotation spreadsheet image has been copied to your clipboard.\n\n👉 Click inside the WhatsApp chat box and press CTRL + V (Paste) to send the quotation image.",
         });
       } else {
         window.open(whatsappUrl, "WhatsAppWebWindow");
@@ -430,13 +530,14 @@ const QuotationForm = () => {
     }
   };
 
-  const handlePrint = async (size = "small") => {
+  const handlePrint = async () => {
     try {
       setIsPrinting(true);
-      setPrintSize(size);
+      const autoSize = getAutoPrintSize();
+      setPrintSize(autoSize);
       // Wait one tick for React to rerender the template with the new size
       await new Promise((resolve) => setTimeout(resolve, 150));
-      await printQuotationWithSize(pdfRef, size);
+      await printQuotationWithSize(pdfRef, autoSize);
     } finally {
       setIsPrinting(false);
     }
@@ -480,24 +581,12 @@ const QuotationForm = () => {
           {/* RIGHT: Actions */}
           <Stack direction="row" spacing={1.5}>
 
-            {/* Print Buttons — Small (3 slips), Mid (2 slips), Large (1 slip) */}
+            {/* Print Button — Automatic size selection */}
             <Button
-              btnName={isPrinting ? "Printing..." : "🖨 Small (3)"}
+              btnName={isPrinting ? "Printing..." : "🖨 Print"}
               btnColor="#7c3aed"
-              disabled={!createdQuotation || isPrinting}
-              onClick={() => handlePrint("small")}
-            />
-            <Button
-              btnName={isPrinting ? "Printing..." : "🖨 Mid (2)"}
-              btnColor="#6d28d9"
-              disabled={!createdQuotation || isPrinting}
-              onClick={() => handlePrint("mid")}
-            />
-            <Button
-              btnName={isPrinting ? "Printing..." : "🖨 Large (1)"}
-              btnColor="#5b21b6"
-              disabled={!createdQuotation || isPrinting}
-              onClick={() => handlePrint("large")}
+              disabled={isPrinting}
+              onClick={handlePrint}
             />
 
             {/* Whatsapp Button — sends JPG image */}
@@ -508,7 +597,7 @@ const QuotationForm = () => {
                   : "📷 WhatsApp (JPG)"
               }
               btnColor="green"
-              disabled={!createdQuotation || isWhatsappLoading}
+              disabled={isWhatsappLoading}
               onClick={handleWhatsApp}
             />
 
@@ -520,7 +609,7 @@ const QuotationForm = () => {
                   : "Save Excel"
               }
               btnColor="primary.main"
-              disabled={!createdQuotation || isDownloadingExcel}
+              disabled={isDownloadingExcel}
               onClick={handleExcelFile}
             />
 
@@ -532,18 +621,20 @@ const QuotationForm = () => {
                   : "Save PDF"
               }
               btnColor="red"
-              disabled={!createdQuotation || isDownloading}
+              disabled={isDownloading}
               onClick={handlePdfFile}
             />
 
-            {/* Create Button */}
+            {/* Save Button - Create or Update */}
             <Button
               btnName={
                 isSending
-                  ? "Saving Data..."
-                  : createdQuotation
-                    ? "Quotation Created ✓"
-                    : "Create Quotation →"
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Save"
+                    : createdQuotation
+                      ? "Quotation Created ✓"
+                      : "Create Quotation →"
               }
               btnType="submit"
               btnColor={
@@ -551,14 +642,13 @@ const QuotationForm = () => {
                   ? "green"
                   : "secondary.main"
               }
-              disabled={createdQuotation}
+              disabled={createdQuotation && !isEditMode}
             />
 
             <Button
               btnName="Close"
               btnColor="gray"
               txtCol="black"
-              disabled={!createdQuotation}
               onClick={() => navi("/quotations")}
             />
 

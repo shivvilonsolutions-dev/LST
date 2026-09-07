@@ -102,6 +102,24 @@ const QuotationDetail = () => {
       0
     );
 
+  // Helper: Get only filled quotation rows
+  const getFilledRows = () => {
+    return editData.materials.filter(row => 
+      String(row?.size || "").trim() || 
+      String(row?.piece || "").trim() || 
+      String(row?.gauge || "").trim()
+    );
+  };
+
+  // Helper: Automatically select print size based on filled row count
+  const getAutoPrintSize = () => {
+    const filledCount = getFilledRows().length;
+    if (filledCount <= 6) return "small";
+    if (filledCount <= 13) return "mid";
+    if (filledCount <= 26) return "large";
+    return "large"; // More than 26 rows still uses large layout
+  };
+
   const handleChange = (e) => {
     setEditData({
       ...editData,
@@ -233,6 +251,8 @@ const QuotationDetail = () => {
       }
 
       setIsWhatsappLoading(true);
+      setPrintSize("share");
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       // ── STEP 1: Generate JPG from hidden QuotationPdfTemplate ──────────
       const dataUrl = await generateQuotationJpg(pdfRef);
@@ -245,7 +265,7 @@ const QuotationDetail = () => {
         return;
       }
 
-      // ── STEP 2: Build WhatsApp phone number ────────────────────────────
+      // ── STEP 2: Build WhatsApp phone number (Image only, no text parameter) ──
       let phone = editData.whatsapp.toString().replace(/\D/g, "");
       if (phone.startsWith("0")) {
         phone = phone.substring(1);
@@ -256,12 +276,12 @@ const QuotationDetail = () => {
 
       const whatsappUrl = `https://web.whatsapp.com/send?phone=${phone}`;
 
-      // ── STEP 3: Auto-send if in Electron, or fallback to browser copy/paste ──
+      // ── STEP 3: Auto-send image if in Electron, or copy to clipboard + open WhatsApp ──
       if (window.electronAPI?.sendWhatsAppImage) {
         await window.electronAPI.sendWhatsAppImage(dataUrl, whatsappUrl);
         setSuccess({
           open: true,
-          message: "🚀 WhatsApp Auto-Send Initiated!\n\nWhatsApp Web is opening. The app will automatically open the chat window, paste the image, and send it directly.\n\n👉 Please do not click away from the WhatsApp tab while it loads (takes about 8-10 seconds).",
+          message: "🚀 WhatsApp Image Auto-Send Initiated!\n\nWhatsApp Web is opening. The quotation spreadsheet image has been copied to your clipboard.\n\n👉 Click inside the WhatsApp chat box and press CTRL + V (Paste) to send the quotation image.",
         });
       } else {
         window.open(whatsappUrl, "WhatsAppWebWindow");
@@ -277,13 +297,14 @@ const QuotationDetail = () => {
   };
 
 
-  const handlePrint = async (size = "small") => {
+  const handlePrint = async () => {
     try {
       setIsPrinting(true);
-      setPrintSize(size);
+      const autoSize = getAutoPrintSize();
+      setPrintSize(autoSize);
       // Wait for react rerender state cycle
       await new Promise((resolve) => setTimeout(resolve, 150));
-      await printQuotationWithSize(pdfRef, size);
+      await printQuotationWithSize(pdfRef, autoSize);
     } finally {
       setIsPrinting(false);
     }
@@ -349,24 +370,12 @@ const QuotationDetail = () => {
           {/* RIGHT */}
           <Stack direction="row" spacing={1.5}>
 
-            {/* Print Buttons — Small (3 slips), Mid (2 slips), Large (1 slip) */}
+            {/* Print Button — Automatic size selection */}
             <Button
-              btnName={isPrinting ? "Printing..." : "🖨 Small (3)"}
+              btnName={isPrinting ? "Printing..." : "🖨 Print"}
               btnColor="#7c3aed"
               disabled={isPrinting}
-              onClick={() => handlePrint("small")}
-            />
-            <Button
-              btnName={isPrinting ? "Printing..." : "🖨 Mid (2)"}
-              btnColor="#6d28d9"
-              disabled={isPrinting}
-              onClick={() => handlePrint("mid")}
-            />
-            <Button
-              btnName={isPrinting ? "Printing..." : "🖨 Large (1)"}
-              btnColor="#5b21b6"
-              disabled={isPrinting}
-              onClick={() => handlePrint("large")}
+              onClick={handlePrint}
             />
 
             {/* Whatsapp Button — sends JPG image */}
