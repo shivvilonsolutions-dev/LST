@@ -12,7 +12,7 @@ import {
   TableContainer,
 } from "@mui/material";
 
-import { downloadQuotationPdf, downloadQuotationExcel, generateWhatsappPdf } from "../../../api/quotationApi";
+import { downloadQuotationPdf, downloadQuotationExcel, generateWhatsappPdf, saveDirectPdfApi } from "../../../api/quotationApi";
 import { useParams, useNavigate } from "react-router-dom";
 import { QuotationContext } from "../../../contexts/quotation/quotationContext";
 import { useLocation } from "react-router-dom";
@@ -160,11 +160,28 @@ const QuotationDetail = () => {
         }
       }
 
-      // Fallback to client-side jsPDF download if backend/soffice fails
-      await handleDownloadPDF({ pdfRef, data: editData, shouldDownload: true });
+      // Fallback: Generate PDF using jsPDF and automatically save to disk (NO manual download prompt)
+      const pdfBase64 = await handleDownloadPDF({ pdfRef, data: editData, shouldDownload: false });
+      if (pdfBase64) {
+        const saveRes = await saveDirectPdfApi({
+          quotationNo: targetQuotationNo,
+          cliName: editData?.cliName,
+          pdfBase64,
+        });
+
+        if (saveRes && saveRes.success) {
+          setSuccess({
+            open: true,
+            message: `PDF generated successfully.\n\n\nLocation:${saveRes.pdfPath}`,
+          });
+          return;
+        }
+      }
+
+      setWarningPopup({ open: true, message: "PDF generation failed." });
     } catch (error) {
       console.error("PDF download error:", error);
-      await handleDownloadPDF({ pdfRef, data: editData, shouldDownload: true });
+      setWarningPopup({ open: true, message: error.message || "PDF generation failed." });
     } finally {
       setIsDownloading(false);
     }

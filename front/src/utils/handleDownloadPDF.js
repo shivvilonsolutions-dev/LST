@@ -177,15 +177,14 @@ export const handleDownloadPDF =
     );
 
 
-    // DOWNLOAD IN BROWSER
+    // DOWNLOAD IN BROWSER ONLY IF REQUESTED
     if (shouldDownload) {
-
       pdf.save(
-        `Quotation_${data.cliName || "Export"}_${data.mobile}.pdf`
+        `Quotation_${data?.cliName || "Export"}_${data?.mobile || ""}.pdf`
       );
     }
 
-    return pdf.output("blob");
+    return pdf.output("datauristring");
 
   } catch (error) {
     console.error("PDF Error:", error);

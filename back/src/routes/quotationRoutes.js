@@ -9,7 +9,8 @@ import {
   downloadQuotationPdf,
   downloadQuotationExcel,
   generateWhatsappPdf,
-  updateQuotationStatus
+  updateQuotationStatus,
+  saveDirectPdf
 } from "../controllers/quotationController.js";
 import authMiddleware
   from "../middleware/authMiddleware.js";
@@ -18,6 +19,12 @@ import multer from "multer";
 
 const upload = multer();
 const router = express.Router();
+
+router.post(
+  "/save-pdf-direct",
+  authMiddleware,
+  saveDirectPdf
+);
 
 // CREATE
 router.post(

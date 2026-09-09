@@ -24,6 +24,7 @@ import { ClientContext } from "../../../contexts/client/clientContext"
 import {
   downloadQuotationPdf,
   downloadQuotationExcel,
+  saveDirectPdfApi,
 } from "../../../api/quotationApi";
 import { generateQuotationJpg, handleDownloadPDF } from "../../../utils/handleDownloadPDF";
 import { printQuotationWithSize } from "../../../utils/printQuotation";
@@ -369,11 +370,28 @@ const QuotationForm = ({ initialData = null }) => {
         }
       }
 
-      // Fallback to client-side jsPDF download if backend/soffice fails
-      await handleDownloadPDF({ pdfRef, data: formData, shouldDownload: true });
+      // Fallback: Generate PDF using jsPDF and automatically save to disk (NO manual download prompt)
+      const pdfBase64 = await handleDownloadPDF({ pdfRef, data: formData, shouldDownload: false });
+      if (pdfBase64) {
+        const saveRes = await saveDirectPdfApi({
+          quotationNo: targetQuotationNo,
+          cliName: formData?.cliName,
+          pdfBase64,
+        });
+
+        if (saveRes && saveRes.success) {
+          setSuccess({
+            open: true,
+            message: `PDF generated successfully.\n\n\nLocation:${saveRes.pdfPath}`,
+          });
+          return;
+        }
+      }
+
+      setWarningPopup({ open: true, message: "PDF generation failed." });
     } catch (error) {
       console.error("PDF download error:", error);
-      await handleDownloadPDF({ pdfRef, data: formData, shouldDownload: true });
+      setWarningPopup({ open: true, message: error.message || "PDF generation failed." });
     } finally {
       setIsDownloading(false);
     }

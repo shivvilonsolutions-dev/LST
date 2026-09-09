@@ -385,6 +385,36 @@ export const downloadQuotationPdf =
     }
   };
 
+export const saveDirectPdf = async (req, res) => {
+  try {
+    const { quotationNo, cliName, pdfBase64 } = req.body;
+
+    if (!pdfBase64) {
+      return res.status(400).json({ success: false, message: "No PDF data provided" });
+    }
+
+    const pdfStoragePath = await createStoragePath("pdf-files");
+    const safeClientName = (cliName || "Client")
+      .replace(/[<>:"/\\|?*]/g, "")
+      .trim();
+
+    const fileName = `${safeClientName}_${quotationNo || Date.now()}.pdf`;
+    const filePath = path.join(pdfStoragePath, fileName);
+
+    const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
+    fs.writeFileSync(filePath, Buffer.from(base64Data, "base64"));
+
+    return res.status(200).json({
+      success: true,
+      pdfPath: filePath,
+      fileName,
+    });
+  } catch (error) {
+    console.error("saveDirectPdf error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const generateWhatsappPdf =
   async (
     req,

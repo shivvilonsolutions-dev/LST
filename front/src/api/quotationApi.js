@@ -141,6 +141,22 @@ export const downloadQuotationPdf =
     }
   };
 
+export const saveDirectPdfApi = async ({ quotationNo, cliName, pdfBase64 }) => {
+  try {
+    const response = await api.post("/quotations/save-pdf-direct", {
+      quotationNo,
+      cliName,
+      pdfBase64,
+    });
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to save PDF file",
+    };
+  }
+};
+
 
 // WHATSAPP PDF
 export const generateWhatsappPdf =
