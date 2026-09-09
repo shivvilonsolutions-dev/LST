@@ -464,12 +464,15 @@ const QuotationForm = ({ initialData = null }) => {
     );
   };
 
-  // Helper: Automatically select print size based on filled row count (3-phase)
+  // Helper: Automatically select print size based on TOTAL rows (not just filled)
+  // Phase 1: <=6 total rows  -> "small"  -> 3 copies on A4
+  // Phase 2: 7..13 total rows -> "mid"    -> 2 copies on A4
+  // Phase 3: >13 total rows   -> "large"  -> 1 copy  on A4
   const getAutoPrintSize = () => {
-    const filledCount = getFilledRows().length;
-    if (filledCount <= 6) return "small";  // Phase 1: <=6 lines -> 3 slips on A4 (Green template)
-    if (filledCount <= 13) return "mid";   // Phase 2: 7..13 lines -> 2 slips on A4 (Blue template)
-    return "large";                         // Phase 3: >13 lines -> 1 slip on A4 (Blue template)
+    const totalRows = formData.materials.length;
+    if (totalRows <= 6) return "small";
+    if (totalRows <= 13) return "mid";
+    return "large";
   };
 
   const handleWhatsApp = async () => {

@@ -103,13 +103,15 @@ const QuotationDetail = () => {
     );
   };
 
-  // Helper: Automatically select print size based on filled row count
+  // Helper: Automatically select print size based on TOTAL rows (not just filled)
+  // Phase 1: <=6 total rows  -> "small"  -> 3 copies on A4
+  // Phase 2: 7..13 total rows -> "mid"    -> 2 copies on A4
+  // Phase 3: >13 total rows   -> "large"  -> 1 copy  on A4
   const getAutoPrintSize = () => {
-    const filledCount = getFilledRows().length;
-    if (filledCount <= 6) return "small";
-    if (filledCount <= 13) return "mid";
-    if (filledCount <= 26) return "large";
-    return "large"; // More than 26 rows still uses large layout
+    const totalRows = editData.materials.length;
+    if (totalRows <= 6) return "small";
+    if (totalRows <= 13) return "mid";
+    return "large";
   };
 
   const handleChange = (e) => {
