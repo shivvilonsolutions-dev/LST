@@ -15,16 +15,19 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Grid,
   Card,
   CardContent,
   IconButton,
   Alert,
+  Stack,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import LockResetIcon from "@mui/icons-material/LockReset";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
+import GroupIcon from "@mui/icons-material/Group";
+import StorageIcon from "@mui/icons-material/Storage";
+import SecurityIcon from "@mui/icons-material/Security";
 import { useNavigate } from "react-router-dom";
 
 import { getAllUsersApi, createUser, deleteUserApi } from "../api/authApi";
@@ -127,15 +130,16 @@ const SuperAdminPanel = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 1200, margin: "0 auto" }}>
+      {/* Header */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <SupervisorAccountIcon color="primary" sx={{ fontSize: 36 }} />
           <Box>
             <Typography variant="h5" fontWeight="bold">
-              Super Admin Control Panel
+              Super Admin Dashboard
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Manage Admins, Passwords & System Multi-Tenant Access
+              System Admin Overview & Account Management
             </Typography>
           </Box>
         </Box>
@@ -151,62 +155,65 @@ const SuperAdminPanel = () => {
         </MuiButton>
       </Box>
 
-      {/* Summary Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ bgcolor: "#eef2ff", borderRadius: 3, borderLeft: "5px solid #162660" }}>
-            <CardContent>
+      {/* Summary Stat Cards */}
+      <Box sx={{ display: "flex", gap: 3, mb: 4, flexDirection: { xs: "column", sm: "row" } }}>
+        <Card sx={{ flex: 1, bgcolor: "#eef2ff", borderRadius: 3, borderLeft: "5px solid #162660" }}>
+          <CardContent>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Total Admins / Users
               </Typography>
-              <Typography variant="h4" fontWeight="bold" color="primary" sx={{ my: 1 }}>
-                {usersList.length}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Multi-tenant isolated accounts
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+              <GroupIcon color="primary" />
+            </Box>
+            <Typography variant="h4" fontWeight="bold" color="primary" sx={{ my: 1 }}>
+              {usersList.length}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Active multi-tenant accounts in system
+            </Typography>
+          </CardContent>
+        </Card>
 
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ bgcolor: "#e6f4ea", borderRadius: 3, borderLeft: "5px solid #137333" }}>
-            <CardContent>
+        <Card sx={{ flex: 1, bgcolor: "#e6f4ea", borderRadius: 3, borderLeft: "5px solid #137333" }}>
+          <CardContent>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Super Admin Account
               </Typography>
-              <Typography variant="h6" fontWeight="bold" color="#137333" sx={{ my: 1 }}>
-                ADMIN001
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Full Control & Management Rights
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+              <SecurityIcon sx={{ color: "#137333" }} />
+            </Box>
+            <Typography variant="h6" fontWeight="bold" color="#137333" sx={{ my: 1 }}>
+              odedraarjun928@gmail.com
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Full System Access Rights
+            </Typography>
+          </CardContent>
+        </Card>
 
-        <Grid item xs={12} sm={4}>
-          <Card sx={{ bgcolor: "#fef7e0", borderRadius: 3, borderLeft: "5px solid #b06000" }}>
-            <CardContent>
+        <Card sx={{ flex: 1, bgcolor: "#fef7e0", borderRadius: 3, borderLeft: "5px solid #b06000" }}>
+          <CardContent>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Database Isolation
               </Typography>
-              <Typography variant="h6" fontWeight="bold" color="#b06000" sx={{ my: 1 }}>
-                Isolated per Admin
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Local + Atlas cloud backup
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              <StorageIcon sx={{ color: "#b06000" }} />
+            </Box>
+            <Typography variant="h6" fontWeight="bold" color="#b06000" sx={{ my: 1 }}>
+              Isolated DB per Admin
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Local MongoDB + Cloud Backup
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
 
-      {/* Admins Table */}
+      {/* Admins List Table */}
       <Paper sx={{ borderRadius: 3, overflow: "hidden", boxShadow: 2 }}>
-        <Box sx={{ p: 2, bgcolor: "#162660", color: "#fff", display: "flex", justifyContent: "space-between" }}>
+        <Box sx={{ p: 2, bgcolor: "#162660", color: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6" fontWeight="bold">
-            All Registered Admins
+            All Registered System Users ({usersList.length})
           </Typography>
         </Box>
 
@@ -225,7 +232,7 @@ const SuperAdminPanel = () => {
             {usersList.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                  No users found.
+                  No admin users found.
                 </TableCell>
               </TableRow>
             ) : (
@@ -278,7 +285,7 @@ const SuperAdminPanel = () => {
 
       {/* Modal: Create New Admin */}
       <Dialog open={openCreateModal} onClose={() => setOpenCreateModal(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold" }}>Create New Admin</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold" }}>Create New Admin Account</DialogTitle>
         <form onSubmit={handleCreateAdmin}>
           <DialogContent>
             <Stack spacing={2}>
@@ -318,7 +325,7 @@ const SuperAdminPanel = () => {
 
       {/* Modal: Change Password / Edit Admin */}
       <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: "bold" }}>Change Password / Edit Admin ({editAdmin.userId})</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold" }}>Change Password for ({editAdmin.userId})</DialogTitle>
         <form onSubmit={handleUpdateAdmin}>
           <DialogContent>
             <Stack spacing={2}>
@@ -336,9 +343,10 @@ const SuperAdminPanel = () => {
                 onChange={(e) => setEditAdmin({ ...editAdmin, email: e.target.value })}
               />
               <TextField
-                label="New Password (leave blank to keep unchanged)"
+                label="New Password"
                 type="password"
                 fullWidth
+                placeholder="Enter new password"
                 value={editAdmin.password}
                 onChange={(e) => setEditAdmin({ ...editAdmin, password: e.target.value })}
               />
@@ -347,7 +355,7 @@ const SuperAdminPanel = () => {
           <DialogActions sx={{ p: 2 }}>
             <MuiButton onClick={() => setOpenEditModal(false)}>Cancel</MuiButton>
             <MuiButton type="submit" variant="contained" color="primary">
-              Save Changes
+              Update Password
             </MuiButton>
           </DialogActions>
         </form>
