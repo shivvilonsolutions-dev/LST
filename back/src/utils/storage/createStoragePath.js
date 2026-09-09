@@ -1,12 +1,7 @@
-import fs
-  from "fs";
-
-import path
-  from "path";
-
-import {
-  getCurrentUserId,
-} from "../../config/setDatabase.js";
+import fs from "fs";
+import path from "path";
+import os from "os";
+import { getCurrentUserId } from "../../config/setDatabase.js";
 import getModels from "../../models/getModels.js";
 
 const createStoragePath =
@@ -21,10 +16,9 @@ const createStoragePath =
       || "ADMIN001";
 
 
-    // USER ROOT
-
+    // USER ROOT — use Documents folder as safe default (always exists on Windows)
     let rootPath =
-      "D:\\LST_Local_Files";
+      path.join(os.homedir(), "Documents", "LST_Local_Files");
 
     const settings = await LocalSettings.findOne();
 
