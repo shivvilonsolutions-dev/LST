@@ -73,19 +73,22 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
 
     .page {
       width: 210mm;
-      height: 297mm;
+      min-height: 297mm;
       display: flex;
       flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
       overflow: hidden;
     }
 
-    /* flex: 1 automatically scales the height based on number of child slips */
+    /* 1/4th A4 width (105mm) aligned at top-left */
     .slip {
-      flex: 1;
+      width: 105mm;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2mm 3mm;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 1mm 0;
+      margin-bottom: 4mm;
       overflow: hidden;
       position: relative;
     }
@@ -94,15 +97,16 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
     .slip:not(:last-child)::after {
       content: "";
       position: absolute;
-      bottom: 0;
-      left: 4mm;
-      right: 4mm;
+      bottom: -2mm;
+      left: 0;
+      width: 105mm;
       border-bottom: 1.2px dashed #888;
     }
 
     .slip img {
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      height: auto;
+      display: block;
       object-fit: contain;
     }
 

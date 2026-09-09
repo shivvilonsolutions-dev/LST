@@ -458,7 +458,7 @@ const QuotationDetail = () => {
               gap: 3,
               mt: 3,
               width: "100%",
-              alignItems: "center",
+              alignItems: "flex-start",
             }}
           >
             {/* TABLE (MATCHED STYLE) */}

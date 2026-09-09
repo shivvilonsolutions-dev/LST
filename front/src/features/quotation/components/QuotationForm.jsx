@@ -793,7 +793,7 @@ const QuotationForm = ({ initialData = null }) => {
             gap: 3,
             mt: 3,
             width: "100%",
-            alignItems: "center",
+            alignItems: "flex-start",
           }}
         >
 
