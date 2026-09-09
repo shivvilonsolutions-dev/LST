@@ -67,29 +67,16 @@ const seedDefaultUser =
 
 
         const userData = {
-
-          name:
-            "Admin",
-
-          userId:
-            "ADMIN001",
-
-          email:
-            "admin@gmail.com",
-
-          password:
-            hashedPassword,
-
-          isSynced:
-            false,
-
-          lastSyncedAt:
-            new Date(),
+          name: "Super Admin",
+          userId: "ADMIN001",
+          email: "admin@gmail.com",
+          password: hashedPassword,
+          role: "SUPER_ADMIN",
+          isSynced: false,
+          lastSyncedAt: new Date(),
         };
 
-
-        // CREATE ADMIN USER
-
+        // CREATE SUPER ADMIN USER
         await LocalUser.create(
           userData
         );
@@ -99,16 +86,18 @@ const seedDefaultUser =
           "user"
         );
 
-
         console.log(
-          "Default Admin Created"
+          "Default Super Admin Created"
         );
       }
 
       else {
-
+        if (existingUser.role !== "SUPER_ADMIN") {
+          existingUser.role = "SUPER_ADMIN";
+          await existingUser.save();
+        }
         console.log(
-          "Default Admin Already Exists"
+          "Default Super Admin Already Exists"
         );
       }
 
@@ -184,22 +173,16 @@ const startServer =
 
       // CREATE DEFAULT ADMIN DB + USER
 
+      await new Promise((resolve, reject) => {
+        const server = app.listen(PORT, "127.0.0.1", () => {
+          console.log(`Server running on port ${PORT}`);
+          resolve(server);
+        });
+        server.on("error", reject);
+      });
+
       await seedDefaultUser();
-
-
-      app.listen(
-
-        PORT,
-
-        () => {
-
-          console.log(
-            `Server running on port ${PORT}`
-          );
-
-          startSyncJob();
-        }
-      );
+      startSyncJob();
 
     }
 

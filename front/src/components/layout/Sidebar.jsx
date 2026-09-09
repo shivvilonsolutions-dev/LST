@@ -31,42 +31,33 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PaymentIcon from '@mui/icons-material/Payment';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const expandedWidth = 220;
 const collapsedWidth = 70;
 
 const navItems = [
-
   {
     label: "Dashboard",
     path: "/dashboard",
     icon: <DashboardIcon />,
   },
-
   {
     label: "Quotation",
     path: "/quotations",
     icon: <ReceiptLongIcon />,
   },
-
   {
     label: "Client",
     path: "/clients",
     icon: <GroupsIcon />,
   },
-
-  // {
-  //   label: "Inventory",
-  //   path: "/inventories",
-  //   icon: <InventoryIcon />,
-  // },
-
-  // {
-  //   label: "Payments",
-  //   path: "/payment",
-  //   icon: <PaymentIcon />,
-  // },
-
+  {
+    label: "Add User",
+    path: "/add-user",
+    icon: <PersonAddIcon />,
+    superAdminOnly: true,
+  },
   {
     label: "Settings",
     path: "/settings",
@@ -96,6 +87,7 @@ const Sidebar = ({
     useNavigate();
 
   const {
+    user,
     logout,
   } = useContext(
     AuthContext
@@ -171,7 +163,9 @@ const Sidebar = ({
       {/* NAVIGATION */}
       <List>
 
-        {navItems.map(
+        {navItems
+          .filter((item) => !item.superAdminOnly || user?.role === "SUPER_ADMIN" || user?.userId === "ADMIN001")
+          .map(
           (item) => {
 
             const isActive =

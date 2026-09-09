@@ -4,15 +4,13 @@
   "directories": {
     "output": "dist"
   },
+  "asar": false,
   "npmRebuild": false,
   "files": [
     "electron/**/*",
     "front/dist/**/*",
     "back/**/*",
     "package.json"
-  ],
-  "asarUnpack": [
-    "electron/**/*"
   ],
   "extraResources": [
     {
@@ -30,6 +28,7 @@
   ],
   "win": {
     "target": "dir",
-    "icon": "build/lst-logo.ico"
+    "icon": "build/lst-logo.ico",
+    "signAndEditExecutable": false
   }
 }

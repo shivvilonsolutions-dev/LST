@@ -59,17 +59,16 @@ export const loginService =
     const token =
       generateToken(user);
 
+    const role =
+      user.role || (user.userId === "ADMIN001" ? "SUPER_ADMIN" : "ADMIN");
+
     return {
-
       token,
-
       user: {
-
-        name:
-          user.name,
-
-        email:
-          user.email,
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        role,
       },
     };
   };
@@ -217,6 +216,7 @@ export const createUserService =
     name,
     email,
     password,
+    role = "ADMIN",
   }) => {
 
     const {
@@ -291,13 +291,12 @@ export const createUserService =
 
 
     // USER DATA
-
     const userData = {
       name,
       userId,
       email,
-      password:
-        hashedPassword,
+      password: hashedPassword,
+      role: role || "ADMIN",
     };
 
 

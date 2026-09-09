@@ -1,74 +1,45 @@
-import React,
-{
-  useState,
-} from "react";
-
+import React, { useState, useContext } from "react";
 import {
   Box,
   Paper,
   Typography,
   Stack,
+  Alert,
 } from "@mui/material";
-
 
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 
-import {
-  useNavigate,
-} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
+import Popup from "../components/ui/Popup";
+import { createUser } from "../api/authApi";
+import { AuthContext } from "../contexts/auth/AuthContext";
 
-import Input
-  from "../components/ui/Input";
+const AddUserPage = () => {
+  const navi = useNavigate();
+  const { user } = useContext(AuthContext);
 
-import Button
-  from "../components/ui/Button";
+  const isSuperAdmin = !user || user.role === "SUPER_ADMIN" || user.userId === "ADMIN001";
 
-import Popup
-  from "../components/ui/Popup";
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "ADMIN",
+  });
 
-import {
-  createUser,
-} from "../api/authApi";
+  const [popup, setPopup] = useState({
+    open: false,
+    title: "",
+    message: "",
+  });
 
-
-const AddUserPage =
-  () => {
-
-    const navi =
-      useNavigate();
-
-    const [showPassword, setShowPassword] =
-      useState(false);
-
-    const [formData,
-      setFormData] =
-      useState({
-
-        name: "",
-
-        email: "",
-
-        password: "",
-      });
-
-
-    const [popup,
-      setPopup] =
-      useState({
-
-        open: false,
-
-        title: "",
-
-        message: "",
-      });
-
-
-    const handleChange =
-      (e) => {
+  const handleChange = (e) => {
 
         setFormData({
 
@@ -120,52 +91,71 @@ const AddUserPage =
       };
 
 
-    return (
+    if (!isSuperAdmin) {
+      return (
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "linear-gradient(135deg, #eef2ff, #f8fafc)",
+          }}
+        >
+          <Paper
+            sx={{
+              width: "100%",
+              maxWidth: 450,
+              p: 4,
+              borderRadius: 3,
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold" color="error" mb={2}>
+              Access Restricted
+            </Typography>
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              Only <strong>Super Admin</strong> is authorized to create new users.
+            </Alert>
+            <Button
+              btnName="← Go to Dashboard"
+              btnColor="primary.main"
+              btnWidth="100%"
+              onClick={() => navi("/dashboard")}
+            />
+          </Paper>
+        </Box>
+      );
+    }
 
+    return (
       <Box
         sx={{
-
           minHeight:
             "100vh",
-
           display: "flex",
-
-          justifyContent:
-            "center",
-
-          alignItems:
-            "center",
-
+          justifyContent: "center",
+          alignItems: "center",
           background:
             "linear-gradient(135deg, #eef2ff, #f8fafc)",
         }}
       >
-
         <Paper
           sx={{
-
             width: "100%",
-
             maxWidth: 450,
-
             p: 4,
-
             borderRadius: 3,
           }}
         >
-
           <Typography
             variant="h5"
-
             fontWeight="bold"
-
             mb={4}
-
             textAlign="center"
           >
             Add New User
           </Typography>
-
 
           <Box
             component="form"

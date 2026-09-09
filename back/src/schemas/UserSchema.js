@@ -36,6 +36,12 @@ const UserSchema =
       type: Date,
     },
 
+    role: {
+      type: String,
+      enum: ["SUPER_ADMIN", "ADMIN"],
+      default: "ADMIN"
+    },
+
     isSynced: {
       type: Boolean,
       default: false
