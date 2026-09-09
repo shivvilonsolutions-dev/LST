@@ -25,7 +25,7 @@ import {
   downloadQuotationPdf,
   downloadQuotationExcel,
 } from "../../../api/quotationApi";
-import { generateQuotationJpg } from "../../../utils/handleDownloadPDF";
+import { generateQuotationJpg, handleDownloadPDF } from "../../../utils/handleDownloadPDF";
 import { printQuotationWithSize } from "../../../utils/printQuotation";
 import QuotationPdfTemplate from "./QuotationPdfTemplate";
 
@@ -353,92 +353,68 @@ const QuotationForm = ({ initialData = null }) => {
     };
 
 
-  const handlePdfFile =
-    async () => {
+  const handlePdfFile = async () => {
+    try {
+      setIsDownloading(true);
+      const targetQuotationNo = formData?.quotationNo || createdQuotation?.quotationNo || id;
 
-      try {
-
-        setIsDownloading(
-          true
-        );
-
-        const response =
-          await downloadQuotationPdf(
-            createdQuotation?.quotationNo
-          );
-
-
-        if (!response.success) {
-
-          setWarningPopup({
-
+      if (targetQuotationNo) {
+        const response = await downloadQuotationPdf(targetQuotationNo);
+        if (response && response.success) {
+          setSuccess({
             open: true,
-
-            message:
-              response.message,
+            message: `PDF generated successfully.\n\n\nLocation:${response.pdfPath}`,
           });
-
           return;
         }
-
-        setSuccess({
-
-          open: true,
-
-          message:
-            `PDF generated successfully.\n\n\nLocation:${response.pdfPath}`,
-        });
       }
 
-      finally {
-
-        setIsDownloading(
-          false
-        );
-      }
+      // Fallback to client-side jsPDF download if backend/soffice fails
+      await handleDownloadPDF({ pdfRef, data: formData, shouldDownload: true });
+    } catch (error) {
+      console.error("PDF download error:", error);
+      await handleDownloadPDF({ pdfRef, data: formData, shouldDownload: true });
+    } finally {
+      setIsDownloading(false);
     }
+  };
 
-  const handleExcelFile =
-    async () => {
+  const handleExcelFile = async () => {
+    try {
+      setIsDownloadingExcel(true);
+      const targetQuotationNo = formData?.quotationNo || createdQuotation?.quotationNo || id;
 
-      try {
-
-        setIsDownloadingExcel(
-          true
-        );
-
-        const response =
-          await downloadQuotationExcel(
-            createdQuotation?.quotationNo
-          );
-
-        if (!response.success) {
-
-          setWarningPopup({
-            open: true,
-            message:
-              response.message,
-          });
-
-          return;
-        }
-
-        setSuccess({
-
+      if (!targetQuotationNo) {
+        setWarningPopup({
           open: true,
-
-          message:
-            `Excel generated successfully.\n\n\nLocation: ${response.excelPath}`,
+          message: "Please save the quotation first before downloading Excel.",
         });
-
+        return;
       }
-      finally {
 
-        setIsDownloadingExcel(
-          false
-        );
+      const response = await downloadQuotationExcel(targetQuotationNo);
+
+      if (!response || !response.success) {
+        setWarningPopup({
+          open: true,
+          message: response?.message || "Excel generation failed",
+        });
+        return;
       }
+
+      setSuccess({
+        open: true,
+        message: `Excel generated successfully.\n\n\nLocation: ${response.excelPath}`,
+      });
+    } catch (error) {
+      setWarningPopup({
+        open: true,
+        message: error.message || "Excel download failed",
+      });
+    } finally {
+      setIsDownloadingExcel(false);
     }
+  };
 
   const INITIAL_FORM = {
     cliId: "",
