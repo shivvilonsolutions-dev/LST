@@ -401,8 +401,10 @@ export const saveDirectPdf = async (req, res) => {
     const fileName = `${safeClientName}_${quotationNo || Date.now()}.pdf`;
     const filePath = path.join(pdfStoragePath, fileName);
 
-    const base64Data = pdfBase64.replace(/^data:application\/pdf;base64,/, "");
-    fs.writeFileSync(filePath, Buffer.from(base64Data, "base64"));
+    const base64Index = pdfBase64.indexOf("base64,");
+    const cleanBase64 =
+      base64Index !== -1 ? pdfBase64.substring(base64Index + 7) : pdfBase64;
+    fs.writeFileSync(filePath, Buffer.from(cleanBase64, "base64"));
 
     return res.status(200).json({
       success: true,
