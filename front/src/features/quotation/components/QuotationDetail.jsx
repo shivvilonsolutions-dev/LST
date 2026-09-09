@@ -135,15 +135,11 @@ const QuotationDetail = () => {
   };
 
   const handleSave = async () => {
-
-    const response =
-      await handleUpdateQuotation(
-        quotation.quotationNo,
-        editData
-      );
-
+    const response = await handleUpdateQuotation(
+      editData.quotationNo,
+      editData
+    );
     if (response.success) {
-
       setIsEditing(false);
     }
   };

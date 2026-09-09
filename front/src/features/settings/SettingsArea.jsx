@@ -190,59 +190,37 @@ const SettingsArea = () => {
       }
     };
 
-  const handlePickDirectory =
-    async () => {
-
-      try {
-
-        const result =
-          await window.electronAPI
-            .selectFolder();
-
-        if (
-          !result.canceled &&
-          result.filePaths.length > 0
-        ) {
-
-          setPdfPath(
-            result.filePaths[0]
-          );
-        }
-
-      } catch (error) {
-
-        console.log(error);
+  const handlePickDirectory = async () => {
+    try {
+      if (!window.electronAPI?.selectFolder) {
+        setPopup({ open: true, title: "Error", message: "Folder picker not available. Please use the EXE app." });
+        return;
       }
-    };
-
-  const handlePickImportFolder =
-    async () => {
-
-      try {
-
-        const result =
-          await window
-            .electronAPI
-            .selectFolder();
-
-        if (
-
-          !result.canceled &&
-
-          result.filePaths.length > 0
-        ) {
-
-          setImportFolderPath(
-
-            result.filePaths[0]
-          );
-        }
-
-      } catch (error) {
-
-        console.log(error);
+      const result = await window.electronAPI.selectFolder();
+      if (!result.canceled && result.filePaths.length > 0) {
+        setPdfPath(result.filePaths[0]);
       }
-    };
+    } catch (error) {
+      console.log(error);
+      setPopup({ open: true, title: "Error", message: "Could not open folder browser: " + error.message });
+    }
+  };
+
+  const handlePickImportFolder = async () => {
+    try {
+      if (!window.electronAPI?.selectFolder) {
+        setPopup({ open: true, title: "Error", message: "Folder picker not available. Please use the EXE app." });
+        return;
+      }
+      const result = await window.electronAPI.selectFolder();
+      if (!result.canceled && result.filePaths.length > 0) {
+        setImportFolderPath(result.filePaths[0]);
+      }
+    } catch (error) {
+      console.log(error);
+      setPopup({ open: true, title: "Error", message: "Could not open folder browser: " + error.message });
+    }
+  };
 
     const user =
   JSON.parse(
