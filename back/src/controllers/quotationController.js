@@ -345,24 +345,26 @@ export const downloadQuotationPdf =
       // CONVERT TO PDF
       const pdfResult =
         await convertExcelToPdf({
-
           excelPath:
             tempExcelPath,
-
           pdfPath,
-
           deleteExcelAfterConversion:
             true,
         });
 
+      if (!pdfResult || !pdfResult.success) {
+        return res.status(500).json({
+          success: false,
+          message:
+            pdfResult?.message ||
+            "PDF generation failed. Please make sure LibreOffice is installed on your PC or use the Print button to Save as PDF.",
+        });
+      }
 
       return res.status(200).json({
-
         success: true,
-
         pdfPath:
           pdfResult.pdfPath,
-
         fileName:
           `${quotationNo}.pdf`,
       });
@@ -477,21 +479,24 @@ export const generateWhatsappPdf =
 
       const pdfResult =
         await convertExcelToPdf({
-
           excelPath:
             tempExcelPath,
-
           pdfPath,
-
           deleteExcelAfterConversion:
             true,
         });
 
+      if (!pdfResult || !pdfResult.success) {
+        return res.status(500).json({
+          success: false,
+          message:
+            pdfResult?.message ||
+            "PDF generation failed.",
+        });
+      }
 
       return res.status(200).json({
-
         success: true,
-
         pdfPath:
           pdfResult.pdfPath,
       });

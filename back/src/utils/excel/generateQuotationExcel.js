@@ -53,10 +53,7 @@ const fillSmallQuotationSheet =
       sheet
     );
 
-    const blockRows =
-      templateType === "pdf"
-        ? [1]
-        : [1, 11, 21];
+    const blockRows = [1];
 
     blockRows.forEach(
       (startRow) => {
@@ -164,10 +161,7 @@ const fillMediumQuotationSheet =
     );
 
 
-    const blockRows =
-      templateType === "pdf"
-        ? [1]
-        : [1, 16];
+    const blockRows = [1];
 
 
     blockRows.forEach(
@@ -363,10 +357,7 @@ const generateQuotationExcel =
     const isPackaged =
       !!process.resourcesPath;
 
-    const templateFile =
-      templateType === "pdf"
-        ? "quotation_pdf_template.xlsx"
-        : "quotation_template.xlsx";
+    const templateFile = "quotation_pdf_template.xlsx";
 
     const templatePath =
       isPackaged

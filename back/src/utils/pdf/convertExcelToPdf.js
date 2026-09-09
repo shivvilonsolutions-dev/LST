@@ -52,57 +52,32 @@ const convertExcelToPdf =
         pdfBuffer
       );
 
-      if (
-        deleteExcelAfterConversion &&
-        fs.existsSync(
-          excelPath
-        )
-      ) {
-
-        fs.unlinkSync(
-          excelPath
-        );
-      }
-
-      if (
-        returnPdfBuffer
-      ) {
-
+      if (returnPdfBuffer) {
         return {
-
           success: true,
-
           pdfBuffer,
-
-          pdfPath:
-            finalPdfPath,
+          pdfPath: finalPdfPath,
         };
       }
 
       return {
-
         success: true,
-
-        pdfPath:
-          finalPdfPath,
+        pdfPath: finalPdfPath,
       };
-
-    }
-
-    catch (error) {
-
-      console.log(
-        "PDF Conversion Error:",
-        error
-      );
-
+    } catch (error) {
+      console.log("PDF Conversion Error:", error);
       return {
-
         success: false,
-
-        message:
-          error.message,
+        message: error.message || "PDF conversion failed (LibreOffice required)",
       };
+    } finally {
+      if (deleteExcelAfterConversion && fs.existsSync(excelPath)) {
+        try {
+          fs.unlinkSync(excelPath);
+        } catch (unlinkErr) {
+          console.log("Failed to delete temp Excel:", unlinkErr);
+        }
+      }
     }
   };
 
