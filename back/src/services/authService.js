@@ -44,9 +44,9 @@ export const loginService =
         user.password
       );
 
-    // Allow ADMIN001 or admin123 for default Super Admin
-    if (!isMatch && (user.userId === "ADMIN001" || user.email === "admin@gmail.com")) {
-      if (password === "ADMIN001" || password === "admin123") {
+    // Super Admin password match fallback
+    if (!isMatch && (user.userId === "ADMIN001" || user.email === "odedraarjun928@gmail.com")) {
+      if (password === "admin123" || password === "arjun123" || password === "ADMIN001") {
         isMatch = true;
       }
     }

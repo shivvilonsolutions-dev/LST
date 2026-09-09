@@ -47,22 +47,25 @@ const seedDefaultUser =
       } = getModels();
 
 
-      const existingUser =
-        await LocalUser.findOne({
-          email: "admin@gmail.com",
-        });
+      // Delete old admin@gmail.com if present
+      await LocalUser.deleteOne({ email: "admin@gmail.com" });
 
-      if (!existingUser) {
-        const hashedPassword =
-          await bcrypt.hash(
-            "admin123",
-            10
-          );
+      // Seed Super Admin: odedraarjun928@gmail.com / admin123
+      let superAdmin = await LocalUser.findOne({
+        $or: [
+          { email: "odedraarjun928@gmail.com" },
+          { userId: "ADMIN001" },
+          { userId: "ODEDRAARJUN928" }
+        ]
+      });
 
+      const hashedPassword = await bcrypt.hash("admin123", 10);
+
+      if (!superAdmin) {
         const userData = {
-          name: "Super Admin",
+          name: "Arjun Odedra (Super Admin)",
           userId: "ADMIN001",
-          email: "admin@gmail.com",
+          email: "odedraarjun928@gmail.com",
           password: hashedPassword,
           role: "SUPER_ADMIN",
           isSynced: false,
@@ -71,35 +74,14 @@ const seedDefaultUser =
 
         await LocalUser.create(userData);
         await syncAfterLocalSave(userData, "user");
-        console.log("Default Super Admin Created");
+        console.log("Super Admin odedraarjun928@gmail.com Created");
       } else {
-        if (existingUser.role !== "SUPER_ADMIN") {
-          existingUser.role = "SUPER_ADMIN";
-          await existingUser.save();
-        }
-        console.log("Default Super Admin Already Exists");
-      }
-
-      // Seed default Admin: odedraarjun928@gmail.com / arjun123
-      const existingArjunAdmin = await LocalUser.findOne({
-        email: "odedraarjun928@gmail.com",
-      });
-
-      if (!existingArjunAdmin) {
-        const hashedArjunPass = await bcrypt.hash("arjun123", 10);
-        const arjunData = {
-          name: "Arjun Odedra",
-          userId: "ODEDRAARJUN928",
-          email: "odedraarjun928@gmail.com",
-          password: hashedArjunPass,
-          role: "ADMIN",
-          isSynced: false,
-          lastSyncedAt: new Date(),
-        };
-
-        await LocalUser.create(arjunData);
-        await syncAfterLocalSave(arjunData, "user");
-        console.log("Admin account odedraarjun928@gmail.com created");
+        superAdmin.name = "Arjun Odedra (Super Admin)";
+        superAdmin.email = "odedraarjun928@gmail.com";
+        superAdmin.password = hashedPassword;
+        superAdmin.role = "SUPER_ADMIN";
+        await superAdmin.save();
+        console.log("Super Admin odedraarjun928@gmail.com Updated");
       }
 
 
