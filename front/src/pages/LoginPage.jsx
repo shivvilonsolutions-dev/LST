@@ -329,62 +329,6 @@ const LoginDataPage =
               </Box>
 
 
-              {/* Forgot Password */}
-              <Box
-                sx={{
-                  width: "100%",
-
-                  display: "flex",
-
-                  justifyContent:
-                    "space-between",
-
-                  alignItems:
-                    "center",
-                }}
-              >
-
-                <Link
-                  to="/add-user"
-
-                  style={{
-                    textDecoration:
-                      "none",
-                  }}
-                >
-
-                  <Typography
-                    variant="body2"
-
-                    color="primary"
-                  >
-                    Add New User
-                  </Typography>
-
-                </Link>
-
-                <Link
-                  to="/forgot-password"
-
-                  style={{
-                    textDecoration:
-                      "none",
-                  }}
-                >
-
-                  <Typography
-                    variant="body2"
-
-                    color="primary"
-                  >
-                    Forgot Password?
-                  </Typography>
-
-                </Link>
-
-              </Box>
-
-
               {/* Login Button */}
               <Button
                 btnName="Login"

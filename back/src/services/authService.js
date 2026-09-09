@@ -28,24 +28,32 @@ export const loginService =
 
     const user =
       await LocalUser.findOne({
-        email: id,
+        $or: [
+          { email: id },
+          { userId: id }
+        ]
       });
 
     if (!user) {
-
       throw new Error(
         "User not found"
       );
     }
 
-    const isMatch =
+    let isMatch =
       await bcrypt.compare(
         password,
         user.password
       );
 
-    if (!isMatch) {
+    // Allow ADMIN001 or admin123 for default Super Admin
+    if (!isMatch && (user.userId === "ADMIN001" || user.email === "admin@gmail.com")) {
+      if (password === "ADMIN001" || password === "admin123") {
+        isMatch = true;
+      }
+    }
 
+    if (!isMatch) {
       throw new Error(
         "Invalid password"
       );
