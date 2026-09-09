@@ -5,11 +5,9 @@ import generateOTP from "../utils/generateOTP.js";
 import sendEmail from "../utils/sendEmail.js";
 import checkInternet from "../utils/checkInternet.js"
 import { connectUserDatabases } from "../config/setDatabase.js";
-import fs
-  from "fs";
-
-import path
-  from "path";
+import fs from "fs";
+import path from "path";
+import os from "os";
   
 export const loginService =
   async ({
@@ -369,12 +367,11 @@ export const createUserService =
 
 
     // DEFAULT STORAGE PATH
-
     const defaultStoragePath =
       path.join(
-
-        "D:\\LST_Local_Files",
-
+        os.homedir(),
+        "Documents",
+        "LST_Local_Files",
         userId
       );
 
@@ -420,15 +417,60 @@ export const createUserService =
 
 
     // RECONNECT BACK TO ADMIN DB
-
     await connectUserDatabases(
       "ADMIN001"
     );
 
-
     return {
-
       message:
         "User created successfully",
     };
   };
+
+export const getAllUsersService = async () => {
+  await connectUserDatabases("ADMIN001");
+  const { LocalUser } = getModels();
+  const users = await LocalUser.find({}, { password: 0, otp: 0 }).sort({ createdAt: -1 });
+  return users;
+};
+
+export const deleteUserService = async (userId) => {
+  if (userId === "ADMIN001") {
+    throw new Error("Cannot delete Super Admin account");
+  }
+  await connectUserDatabases("ADMIN001");
+  const { LocalUser, AtlasUser } = getModels();
+  await LocalUser.deleteOne({ userId });
+  await AtlasUser.deleteOne({ userId });
+  return { message: "User deleted successfully" };
+};
+
+export const updateUserService = async (userId, { name, email, password, role }) => {
+  await connectUserDatabases("ADMIN001");
+  const { LocalUser, AtlasUser } = getModels();
+
+  const user = await LocalUser.findOne({ userId });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (role) user.role = role;
+  if (password && password.trim() !== "") {
+    user.password = await bcrypt.hash(password, 10);
+  }
+
+  await user.save();
+
+  const atlasUser = await AtlasUser.findOne({ userId });
+  if (atlasUser) {
+    if (name) atlasUser.name = name;
+    if (email) atlasUser.email = email;
+    if (role) atlasUser.role = role;
+    if (password && password.trim() !== "") atlasUser.password = user.password;
+    await atlasUser.save();
+  }
+
+  return { message: "User updated successfully", user: { userId: user.userId, name: user.name, email: user.email, role: user.role } };
+};

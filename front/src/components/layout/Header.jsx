@@ -29,6 +29,7 @@ const getTitle = (path) => {
   if (path.startsWith("/clients")) return "Clients";
 
   if (path.startsWith("/settings")) return "Settings";
+  if (path.startsWith("/super-admin")) return "Super Admin Panel";
 
   if (path.startsWith("/dashboard")) return "Dashboard";
 };

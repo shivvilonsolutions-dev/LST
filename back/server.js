@@ -49,22 +49,15 @@ const seedDefaultUser =
 
       const existingUser =
         await LocalUser.findOne({
-
-          email:
-            "admin@gmail.com",
+          email: "admin@gmail.com",
         });
 
-
       if (!existingUser) {
-
         const hashedPassword =
           await bcrypt.hash(
-
             "admin123",
-
             10
           );
-
 
         const userData = {
           name: "Super Admin",
@@ -76,29 +69,37 @@ const seedDefaultUser =
           lastSyncedAt: new Date(),
         };
 
-        // CREATE SUPER ADMIN USER
-        await LocalUser.create(
-          userData
-        );
-
-        await syncAfterLocalSave(
-          userData,
-          "user"
-        );
-
-        console.log(
-          "Default Super Admin Created"
-        );
-      }
-
-      else {
+        await LocalUser.create(userData);
+        await syncAfterLocalSave(userData, "user");
+        console.log("Default Super Admin Created");
+      } else {
         if (existingUser.role !== "SUPER_ADMIN") {
           existingUser.role = "SUPER_ADMIN";
           await existingUser.save();
         }
-        console.log(
-          "Default Super Admin Already Exists"
-        );
+        console.log("Default Super Admin Already Exists");
+      }
+
+      // Seed default Admin: odedraarjun928@gmail.com / arjun123
+      const existingArjunAdmin = await LocalUser.findOne({
+        email: "odedraarjun928@gmail.com",
+      });
+
+      if (!existingArjunAdmin) {
+        const hashedArjunPass = await bcrypt.hash("arjun123", 10);
+        const arjunData = {
+          name: "Arjun Odedra",
+          userId: "ODEDRAARJUN928",
+          email: "odedraarjun928@gmail.com",
+          password: hashedArjunPass,
+          role: "ADMIN",
+          isSynced: false,
+          lastSyncedAt: new Date(),
+        };
+
+        await LocalUser.create(arjunData);
+        await syncAfterLocalSave(arjunData, "user");
+        console.log("Admin account odedraarjun928@gmail.com created");
       }
 
 

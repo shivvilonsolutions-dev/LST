@@ -111,8 +111,32 @@ export const createUser =
 
         message:
           error.response?.data?.message ||
-
           "User creation failed",
       };
     }
   };
+
+export const getAllUsersApi = async () => {
+  try {
+    const response = await api.get("/auth/users");
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to fetch users",
+      users: [],
+    };
+  }
+};
+
+export const deleteUserApi = async (userId) => {
+  try {
+    const response = await api.delete(`/auth/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to delete user",
+    };
+  }
+};

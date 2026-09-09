@@ -3,6 +3,9 @@ import {
   sendOtpService,
   resetPasswordService,
   createUserService,
+  getAllUsersService,
+  deleteUserService,
+  updateUserService,
 } from "../services/authService.js";
 
 export const login =
@@ -111,3 +114,48 @@ export const createUser =
       });
     }
   };
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await getAllUsersService();
+    res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const data = await deleteUserService(req.params.userId);
+    res.status(200).json({
+      success: true,
+      ...data,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const data = await updateUserService(req.params.userId, req.body);
+    res.status(200).json({
+      success: true,
+      ...data,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

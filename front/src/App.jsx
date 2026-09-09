@@ -24,6 +24,7 @@ import QuotationArea from "./features/quotation/QuotationArea";
 import QuotationForm from "./features/quotation/components/QuotationForm";
 import QuotationDetail from "./features/quotation/components/QuotationDetail";
 import SettingsArea from "./features/settings/SettingsArea";
+import SuperAdminPanel from "./pages/SuperAdminPanel";
 
 import QuotationProvider from "./contexts/quotation/QuotationProvider";
 import InventoryProvider from "./contexts/inventory/InventoryProvider";
@@ -164,7 +165,7 @@ function App() {
             element={
               <QuotationProvider>
                 <ClientProvider>
-                  <QuotationDetail />
+                  <QuotationForm />
                 </ClientProvider>
               </QuotationProvider>
             }
@@ -174,6 +175,11 @@ function App() {
           <Route
             path="/settings"
             element={<SettingsArea />}
+          />
+
+          <Route
+            path="/super-admin"
+            element={<SuperAdminPanel />}
           />
 
         </Route>

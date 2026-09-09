@@ -32,6 +32,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import PaymentIcon from '@mui/icons-material/Payment';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 
 const expandedWidth = 220;
 const collapsedWidth = 70;
@@ -53,9 +54,9 @@ const navItems = [
     icon: <GroupsIcon />,
   },
   {
-    label: "Add User",
-    path: "/add-user",
-    icon: <PersonAddIcon />,
+    label: "Super Admin Panel",
+    path: "/super-admin",
+    icon: <SupervisorAccountIcon />,
     superAdminOnly: true,
   },
   {

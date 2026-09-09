@@ -6,10 +6,12 @@ import {
   sendOtp,
   resetPassword,
   createUser,
+  getAllUsers,
+  deleteUser,
+  updateUser,
 } from "../controllers/authController.js";
 
 const router = express.Router();
-
 
 router.post(
   "/login",
@@ -29,6 +31,21 @@ router.post(
 router.post(
   "/create-user",
   createUser
+);
+
+router.get(
+  "/users",
+  getAllUsers
+);
+
+router.delete(
+  "/users/:userId",
+  deleteUser
+);
+
+router.put(
+  "/users/:userId",
+  updateUser
 );
 
 export default router;
