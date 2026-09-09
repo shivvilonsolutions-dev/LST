@@ -67,18 +67,10 @@ const QuotationDetail = () => {
 
   const [editData, setEditData] = useState(quotation || null);
   useEffect(() => {
-    if (
-      quotation &&
-      !editData
-    ) {
-      setEditData(
-        quotation
-      );
+    if (quotation) {
+      setEditData(quotation);
     }
-  }, [
-    quotation,
-    editData,
-  ]);
+  }, [quotation]);
 
   if (!editData) {
     return <PageLoader />;
@@ -251,8 +243,9 @@ const QuotationDetail = () => {
       }
 
       setIsWhatsappLoading(true);
-      setPrintSize("share");
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      const autoSize = getAutoPrintSize();
+      setPrintSize(autoSize);
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // ── STEP 1: Generate JPG from hidden QuotationPdfTemplate ──────────
       const dataUrl = await generateQuotationJpg(pdfRef);
@@ -303,7 +296,7 @@ const QuotationDetail = () => {
       const autoSize = getAutoPrintSize();
       setPrintSize(autoSize);
       // Wait for react rerender state cycle
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       await printQuotationWithSize(pdfRef, autoSize);
     } finally {
       setIsPrinting(false);

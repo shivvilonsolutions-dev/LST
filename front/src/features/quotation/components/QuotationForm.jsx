@@ -464,13 +464,12 @@ const QuotationForm = ({ initialData = null }) => {
     );
   };
 
-  // Helper: Automatically select print size based on filled row count
+  // Helper: Automatically select print size based on filled row count (3-phase)
   const getAutoPrintSize = () => {
     const filledCount = getFilledRows().length;
-    if (filledCount <= 6) return "small";
-    if (filledCount <= 13) return "mid";
-    if (filledCount <= 26) return "large";
-    return "large"; // More than 26 rows still uses large layout
+    if (filledCount <= 6) return "small";  // Phase 1: <=6 lines -> 3 slips on A4 (Green template)
+    if (filledCount <= 13) return "mid";   // Phase 2: 7..13 lines -> 2 slips on A4 (Blue template)
+    return "large";                         // Phase 3: >13 lines -> 1 slip on A4 (Blue template)
   };
 
   const handleWhatsApp = async () => {
@@ -484,8 +483,9 @@ const QuotationForm = ({ initialData = null }) => {
       }
 
       setIsWhatsappLoading(true);
-      setPrintSize("share");
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      const autoSize = getAutoPrintSize();
+      setPrintSize(autoSize);
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // ── STEP 1: Generate JPG from hidden QuotationPdfTemplate ──────────
       const dataUrl = await generateQuotationJpg(pdfRef);
@@ -536,7 +536,7 @@ const QuotationForm = ({ initialData = null }) => {
       const autoSize = getAutoPrintSize();
       setPrintSize(autoSize);
       // Wait one tick for React to rerender the template with the new size
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       await printQuotationWithSize(pdfRef, autoSize);
     } finally {
       setIsPrinting(false);
