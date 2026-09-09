@@ -386,9 +386,12 @@ const QuotationForm = ({ initialData = null }) => {
           });
           return;
         }
+
+        setWarningPopup({ open: true, message: saveRes?.message || "PDF generation failed." });
+        return;
       }
 
-      setWarningPopup({ open: true, message: "PDF generation failed." });
+      setWarningPopup({ open: true, message: "PDF canvas capture failed." });
     } catch (error) {
       console.error("PDF download error:", error);
       setWarningPopup({ open: true, message: error.message || "PDF generation failed." });
