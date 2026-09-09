@@ -33,22 +33,25 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
     return;
   }
 
-  // Generate the requested number of slips
+  // Generate the requested number of slips (top-left 1/4th A4 width = 105mm)
   let slipsHtml = "";
   if (size === "small") {
+    // Phase 1: 3 slips on A4 page (top-left aligned, width 105mm, height 92mm each)
     slipsHtml = `
-      <div class="slip"><img src="${imgDataUrl}" /></div>
-      <div class="slip"><img src="${imgDataUrl}" /></div>
-      <div class="slip"><img src="${imgDataUrl}" /></div>
+      <div class="slip" style="width: 105mm; height: 92mm;"><img src="${imgDataUrl}" /></div>
+      <div class="slip" style="width: 105mm; height: 92mm;"><img src="${imgDataUrl}" /></div>
+      <div class="slip" style="width: 105mm; height: 92mm;"><img src="${imgDataUrl}" /></div>
     `;
   } else if (size === "mid") {
+    // Phase 2: 2 slips on A4 page (top-left aligned, width 105mm, height 140mm each)
     slipsHtml = `
-      <div class="slip"><img src="${imgDataUrl}" /></div>
-      <div class="slip"><img src="${imgDataUrl}" /></div>
+      <div class="slip" style="width: 105mm; height: 140mm;"><img src="${imgDataUrl}" /></div>
+      <div class="slip" style="width: 105mm; height: 140mm;"><img src="${imgDataUrl}" /></div>
     `;
   } else {
+    // Phase 3: 1 slip on A4 page (top-left aligned, width 105mm, height 280mm)
     slipsHtml = `
-      <div class="slip"><img src="${imgDataUrl}" /></div>
+      <div class="slip" style="width: 105mm; height: 280mm;"><img src="${imgDataUrl}" /></div>
     `;
   }
 
@@ -83,12 +86,11 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
 
     /* 1/4th A4 width (105mm) aligned at top-left */
     .slip {
-      width: 105mm;
       display: flex;
       align-items: flex-start;
       justify-content: flex-start;
       padding: 1mm 0;
-      margin-bottom: 4mm;
+      margin-bottom: 2mm;
       overflow: hidden;
       position: relative;
     }
@@ -97,7 +99,7 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
     .slip:not(:last-child)::after {
       content: "";
       position: absolute;
-      bottom: -2mm;
+      bottom: -1mm;
       left: 0;
       width: 105mm;
       border-bottom: 1.2px dashed #888;
@@ -105,9 +107,9 @@ export const printQuotationWithSize = async (pdfRef, size = "small") => {
 
     .slip img {
       width: 100%;
-      height: auto;
+      height: 100%;
       display: block;
-      object-fit: contain;
+      object-fit: fill;
     }
 
     @media print {
