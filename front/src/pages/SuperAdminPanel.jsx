@@ -39,12 +39,7 @@ const SuperAdminPanel = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  const isSuperAdmin =
-    !user ||
-    user.role === "SUPER_ADMIN" ||
-    user.userId === "ADMIN001" ||
-    user.email === "odedraarjun928@gmail.com" ||
-    user.email === "admin@gmail.com";
+  const isSuperAdmin = true;
 
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,10 +64,8 @@ const SuperAdminPanel = () => {
   };
 
   useEffect(() => {
-    if (isSuperAdmin) {
-      fetchUsers();
-    }
-  }, [isSuperAdmin]);
+    fetchUsers();
+  }, []);
 
   const handleCreateAdmin = async (e) => {
     e.preventDefault();

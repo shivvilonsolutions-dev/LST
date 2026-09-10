@@ -182,12 +182,7 @@ const Sidebar = ({
       {/* NAVIGATION */}
       <List>
 
-        {navItems
-          .filter((item) => {
-            if (!item.superAdminOnly) return true;
-            return isSuperAdmin;
-          })
-          .map((item) => {
+        {navItems.map((item) => {
 
             const isActive =
               location.pathname.startsWith(
