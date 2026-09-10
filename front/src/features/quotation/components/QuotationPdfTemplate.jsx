@@ -173,10 +173,10 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 rightVal = data?.mobile || "";
                 isThemeBg = true;
               } else if (i === 1) {
-                rightLabel = "RATE B:-";
+                rightLabel = "RATE B1:-";
                 rightVal = data?.rateB1 || "";
               } else if (i === 2) {
-                rightLabel = "RATE B:-";
+                rightLabel = "RATE B2:-";
                 rightVal = data?.rateB2 || "";
               } else if (i === 3) {
                 rightLabel = "ADD:-";
@@ -195,22 +195,28 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 rightVal = data?.mobile || "";
                 isThemeBg = true;
               } else if (i === 2) {
-                rightLabel = "RATE B:-";
+                rightLabel = "RATE B1:-";
                 rightVal = data?.rateB1 || "";
               } else if (i === 3) {
+                rightLabel = "RATE B2:-";
+                rightVal = data?.rateB2 || "";
+              } else if (i === 4) {
                 rightLabel = "ADD:-";
                 rightVal = data?.add || "";
                 isThemeBg = true;
-              } else if (i === 4) {
-                rightLabel = "CUTTING:-";
+              } else if (i === 5) {
+                rightLabel = "BENDING:-";
                 rightVal = data?.bending || "";
               } else if (i === 6) {
-                rightLabel = "MO:-9925018479";
-                rightVal = "";
+                rightLabel = "CUTTING:-";
+                rightVal = data?.laserCutting || "";
               } else if (i === 7) {
-                rightLabel = "9925018479";
+                rightLabel = "MO";
                 rightVal = "";
               } else if (i === 8) {
+                rightLabel = "9925018479";
+                rightVal = "";
+              } else if (i === 9) {
                 rightLabel = "9925018420";
                 rightVal = "";
               }
@@ -221,22 +227,28 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 rightVal = data?.mobile || "";
                 isThemeBg = true;
               } else if (i === 2) {
-                rightLabel = "RATE B:-";
+                rightLabel = "RATE B1:-";
                 rightVal = data?.rateB1 || "";
               } else if (i === 3) {
+                rightLabel = "RATE B2:-";
+                rightVal = data?.rateB2 || "";
+              } else if (i === 4) {
                 rightLabel = "ADD:-";
                 rightVal = data?.add || "";
                 isThemeBg = true;
-              } else if (i === 4) {
+              } else if (i === 5) {
                 rightLabel = "BENDING:-";
                 rightVal = data?.bending || "";
               } else if (i === 6) {
+                rightLabel = "CUTTING:-";
+                rightVal = data?.laserCutting || "";
+              } else if (i === 7) {
                 rightLabel = "MO";
                 rightVal = "";
-              } else if (i === 7) {
+              } else if (i === 8) {
                 rightLabel = "9925018479";
                 rightVal = "";
-              } else if (i === 8) {
+              } else if (i === 9) {
                 rightLabel = "9925018420";
                 rightVal = "";
               }
