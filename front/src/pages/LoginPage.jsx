@@ -93,13 +93,19 @@ const LoginDataPage =
           );
 
         if (response.success) {
-
           login(response);
 
-          navi(
-            "/dashboard"
-          );
+          const isSuper =
+            response.user?.role === "SUPER_ADMIN" ||
+            response.user?.userId === "ADMIN001" ||
+            response.user?.email === "odedraarjun928@gmail.com" ||
+            response.user?.email === "admin@gmail.com";
 
+          if (isSuper) {
+            navi("/super-admin");
+          } else {
+            navi("/dashboard");
+          }
         } else {
 
           setPopup({
