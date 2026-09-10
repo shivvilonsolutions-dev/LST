@@ -39,7 +39,12 @@ const SuperAdminPanel = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  const isSuperAdmin = !user || user.role === "SUPER_ADMIN" || user.userId === "ADMIN001";
+  const isSuperAdmin =
+    !user ||
+    user.role === "SUPER_ADMIN" ||
+    user.userId === "ADMIN001" ||
+    user.email === "odedraarjun928@gmail.com" ||
+    user.email === "admin@gmail.com";
 
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -165,9 +165,16 @@ const Sidebar = ({
       <List>
 
         {navItems
-          .filter((item) => !item.superAdminOnly || user?.role === "SUPER_ADMIN" || user?.userId === "ADMIN001")
-          .map(
-          (item) => {
+          .filter((item) => {
+            if (!item.superAdminOnly) return true;
+            return (
+              user?.role === "SUPER_ADMIN" ||
+              user?.userId === "ADMIN001" ||
+              user?.email === "odedraarjun928@gmail.com" ||
+              user?.email === "admin@gmail.com"
+            );
+          })
+          .map((item) => {
 
             const isActive =
               location.pathname.startsWith(
