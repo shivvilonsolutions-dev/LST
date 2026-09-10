@@ -162,97 +162,110 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
           </tr>
 
           {/* Material rows */}
-          {rows.map((row, i) => {
-            let rightLabel = "";
-            let rightVal = "";
-            let isThemeBg = false;
+          {(() => {
+            const calcTotalPieces = (data?.materials || []).reduce((acc, r) => {
+              const val = parseFloat(r.piece || r.peice);
+              return acc + (isNaN(val) ? 0 : val);
+            }, 0);
+            const totalPiecesVal = calcTotalPieces > 0 ? calcTotalPieces : (data?.totalPiece || "");
 
-            if (size === "small") {
-              if (i === 0) {
-                rightLabel = "MO:-";
-                rightVal = data?.mobile || "";
-                isThemeBg = true;
-              } else if (i === 1) {
-                rightLabel = "RATE B1:-";
-                rightVal = data?.rateB1 || "";
-              } else if (i === 2) {
-                rightLabel = "RATE B2:-";
-                rightVal = data?.rateB2 || "";
-              } else if (i === 3) {
-                rightLabel = "ADD:-";
-                rightVal = data?.add || "";
-                isThemeBg = true;
-              } else if (i === 4) {
-                rightLabel = "BENDING:-";
-                rightVal = data?.bending || "";
-              } else if (i === 5) {
-                rightLabel = "MO:-9925018479";
-                rightVal = "";
+            return rows.map((row, i) => {
+              let rightLabel = "";
+              let rightVal = "";
+              let isThemeBg = false;
+
+              if (size === "small") {
+                if (i === 0) {
+                  rightLabel = "MO:-";
+                  rightVal = data?.mobile || "";
+                  isThemeBg = true;
+                } else if (i === 1) {
+                  rightLabel = "TOTAL PC:-";
+                  rightVal = totalPiecesVal;
+                } else if (i === 2) {
+                  rightLabel = "RATE B1:-";
+                  rightVal = data?.rateB1 || "";
+                } else if (i === 3) {
+                  rightLabel = "RATE B2:-";
+                  rightVal = data?.rateB2 || "";
+                } else if (i === 4) {
+                  rightLabel = "ADD:-";
+                  rightVal = data?.add || "";
+                  isThemeBg = true;
+                } else if (i === 5) {
+                  rightLabel = "BENDING:-";
+                  rightVal = data?.bending || "";
+                }
+              } else if (size === "mid") {
+                if (i === 0) {
+                  rightLabel = "MO:-";
+                  rightVal = data?.mobile || "";
+                  isThemeBg = true;
+                } else if (i === 1) {
+                  rightLabel = "TOTAL PC:-";
+                  rightVal = totalPiecesVal;
+                } else if (i === 2) {
+                  rightLabel = "RATE B1:-";
+                  rightVal = data?.rateB1 || "";
+                } else if (i === 3) {
+                  rightLabel = "RATE B2:-";
+                  rightVal = data?.rateB2 || "";
+                } else if (i === 4) {
+                  rightLabel = "ADD:-";
+                  rightVal = data?.add || "";
+                  isThemeBg = true;
+                } else if (i === 5) {
+                  rightLabel = "BENDING:-";
+                  rightVal = data?.bending || "";
+                } else if (i === 6) {
+                  rightLabel = "CUTTING:-";
+                  rightVal = data?.laserCutting || "";
+                } else if (i === 7) {
+                  rightLabel = "MO";
+                  rightVal = "";
+                } else if (i === 8) {
+                  rightLabel = "9925018479";
+                  rightVal = "";
+                } else if (i === 9) {
+                  rightLabel = "9925018420";
+                  rightVal = "";
+                }
+              } else {
+                // Large (26 rows)
+                if (i === 0) {
+                  rightLabel = "MO:-";
+                  rightVal = data?.mobile || "";
+                  isThemeBg = true;
+                } else if (i === 1) {
+                  rightLabel = "TOTAL PC:-";
+                  rightVal = totalPiecesVal;
+                } else if (i === 2) {
+                  rightLabel = "RATE B1:-";
+                  rightVal = data?.rateB1 || "";
+                } else if (i === 3) {
+                  rightLabel = "RATE B2:-";
+                  rightVal = data?.rateB2 || "";
+                } else if (i === 4) {
+                  rightLabel = "ADD:-";
+                  rightVal = data?.add || "";
+                  isThemeBg = true;
+                } else if (i === 5) {
+                  rightLabel = "BENDING:-";
+                  rightVal = data?.bending || "";
+                } else if (i === 6) {
+                  rightLabel = "CUTTING:-";
+                  rightVal = data?.laserCutting || "";
+                } else if (i === 7) {
+                  rightLabel = "MO";
+                  rightVal = "";
+                } else if (i === 8) {
+                  rightLabel = "9925018479";
+                  rightVal = "";
+                } else if (i === 9) {
+                  rightLabel = "9925018420";
+                  rightVal = "";
+                }
               }
-            } else if (size === "mid") {
-              if (i === 0) {
-                rightLabel = "MO:-";
-                rightVal = data?.mobile || "";
-                isThemeBg = true;
-              } else if (i === 2) {
-                rightLabel = "RATE B1:-";
-                rightVal = data?.rateB1 || "";
-              } else if (i === 3) {
-                rightLabel = "RATE B2:-";
-                rightVal = data?.rateB2 || "";
-              } else if (i === 4) {
-                rightLabel = "ADD:-";
-                rightVal = data?.add || "";
-                isThemeBg = true;
-              } else if (i === 5) {
-                rightLabel = "BENDING:-";
-                rightVal = data?.bending || "";
-              } else if (i === 6) {
-                rightLabel = "CUTTING:-";
-                rightVal = data?.laserCutting || "";
-              } else if (i === 7) {
-                rightLabel = "MO";
-                rightVal = "";
-              } else if (i === 8) {
-                rightLabel = "9925018479";
-                rightVal = "";
-              } else if (i === 9) {
-                rightLabel = "9925018420";
-                rightVal = "";
-              }
-            } else {
-              // Large (26 rows)
-              if (i === 0) {
-                rightLabel = "MO:-";
-                rightVal = data?.mobile || "";
-                isThemeBg = true;
-              } else if (i === 2) {
-                rightLabel = "RATE B1:-";
-                rightVal = data?.rateB1 || "";
-              } else if (i === 3) {
-                rightLabel = "RATE B2:-";
-                rightVal = data?.rateB2 || "";
-              } else if (i === 4) {
-                rightLabel = "ADD:-";
-                rightVal = data?.add || "";
-                isThemeBg = true;
-              } else if (i === 5) {
-                rightLabel = "BENDING:-";
-                rightVal = data?.bending || "";
-              } else if (i === 6) {
-                rightLabel = "CUTTING:-";
-                rightVal = data?.laserCutting || "";
-              } else if (i === 7) {
-                rightLabel = "MO";
-                rightVal = "";
-              } else if (i === 8) {
-                rightLabel = "9925018479";
-                rightVal = "";
-              } else if (i === 9) {
-                rightLabel = "9925018420";
-                rightVal = "";
-              }
-            }
 
             return (
               <tr key={i} style={{ height: "38px" }}>
@@ -315,7 +328,8 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 </td>
               </tr>
             );
-          })}
+          });
+        })()}
         </tbody>
       </table>
 
