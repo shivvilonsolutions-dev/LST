@@ -29,6 +29,7 @@
   "win": {
     "target": "dir",
     "icon": "build/lst-logo.ico",
-    "signAndEditExecutable": false
+    "signAndEditExecutable": false,
+    "forceCodeSigning": false
   }
 }
