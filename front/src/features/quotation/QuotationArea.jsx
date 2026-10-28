@@ -57,20 +57,16 @@ const QuotationArea = () => {
   }
 
   const filteredData =
-    quotations
+    (quotations || [])
 
       // STATUS FILTER
       .filter((item) =>
-
-        filter === "ALL"
-
-          ? true
-
-          : item.status === filter
+        !item ? false : (filter === "ALL" ? true : item.status === filter)
       )
 
       // MONTH FILTER
       .filter((item) => {
+        if (!item) return false;
 
         if (!selectedMonth) {
           return true;
@@ -101,6 +97,7 @@ const QuotationArea = () => {
 
       // SEARCH FILTER
       .filter((item) => {
+        if (!item) return false;
 
         const query =
           search

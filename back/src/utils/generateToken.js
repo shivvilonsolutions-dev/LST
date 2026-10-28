@@ -18,7 +18,7 @@ const generateToken =
     process.env.JWT_SECRET,
 
     {
-      expiresIn: "7d",
+      expiresIn: "30d", // 30 days - no auto logout
     });
   };
 

@@ -112,10 +112,10 @@ const ClientArea = () => {
           .includes(query);
 
       const matchMaterial =
-        quotations
+        (quotations || [])
           .filter(
             (q) =>
-              q.cliId === item.cliId
+              q && q.cliId === item.cliId
           )
           .some((q) =>
             q.materials?.some((m) =>
@@ -166,7 +166,8 @@ const ClientArea = () => {
 
   const statusMap = {};
 
-  quotations.forEach((q) => {
+  (quotations || []).forEach((q) => {
+    if (!q || !q.cliId) return;
 
     const key = q.cliId;
 
@@ -496,11 +497,10 @@ const ClientArea = () => {
                         >
 
                           {
-                            quotations
+                            (quotations || [])
                               .find(
                                 (q) =>
-                                  q.cliId ===
-                                  item.cliId
+                                  q && q.cliId === item.cliId
                               )
                               ?.materials?.find(
                                 (m) =>
@@ -670,11 +670,10 @@ const ClientArea = () => {
             >
 
               {
-                quotations
+                (quotations || [])
                   .filter(
                     (q) =>
-                      q.cliId ===
-                      hoveredClient?.cliId
+                      q && q.cliId === hoveredClient?.cliId
                   )
 
                   .flatMap(

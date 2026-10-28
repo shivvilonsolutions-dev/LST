@@ -47,9 +47,8 @@ const QuotationForm = ({ initialData = null }) => {
   const isEditMode = !!id;
   
   // Fetch quotation data when in edit mode
-  const quotation = quotations.find((q) => String(q.quotationNo) === String(id));
+  const quotation = (quotations || []).find((q) => q && String(q.quotationNo) === String(id));
   
-  const [showPopup, setShowPopup] = useState(false);
   const [duplicatePopup, setDuplicatePopup] = useState({
     open: false,
     message: "",
@@ -224,106 +223,6 @@ const QuotationForm = ({ initialData = null }) => {
       0
     );
 
-  const handleConfirmQuotation =
-    async () => {
-
-      // CLOSE POPUP IMMEDIATELY
-      setShowPopup(false);
-
-      try {
-
-        setIsSending(
-          true
-        );
-
-        let response;
-
-        try {
-          if (isEditMode && formData.quotationNo) {
-            // UPDATE EXISTING QUOTATION
-            response =
-              await handleUpdateQuotation(
-                formData.quotationNo,
-                {
-                  ...formData,
-                  totalPieces,
-                  laserCutting: formData.laserCutting || "",
-                  whatsapp: formData.whatsapp || "",
-                }
-              );
-          } else {
-            // CREATE NEW QUOTATION
-            response =
-              await handleCreateQuotation({
-
-              ...formData,
-
-              totalPieces,
-
-              laserCutting:
-                formData.laserCutting || "",
-
-              whatsapp:
-                formData.whatsapp || "",
-
-              status: "PENDING",
-            });
-          }
-
-          console.log({
-            totalPieces,
-            formData,
-            isEditMode,
-          });
-        }
-
-        catch (error) {
-
-          console.log(
-            "Quotation Error:",
-            error
-          );
-
-          setDuplicatePopup({
-
-            open: true,
-
-            message:
-              isEditMode ? "Quotation update failed" : "Quotation creation failed",
-          });
-
-          return;
-        }
-
-        if (response.success) {
-          setCreatedQuotation(
-            response.data || response.quotation
-          );
-
-          setIsSending(
-            false
-          );
-
-        } else {
-
-          setDuplicatePopup({
-
-            open: true,
-
-            message:
-              response.message,
-          });
-        }
-
-      }
-
-      finally {
-
-        setIsSending(
-          false
-        );
-      }
-    };
 
 
   const handleSubmit =
@@ -347,10 +246,68 @@ const QuotationForm = ({ initialData = null }) => {
         return;
       }
 
-      console.log(formData)
+      const contactNo = formData.whatsapp || formData.mobile;
+      if (!contactNo || !contactNo.trim()) {
+        setDuplicatePopup({
+          open: true,
+          message: "Please enter WhatsApp number",
+        });
+        return;
+      }
 
-      // ONLY OPEN POPUP
-      setShowPopup(true);
+      // DIRECT SAVE - NO POPUP
+      try {
+        setIsSending(true);
+        let response;
+        const contactNumber = formData.whatsapp || formData.mobile || "";
+        
+        if (isEditMode && (formData.quotationNo || id)) {
+          const editQuotationNo = formData.quotationNo || id;
+          response = await handleUpdateQuotation(
+            editQuotationNo,
+            {
+              ...formData,
+              totalPieces,
+              laserCutting: formData.laserCutting || "",
+              whatsapp: contactNumber,
+              mobile: contactNumber,
+            }
+          );
+        } else {
+          response = await handleCreateQuotation({
+            ...formData,
+            totalPieces,
+            laserCutting: formData.laserCutting || "",
+            whatsapp: contactNumber,
+            mobile: contactNumber,
+            status: "PENDING",
+          });
+        }
+
+        if (response && response.success) {
+          setSuccess({
+            open: true,
+            message: isEditMode ? "Quotation updated successfully!" : "Quotation created successfully!",
+          });
+          
+          // Navigate to quotations list
+          setTimeout(() => {
+            navi("/quotations");
+          }, 1000);
+        } else {
+          setDuplicatePopup({
+            open: true,
+            message: response?.message || (isEditMode ? "Quotation update failed" : "Quotation creation failed"),
+          });
+        }
+      } catch (error) {
+        setDuplicatePopup({
+          open: true,
+          message: isEditMode ? "Quotation update failed" : "Quotation creation failed",
+        });
+      } finally {
+        setIsSending(false);
+      }
     };
 
 
@@ -891,32 +848,46 @@ const QuotationForm = ({ initialData = null }) => {
             <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: "13px" }}>
 
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ minWidth: "40%" }}>Mobile No.:</Typography>
-                <Box sx={{ width: "60%" }}>
-                  <Input
-                    inpName="mobile"
-                    isReq={true}
-                    inpValue={formData.mobile}
-                    disabled={!isNewClient && !!formData.cliId}  // ✅ KEY LINE
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, "");
-                      handleChange({ target: { name: "mobile", value } });
-                    }}
-                  />
+                <Box sx={{ minWidth: "40%", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Typography>WhatsApp No.:</Typography>
+                  {(formData.whatsapp || formData.mobile) && (
+                    <a
+                      href={`https://wa.me/91${String(formData.whatsapp || formData.mobile).replace(/\D/g, "").slice(-10)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Direct WhatsApp Chat"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#25D366",
+                        color: "#ffffff",
+                        borderRadius: "50%",
+                        width: "22px",
+                        height: "22px",
+                        textDecoration: "none",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      💬
+                    </a>
+                  )}
                 </Box>
-              </Box>
-
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ minWidth: "40%" }}>WhatsApp No.:</Typography>
-
                 <Box sx={{ width: "60%" }}>
                   <Input
                     inpName="whatsapp"
-                    inpValue={formData.whatsapp}
+                    isReq={true}
+                    inpValue={formData.whatsapp || formData.mobile || ""}
                     disabled={!isNewClient && !!formData.cliId}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, "");
-                      handleChange({ target: { name: "whatsapp", value } });
+                      setFormData((prev) => ({
+                        ...prev,
+                        mobile: value,
+                        whatsapp: value,
+                      }));
                     }}
                   />
                 </Box>
@@ -957,12 +928,7 @@ const QuotationForm = ({ initialData = null }) => {
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography sx={{ minWidth: "40%" }}>Total Pieces:</Typography>
-                <Box sx={{ width: "60%" }}>
-                  <Input inpName="totalPieces" inpValue={totalPieces} disabled />
-                </Box>
-              </Box>
+              
 
             </Box>
 
@@ -979,16 +945,7 @@ const QuotationForm = ({ initialData = null }) => {
         </Box>
       </Box>
 
-      {/* Popup */}
-      <Popup
-        isOpen={showPopup}
-        title="Quotation Created"
-        message={`Create quotation for ${formData.cliName}?`}
-        onConfirm={
-          handleConfirmQuotation
-        }
-        onCancel={() => setShowPopup(false)}
-      />
+
 
 
       <Popup
@@ -1087,6 +1044,7 @@ const QuotationForm = ({ initialData = null }) => {
         sx={{
           position: "fixed",
           left: "-9999px",
+          width: "850px",
           top: 0,
           pointerEvents: "none",
           zIndex: -1,

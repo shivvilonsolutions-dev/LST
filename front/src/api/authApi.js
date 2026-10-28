@@ -140,3 +140,15 @@ export const deleteUserApi = async (userId) => {
     };
   }
 };
+
+export const updateUserApi = async (userId, data) => {
+  try {
+    const response = await api.put(`/auth/users/${userId}`, data);
+    return response.data;
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to update user",
+    };
+  }
+};

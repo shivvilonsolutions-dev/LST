@@ -30,8 +30,7 @@ import StorageIcon from "@mui/icons-material/Storage";
 import SecurityIcon from "@mui/icons-material/Security";
 import { useNavigate } from "react-router-dom";
 
-import { getAllUsersApi, createUser, deleteUserApi } from "../api/authApi";
-import api from "../api/axios";
+import { getAllUsersApi, createUser, deleteUserApi, updateUserApi } from "../api/authApi";
 import { AuthContext } from "../contexts/auth/AuthContext";
 import Popup from "../components/ui/Popup";
 
@@ -39,7 +38,25 @@ const SuperAdminPanel = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  const isSuperAdmin = true;
+  const localUserStr = localStorage.getItem("user");
+  let localUser = null;
+  try {
+    localUser = localUserStr ? JSON.parse(localUserStr) : null;
+  } catch (e) {
+    localUser = null;
+  }
+  const activeUser = user || localUser;
+
+  const isSuperAdmin =
+    activeUser?.role === "SUPER_ADMIN" ||
+    activeUser?.userId === "ADMIN001" ||
+    activeUser?.email === "odedraarjun928@gmail.com";
+
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      navigate("/dashboard");
+    }
+  }, [isSuperAdmin, navigate]);
 
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +90,14 @@ const SuperAdminPanel = () => {
     if (res.success) {
       setOpenCreateModal(false);
       setNewAdmin({ name: "", email: "", password: "" });
-      setPopup({ open: true, title: "Success", message: "New Admin account created successfully!" });
+      const loginHint = res.user?.email
+        ? ` Login on the client with ${res.user.email} and the password you just set.`
+        : " Login on the client with this email and the password you just set.";
+      setPopup({
+        open: true,
+        title: "Success",
+        message: `New Admin account created successfully.${loginHint}`,
+      });
       fetchUsers();
     } else {
       setPopup({ open: true, title: "Error", message: res.message || "Failed to create admin" });
@@ -82,22 +106,28 @@ const SuperAdminPanel = () => {
 
   const handleUpdateAdmin = async (e) => {
     e.preventDefault();
-    try {
-      const res = await api.put(`/auth/users/${editAdmin.userId}`, {
-        name: editAdmin.name,
-        email: editAdmin.email,
-        password: editAdmin.password,
-      });
+    if (!editAdmin.password || !editAdmin.password.trim()) {
+      setPopup({ open: true, title: "Error", message: "Please enter a new password" });
+      return;
+    }
 
-      if (res.data && res.data.success) {
-        setOpenEditModal(false);
-        setPopup({ open: true, title: "Success", message: "Admin details / password updated successfully!" });
-        fetchUsers();
-      } else {
-        setPopup({ open: true, title: "Error", message: res.data?.message || "Failed to update" });
-      }
-    } catch (err) {
-      setPopup({ open: true, title: "Error", message: err.response?.data?.message || "Update failed" });
+    const res = await updateUserApi(editAdmin.userId, {
+      name: editAdmin.name,
+      email: editAdmin.email,
+      password: editAdmin.password.trim(),
+    });
+
+    if (res.success) {
+      setOpenEditModal(false);
+      setEditAdmin({ userId: "", name: "", email: "", password: "" });
+      setPopup({
+        open: true,
+        title: "Success",
+        message: "Password updated. The same new password now works on client login.",
+      });
+      fetchUsers();
+    } else {
+      setPopup({ open: true, title: "Error", message: res.message || "Failed to update" });
     }
   };
 
@@ -344,6 +374,7 @@ const SuperAdminPanel = () => {
                 label="New Password"
                 type="password"
                 fullWidth
+                required
                 placeholder="Enter new password"
                 value={editAdmin.password}
                 onChange={(e) => setEditAdmin({ ...editAdmin, password: e.target.value })}

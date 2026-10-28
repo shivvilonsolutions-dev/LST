@@ -21,6 +21,12 @@ const quotationSchema =
         unique: true,
       },
 
+      userId: {
+        type: String,
+        required: true,
+        index: true,
+      },
+
       cliId: {
         type: String,
         required: true,

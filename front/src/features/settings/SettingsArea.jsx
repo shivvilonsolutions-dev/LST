@@ -17,6 +17,7 @@ import {
 
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import SaveIcon from "@mui/icons-material/Save";
+import FolderIcon from "@mui/icons-material/Folder";
 
 import Button from "../../components/ui/Button";
 import Popup from "../../components/ui/Popup";
@@ -100,7 +101,7 @@ const SettingsArea = () => {
           title: "Success",
 
           message:
-            "PDF save path updated successfully",
+            "Settings saved successfully.",
         });
 
       } catch (error) {
@@ -203,6 +204,19 @@ const SettingsArea = () => {
     } catch (error) {
       console.log(error);
       setPopup({ open: true, title: "Error", message: "Could not open folder browser: " + error.message });
+    }
+  };
+
+  const handleOpenStorageFolder = async () => {
+    try {
+      if (!window.electronAPI?.openFolder) {
+        setPopup({ open: true, title: "Error", message: "Folder opener not available. Please use the EXE app." });
+        return;
+      }
+      await window.electronAPI.openFolder(pdfPath);
+    } catch (error) {
+      console.log(error);
+      setPopup({ open: true, title: "Error", message: "Could not open folder: " + error.message });
     }
   };
 
@@ -314,7 +328,7 @@ const SettingsArea = () => {
 
           </Box>
 
-          <Box>
+          <Box sx={{ display: "flex", gap: 2 }}>
 
             <Button
               btnName="Save Settings"
@@ -324,11 +338,21 @@ const SettingsArea = () => {
               onClick={handleSave}
             />
 
+            <Button
+              btnName="Open Storage Folder"
+              btnColor="secondary.main"
+              btnWidth="auto"
+              icon={<FolderIcon />}
+              onClick={handleOpenStorageFolder}
+            />
+
           </Box>
 
         </Stack>
 
       </Paper>
+
+
 
       <Paper
         elevation={0}

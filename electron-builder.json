@@ -27,7 +27,7 @@
     }
   ],
   "win": {
-    "target": "dir",
+    "target": ["nsis"],
     "icon": "build/lst-logo.ico",
     "signAndEditExecutable": false,
     "forceCodeSigning": false

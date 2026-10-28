@@ -1,7 +1,6 @@
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-
 export const handleDownloadPDF =
   async ({
     pdfRef,
@@ -42,7 +41,7 @@ export const handleDownloadPDF =
     // DOWNLOAD IN BROWSER ONLY IF REQUESTED
     if (shouldDownload) {
       pdf.save(
-        `Quotation_${data?.cliName || "Export"}_${data?.mobile || ""}.pdf`
+        `Quotation_${data?.cliName || "Export"}_${data?.whatsapp || data?.mobile || ""}.pdf`
       );
     }
 
@@ -132,4 +131,6 @@ export const generateQuotationJpg = async (pdfRef) => {
     console.error("JPG Generation Error:", error);
     return null;
   }
-};
+};
+
+export default handleDownloadPDF;

@@ -60,9 +60,9 @@ const QuotationDetail = () => {
   const navi = useNavigate();
 
   const quotation =
-    quotations.find(
+    (quotations || []).find(
       (q) =>
-        String(q.quotationNo) === String(id)
+        q && String(q.quotationNo) === String(id)
     );
 
   const [editData, setEditData] = useState(quotation || null);
@@ -505,29 +505,49 @@ const QuotationDetail = () => {
               }}
             >
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography>Mobile No.:</Typography>
-                <Box sx={{ width: "60%" }}>
-                  <Input
-                    inpName="mobile"
-                    inpValue={editData.mobile}
-                    readOnly={!isEditing}
-                    onChange={handleChange}
-                  />
+                <Box sx={{ minWidth: "40%", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Typography>WhatsApp No.:</Typography>
+                  {(editData.whatsapp || editData.mobile) && (
+                    <a
+                      href={`https://wa.me/91${String(editData.whatsapp || editData.mobile).replace(/\D/g, "").slice(-10)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Direct WhatsApp Chat"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#25D366",
+                        color: "#ffffff",
+                        borderRadius: "50%",
+                        width: "22px",
+                        height: "22px",
+                        textDecoration: "none",
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                      }}
+                    >
+                      💬
+                    </a>
+                  )}
                 </Box>
-              </Box>
-
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography>WhatsApp No.:</Typography>
                 <Box sx={{ width: "60%" }}>
                   <Input
                     inpName="whatsapp"
-                    inpValue={editData.whatsapp}
+                    inpValue={editData.whatsapp || editData.mobile || ""}
                     readOnly={!isEditing}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      setEditData((prev) => ({
+                        ...prev,
+                        mobile: value,
+                        whatsapp: value,
+                      }));
+                    }}
                   />
                 </Box>
               </Box>
-
 
               <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
                 <Typography>Rate B1:</Typography>
@@ -590,16 +610,7 @@ const QuotationDetail = () => {
                 </Box>
               </Box>
 
-              <Box sx={{ display: "flex", flexDirection: "row", gap: "10px", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography>Total Pieces:</Typography>
-                <Box sx={{ width: "60%" }}>
-                  <Input
-                    inpName="totalPieces"
-                    inpValue={totalPieces}
-                    readOnly={!isEditing}
-                  />
-                </Box>
-              </Box>
+              
 
             </Box>
           </Box>
@@ -612,6 +623,7 @@ const QuotationDetail = () => {
         sx={{
           position: "fixed",
           left: "-9999px",
+          width: "850px",
           top: 0,
           pointerEvents: "none",
           zIndex: -1,

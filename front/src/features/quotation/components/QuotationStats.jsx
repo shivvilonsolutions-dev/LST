@@ -21,15 +21,16 @@ const QuotationStats = () => {
   );
 
   const confirmCount =
-    quotations.filter(
+    (quotations || []).filter(
       (item) =>
-        item.status ===
-        "CONFIRM"
+        item && item.status === "CONFIRM"
     ).length;
 
   const pendingCount =
-    quotations.length -
-    confirmCount;
+    (quotations || []).filter(
+      (item) =>
+        item && item.status === "PENDING"
+    ).length;
 
   return (
 

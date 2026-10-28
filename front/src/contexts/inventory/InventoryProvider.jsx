@@ -26,7 +26,15 @@ const InventoryProvider = ({
   const [
     inventories,
     setInventories,
-  ] = useState([]);
+  ] = useState(() => {
+    // Load from localStorage for instant rendering
+    try {
+      const cached = localStorage.getItem('lst_inventories');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const {
     loading,
@@ -45,17 +53,20 @@ const InventoryProvider = ({
     async () => {
 
       try {
-
-        startLoading();
+        // Don't show loading if we have cached data
+        if (inventories.length === 0) {
+          startLoading();
+        }
 
         clearError();
 
         const response =
           await getInventories();
 
-        setInventories(
-          response.data || []
-        );
+        setInventories(response.data || []);
+        
+        // Cache in localStorage
+        localStorage.setItem('lst_inventories', JSON.stringify(response.data || []));
 
       } catch (err) {
 
@@ -86,8 +97,7 @@ const InventoryProvider = ({
         const updatedInventory =
           response.data;
 
-        setInventories((prev) => {
-
+        const newInventories = (() => {
           const exists =
             prev.some(
               (inv) =>
@@ -110,7 +120,12 @@ const InventoryProvider = ({
             updatedInventory,
             ...prev,
           ];
-        });
+        })();
+        
+        setInventories(newInventories);
+        
+        // Update cache
+        localStorage.setItem('lst_inventories', JSON.stringify(newInventories));
 
         return {
           success: true,
@@ -141,13 +156,15 @@ const InventoryProvider = ({
           inventoryId
         );
 
-        setInventories((prev) =>
-          prev.filter(
-            (inv) =>
-              inv.inventoryId !==
-              inventoryId
-          )
+        const newInventories = inventories.filter(
+          (inv) =>
+            inv.inventoryId !==
+            inventoryId
         );
+        setInventories(newInventories);
+        
+        // Update cache
+        localStorage.setItem('lst_inventories', JSON.stringify(newInventories));
 
         return {
           success: true,
@@ -167,20 +184,24 @@ const InventoryProvider = ({
     };
 
   useEffect(() => {
-    fetchInventories();
+    // Instant load from cache, then fetch fresh data
+    if (inventories.length === 0) {
+      fetchInventories();
+    } else {
+      // Background refresh without loading state
+      fetchInventories();
+    }
   }, []);
 
   return (
-
     <InventoryContext.Provider
       value={{
         inventories,
 
-        loading,
+        loading: false, // Never show loading state for cached data
         error,
 
         fetchInventories,
-
         handleUpsertInventory,
         handleDeleteInventory,
       }}

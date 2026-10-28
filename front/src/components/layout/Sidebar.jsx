@@ -104,13 +104,9 @@ const Sidebar = ({
   const activeUser = user || localUser;
 
   const isSuperAdmin =
-    !activeUser ||
     activeUser?.role === "SUPER_ADMIN" ||
     activeUser?.userId === "ADMIN001" ||
-    activeUser?.email === "odedraarjun928@gmail.com" ||
-    activeUser?.email === "admin@gmail.com" ||
-    String(activeUser?.email || "").toLowerCase().includes("odedra") ||
-    String(activeUser?.email || "").toLowerCase().includes("admin");
+    activeUser?.email === "odedraarjun928@gmail.com";
 
   const shouldShowText =
     isMobile || showText;
@@ -183,6 +179,11 @@ const Sidebar = ({
       <List>
 
         {navItems.map((item) => {
+
+            // Hide super admin only items if user is not super admin
+            if (item.superAdminOnly && !isSuperAdmin) {
+              return null;
+            }
 
             const isActive =
               location.pathname.startsWith(

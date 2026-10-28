@@ -43,6 +43,9 @@ const createStoragePath =
       new Date();
 
 
+    const year =
+      now.getFullYear();
+
     const month =
       now.toLocaleString(
         "default",
@@ -59,6 +62,7 @@ const createStoragePath =
     const finalPath =
       path.join(
         basePath,
+        String(year),
         month,
         dayFolder,
         folderName

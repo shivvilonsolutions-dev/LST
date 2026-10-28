@@ -3,3 +3,7 @@
 /release
 /build-output*
 *.exe
+back/app-data/
+*.db
+*.db-shm
+*.db-wal

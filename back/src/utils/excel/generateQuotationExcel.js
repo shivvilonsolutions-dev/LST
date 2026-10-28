@@ -83,38 +83,44 @@ const fillSmallQuotationSheet =
         ).value =
           `MO:- ${quotationData.mobile}`;
 
-
         sheet.getCell(
           `F${startRow + 3}`
         ).value =
-          `RATE B:- ${quotationData.rateB1}`;
-
+          `WHATSAPP:- ${quotationData.whatsapp}`;
 
         sheet.getCell(
           `F${startRow + 4}`
         ).value =
-          `RATE B:- ${quotationData.rateB2}`;
-
+          `RATE B1:- ${quotationData.rateB1}`;
 
         sheet.getCell(
           `F${startRow + 5}`
         ).value =
-          `ADD:- ${quotationData.add}`;
-
+          `RATE B2:- ${quotationData.rateB2}`;
 
         sheet.getCell(
           `F${startRow + 6}`
         ).value =
+          `ADD:- ${quotationData.add}`;
+
+        sheet.getCell(
+          `F${startRow + 7}`
+        ).value =
           `BENDING:- ${quotationData.bending}`;
 
         sheet.getCell(
-          `D${startRow + 9}`
+          `F${startRow + 8}`
         ).value =
-          calculateTotalPieces(
-            quotationData.materials
-          );
+          `LASER CUTTING:- ${quotationData.laserCutting}`;
 
-        // MATERIALS
+        sheet.getCell(
+          `F${startRow + 9}`
+        ).value =
+          `TOTAL PC:- ${calculateTotalPieces(
+            quotationData.materials
+          )}`;
+
+        // MATERIALS - Allow up to 8 rows for small template
         quotationData.materials.forEach(
           (
             item,
@@ -191,36 +197,42 @@ const fillMediumQuotationSheet =
         ).value =
           `MO:- ${quotationData.mobile}`;
 
-
         sheet.getCell(
           `F${startRow + 3}`
         ).value =
-          `RATE B:- ${quotationData.rateB1}`;
+          `WHATSAPP:- ${quotationData.whatsapp}`;
 
         sheet.getCell(
           `F${startRow + 4}`
         ).value =
-          `RATE B:- ${quotationData.rateB2}`;
-
+          `RATE B1:- ${quotationData.rateB1}`;
 
         sheet.getCell(
           `F${startRow + 5}`
         ).value =
-          `ADD:- ${quotationData.add}`;
-
+          `RATE B2:- ${quotationData.rateB2}`;
 
         sheet.getCell(
           `F${startRow + 6}`
         ).value =
-          `CUTTING:- ${quotationData.laserCutting}`;
-
+          `ADD:- ${quotationData.add}`;
 
         sheet.getCell(
-          `D${startRow + 14}`
+          `F${startRow + 7}`
         ).value =
-          calculateTotalPieces(
+          `BENDING:- ${quotationData.bending}`;
+
+        sheet.getCell(
+          `F${startRow + 8}`
+        ).value =
+          `LASER CUTTING:- ${quotationData.laserCutting}`;
+
+        sheet.getCell(
+          `F${startRow + 11}`
+        ).value =
+          `TOTAL PC:- ${calculateTotalPieces(
             quotationData.materials
-          );
+          )}`;
 
 
         quotationData.materials.forEach(
@@ -288,25 +300,28 @@ const fillLargeQuotationSheet =
     sheet.getCell("F3").value =
       `MO:- ${quotationData.mobile}`;
 
-
     sheet.getCell("F4").value =
-      `RATE W:- ${quotationData.rateB1}`;
+      `WHATSAPP:- ${quotationData.whatsapp}`;
 
     sheet.getCell("F5").value =
-      `RATE B:- ${quotationData.rateB2}`;
-
+      `RATE B1:- ${quotationData.rateB1}`;
 
     sheet.getCell("F6").value =
-      `ADD:- ${quotationData.add}`;
-
+      `RATE B2:- ${quotationData.rateB2}`;
 
     sheet.getCell("F7").value =
+      `ADD:- ${quotationData.add}`;
+
+    sheet.getCell("F8").value =
       `BENDING:- ${quotationData.bending}`;
 
-    sheet.getCell("D30").value =
-      calculateTotalPieces(
+    sheet.getCell("F9").value =
+      `LASER CUTTING:- ${quotationData.laserCutting}`;
+
+    sheet.getCell("F13").value =
+      `TOTAL PC:- ${calculateTotalPieces(
         quotationData.materials
-      );
+      )}`;
 
     quotationData.materials.forEach(
       (
@@ -394,7 +409,7 @@ const generateQuotationExcel =
 
     // SHEET SELECTION
     if (
-      materialCount <= 6
+      materialCount <= 8
     ) {
 
       selectedSheetName =

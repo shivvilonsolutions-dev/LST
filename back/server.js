@@ -84,6 +84,39 @@ const seedDefaultUser =
         console.log("Super Admin odedraarjun928@gmail.com Updated");
       }
 
+      // Seed LST Admin: lst@gmail.com / lst123 / LST001
+      let lstAdmin = await LocalUser.findOne({
+        $or: [
+          { email: "lst@gmail.com" },
+          { userId: "LST001" }
+        ]
+      });
+
+      const lstHashedPassword = await bcrypt.hash("lst123", 10);
+
+      if (!lstAdmin) {
+        const lstUserData = {
+          name: "LST Admin",
+          userId: "LST001",
+          email: "lst@gmail.com",
+          password: lstHashedPassword,
+          role: "ADMIN",
+          isSynced: false,
+          lastSyncedAt: new Date(),
+        };
+
+        await LocalUser.create(lstUserData);
+        await syncAfterLocalSave(lstUserData, "user");
+        console.log("LST Admin (LST001) Created");
+      } else {
+        lstAdmin.name = "LST Admin";
+        lstAdmin.email = "lst@gmail.com";
+        lstAdmin.password = lstHashedPassword;
+        lstAdmin.role = "ADMIN";
+        await lstAdmin.save();
+        console.log("LST Admin (LST001) Updated");
+      }
+
 
       // DEFAULT STORAGE PATH
       const defaultStoragePath =

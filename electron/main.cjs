@@ -44,6 +44,7 @@ if (process.env.NODE_ENV !== "development") {
 // MAIN WINDOW REFERENCE
 let mainWindow = null;
 let appTray = null;
+let isQuitting = false;
 
 // CREATE WINDOW
 function createMainWindow() {
@@ -127,7 +128,10 @@ function createTray() {
             },
             {
                 label: "Quit",
-                role: "quit"
+                click: () => {
+                    isQuitting = true;
+                    app.quit();
+                }
             }
         ]);
 
@@ -318,8 +322,21 @@ const initializeApplication = async () => {
         createAppMenu();
         createTray();
 
+        // Prevent window close from quitting app
+        mainWindow.on("close", (event) => {
+            if (!isQuitting) {
+                event.preventDefault();
+                mainWindow.hide();
+            }
+        });
+
         mainWindow.on("closed", () => {
             mainWindow = null;
+        });
+
+        // Handle quit requests
+        app.on("before-quit", () => {
+            isQuitting = true;
         });
     } catch (error) {
         console.error("Initialization error:", error);
@@ -335,7 +352,6 @@ app.on("activate", () => {
 });
 
 app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
+    // Don't quit automatically - let tray handle it
+    // Only quit if explicitly requested
 });

@@ -22,7 +22,15 @@ const ClientProvider = ({
 }) => {
 
   const [clients, setClients] =
-    useState([]);
+    useState(() => {
+    // Load from localStorage for instant rendering
+    try {
+      const cached = localStorage.getItem('lst_clients');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const {
     loading,
@@ -41,17 +49,20 @@ const ClientProvider = ({
     async () => {
 
       try {
-
-        startLoading();
+        // Don't show loading if we have cached data
+        if (clients.length === 0) {
+          startLoading();
+        }
 
         clearError();
 
         const response =
           await getClients();
 
-        setClients(
-          response.data || []
-        );
+        setClients(response.data || []);
+        
+        // Cache in localStorage
+        localStorage.setItem('lst_clients', JSON.stringify(response.data || []));
 
       } catch (err) {
 
@@ -88,6 +99,15 @@ const ClientProvider = ({
           )
         );
 
+        // Update cache
+        localStorage.setItem('lst_clients', JSON.stringify(
+          clients.map((client) =>
+            client.cliId === id
+              ? response.data
+              : client
+          )
+        ));
+
         return {
           success: true,
         };
@@ -106,7 +126,13 @@ const ClientProvider = ({
     };
 
   useEffect(() => {
-    fetchClients();
+    // Instant load from cache, then fetch fresh data
+    if (clients.length === 0) {
+      fetchClients();
+    } else {
+      // Background refresh without loading state
+      fetchClients();
+    }
   }, []);
 
   return (
@@ -115,7 +141,7 @@ const ClientProvider = ({
         clients,
         setClients,
 
-        loading,
+        loading: false, // Never show loading state for cached data
         error,
 
         fetchClients,

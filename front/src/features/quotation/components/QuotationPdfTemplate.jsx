@@ -14,9 +14,11 @@ const EMPTY_ROW = { size: "", piece: "", gauge: "" };
 const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
   const materials = data?.materials || [];
 
+  // Row count per size
   let rowCount = 6;
   if (size === "mid") rowCount = 13;
   if (size === "large") rowCount = 26;
+  if (size === "small") rowCount = 6;
 
   rowCount = Math.max(rowCount, materials.length);
   const rows = Array.from({ length: rowCount }, (_, index) => {
@@ -37,7 +39,7 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
 
   // Color theme: Small is Green (#92d050), Mid & Large are Blue (#8db4e2)
   const THEME_COLOR = size === "small" ? "#92d050" : "#8db4e2";
-  const BORDER_STYLE = "2px solid #000000";
+  const BORDER_STYLE = "1.5px solid #000000";
 
   const pcHeader = size === "small" ? "PIC" : "PC";
   const gejHeader = size === "mid" ? "GUJ" : "GEJ";
@@ -46,10 +48,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
     <div
       ref={ref}
       style={{
-        width: 794,
+        width: "850px",
         background: "#ffffff",
         fontFamily: "'Segoe UI', Arial, sans-serif",
-        padding: "10px",
+        padding: "2px 3px",
+        margin: "0",
         boxSizing: "border-box",
         color: "#000000",
       }}
@@ -58,9 +61,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
         style={{
           width: "100%",
           borderCollapse: "collapse",
-          border: "3px solid #000000",
-          fontSize: "18px",
-          fontWeight: "bold",
+          border: "2px solid #000000",
+          fontSize: "24px",
+          fontWeight: "900",
           backgroundColor: "#ffffff",
         }}
       >
@@ -72,9 +75,10 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
               style={{
                 border: BORDER_STYLE,
                 backgroundColor: THEME_COLOR,
-                padding: "6px 12px",
+                padding: "6px 8px",
                 textAlign: "left",
-                fontSize: "22px",
+                fontSize: "32px",
+                fontWeight: "900",
                 color: "#000000",
               }}
             >
@@ -83,10 +87,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                padding: "6px 12px",
+                padding: "6px 8px",
                 textAlign: "left",
-                width: "32%",
-                fontSize: "18px",
+                width: "28%",
+                fontSize: "26px",
+                fontWeight: "900",
                 color: "#000000",
                 backgroundColor: "#ffffff",
               }}
@@ -100,9 +105,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                width: "6%",
+                width: "4%",
                 textAlign: "center",
-                padding: "6px 4px",
+                padding: "4px 2px",
+                fontSize: "22px",
+                fontWeight: "900",
                 color: "#000000",
                 backgroundColor: "#ffffff",
               }}
@@ -110,10 +117,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                width: "38%",
+                width: "46%",
                 textAlign: "center",
-                padding: "6px",
-                fontSize: "20px",
+                padding: "4px 6px",
+                fontSize: "28px",
+                fontWeight: "900",
                 color: "#000000",
                 backgroundColor: "#ffffff",
               }}
@@ -123,10 +131,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                width: "12%",
+                width: "11%",
                 textAlign: "center",
-                padding: "6px",
-                fontSize: "20px",
+                padding: "4px 3px",
+                fontSize: "28px",
+                fontWeight: "900",
                 color: "#000000",
                 backgroundColor: "#ffffff",
               }}
@@ -136,10 +145,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                width: "12%",
+                width: "11%",
                 textAlign: "center",
-                padding: "6px",
-                fontSize: "20px",
+                padding: "4px 3px",
+                fontSize: "28px",
+                fontWeight: "900",
                 color: "#000000",
                 backgroundColor: "#ffffff",
               }}
@@ -149,12 +159,13 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
             <td
               style={{
                 border: BORDER_STYLE,
-                padding: "6px 12px",
+                padding: "4px 6px",
                 textAlign: "left",
-                fontSize: "16px",
+                fontSize: "22px",
                 color: "#000000",
-                fontWeight: "bold",
+                fontWeight: "900",
                 backgroundColor: "#ffffff",
+                whiteSpace: "nowrap",
               }}
             >
               {formatDateTime(data?.quotationDate || new Date())}
@@ -163,11 +174,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
 
           {/* Material rows */}
           {(() => {
-            const calcTotalPieces = (data?.materials || []).reduce((acc, r) => {
-              const val = parseFloat(r.piece || r.peice);
-              return acc + (isNaN(val) ? 0 : val);
-            }, 0);
-            const totalPiecesVal = calcTotalPieces > 0 ? calcTotalPieces : (data?.totalPiece || "");
+            const whatsappNumber = data?.whatsapp || data?.mobile || "";
+            const rawDigits = String(whatsappNumber).replace(/\D/g, "");
+            const cleanPhone = rawDigits.length === 10 ? `91${rawDigits}` : rawDigits;
 
             return rows.map((row, i) => {
               let rightLabel = "";
@@ -176,106 +185,71 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
 
               if (size === "small") {
                 if (i === 0) {
-                  rightLabel = "MO:-";
-                  rightVal = data?.mobile || "";
+                  rightLabel = "WHATSAPP:-";
+                  rightVal = whatsappNumber;
                   isThemeBg = true;
                 } else if (i === 1) {
-                  rightLabel = "TOTAL PC:-";
-                  rightVal = totalPiecesVal;
-                } else if (i === 2) {
                   rightLabel = "RATE B1:-";
                   rightVal = data?.rateB1 || "";
-                } else if (i === 3) {
+                } else if (i === 2) {
                   rightLabel = "RATE B2:-";
                   rightVal = data?.rateB2 || "";
-                } else if (i === 4) {
+                } else if (i === 3) {
                   rightLabel = "ADD:-";
                   rightVal = data?.add || "";
                   isThemeBg = true;
-                } else if (i === 5) {
-                  rightLabel = "BENDING:-";
-                  rightVal = data?.bending || "";
-                }
-              } else if (size === "mid") {
-                if (i === 0) {
-                  rightLabel = "MO:-";
-                  rightVal = data?.mobile || "";
-                  isThemeBg = true;
-                } else if (i === 1) {
-                  rightLabel = "TOTAL PC:-";
-                  rightVal = totalPiecesVal;
-                } else if (i === 2) {
-                  rightLabel = "RATE B1:-";
-                  rightVal = data?.rateB1 || "";
-                } else if (i === 3) {
-                  rightLabel = "RATE B2:-";
-                  rightVal = data?.rateB2 || "";
                 } else if (i === 4) {
-                  rightLabel = "ADD:-";
-                  rightVal = data?.add || "";
-                  isThemeBg = true;
-                } else if (i === 5) {
                   rightLabel = "BENDING:-";
                   rightVal = data?.bending || "";
-                } else if (i === 6) {
-                  rightLabel = "CUTTING:-";
+                } else if (i === 5) {
+                  rightLabel = "LASER CUTTING:-";
                   rightVal = data?.laserCutting || "";
-                } else if (i === 7) {
-                  rightLabel = "MO";
-                  rightVal = "";
-                } else if (i === 8) {
-                  rightLabel = "9925018479";
-                  rightVal = "";
-                } else if (i === 9) {
-                  rightLabel = "9925018420";
-                  rightVal = "";
                 }
               } else {
-                // Large (26 rows)
+                // mid (13 rows) & large (26 rows)
                 if (i === 0) {
-                  rightLabel = "MO:-";
-                  rightVal = data?.mobile || "";
+                  rightLabel = "WHATSAPP:-";
+                  rightVal = whatsappNumber;
                   isThemeBg = true;
                 } else if (i === 1) {
-                  rightLabel = "TOTAL PC:-";
-                  rightVal = totalPiecesVal;
-                } else if (i === 2) {
                   rightLabel = "RATE B1:-";
                   rightVal = data?.rateB1 || "";
-                } else if (i === 3) {
+                } else if (i === 2) {
                   rightLabel = "RATE B2:-";
                   rightVal = data?.rateB2 || "";
-                } else if (i === 4) {
+                } else if (i === 3) {
                   rightLabel = "ADD:-";
                   rightVal = data?.add || "";
                   isThemeBg = true;
-                } else if (i === 5) {
+                } else if (i === 4) {
                   rightLabel = "BENDING:-";
                   rightVal = data?.bending || "";
-                } else if (i === 6) {
-                  rightLabel = "CUTTING:-";
+                } else if (i === 5) {
+                  rightLabel = "LASER CUTTING:-";
                   rightVal = data?.laserCutting || "";
-                } else if (i === 7) {
+                } else if (i === 6) {
                   rightLabel = "MO";
                   rightVal = "";
-                } else if (i === 8) {
+                } else if (i === 7) {
                   rightLabel = "9925018479";
                   rightVal = "";
-                } else if (i === 9) {
+                } else if (i === 8) {
                   rightLabel = "9925018420";
                   rightVal = "";
                 }
               }
 
             return (
-              <tr key={i} style={{ height: "38px" }}>
+              <tr key={i} style={{ height: "44px" }}>
                 <td
                   style={{
                     border: BORDER_STYLE,
                     textAlign: "center",
-                    fontSize: "18px",
+                    fontSize: "24px",
+                    fontWeight: "900",
                     color: "#000000",
                     backgroundColor: "#ffffff",
+                    padding: "3px 2px",
                   }}
                 >
                   {i + 1}
@@ -283,8 +257,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                 <td
                   style={{
                     border: BORDER_STYLE,
-                    padding: "4px 8px",
-                    fontSize: "18px",
+                    padding: "3px 6px",
+                    fontSize: "28px",
+                    fontWeight: "900",
                     color: "#000000",
                     textAlign: "left",
                     backgroundColor: "#ffffff",
@@ -296,9 +271,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   style={{
                     border: BORDER_STYLE,
                     textAlign: "center",
-                    fontSize: "18px",
+                    fontSize: "28px",
+                    fontWeight: "900",
                     color: "#000000",
                     backgroundColor: "#ffffff",
+                    padding: "3px 3px",
                   }}
                 >
                   {row.piece || ""}
@@ -307,9 +284,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   style={{
                     border: BORDER_STYLE,
                     textAlign: "center",
-                    fontSize: "18px",
+                    fontSize: "28px",
+                    fontWeight: "900",
                     color: "#000000",
                     backgroundColor: "#ffffff",
+                    padding: "3px 3px",
                   }}
                 >
                   {row.gauge || ""}
@@ -318,13 +297,25 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   style={{
                     border: BORDER_STYLE,
                     backgroundColor: isThemeBg ? THEME_COLOR : "#ffffff",
-                    padding: "4px 8px",
+                    padding: "3px 6px",
                     textAlign: rightLabel && (rightLabel === "9925018479" || rightLabel === "9925018420") ? "right" : "left",
-                    fontSize: "18px",
+                    fontSize: "24px",
+                    fontWeight: "900",
                     color: "#000000",
                   }}
                 >
-                  {rightLabel} {rightVal}
+                  {i === 0 && cleanPhone ? (
+                    <a
+                      href={`https://wa.me/${cleanPhone}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#000000", textDecoration: "none", fontWeight: "900" }}
+                    >
+                      {rightLabel} {rightVal}
+                    </a>
+                  ) : (
+                    rightLabel ? `${rightLabel} ${rightVal}` : ""
+                  )}
                 </td>
               </tr>
             );
@@ -337,21 +328,22 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
       <div
         style={{
           width: "100%",
-          borderLeft: "3px solid #000000",
-          borderRight: "3px solid #000000",
-          borderBottom: "3px solid #000000",
+          borderLeft: "2px solid #000000",
+          borderRight: "2px solid #000000",
+          borderBottom: "2px solid #000000",
           backgroundColor: "#ffffff",
           boxSizing: "border-box",
-          fontWeight: "bold",
+          fontWeight: "900",
           color: "#000000",
         }}
       >
         <div
           style={{
             textAlign: "center",
-            padding: "6px 0",
-            borderBottom: "2px solid #000000",
-            fontSize: "20px",
+            padding: "5px 0",
+            borderBottom: "1.5px solid #000000",
+            fontSize: "26px",
+            fontWeight: "900",
           }}
         >
           માપ ચેક કરી ને રજા લેવી
@@ -359,8 +351,9 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
         <div
           style={{
             textAlign: "center",
-            padding: "6px 0",
-            fontSize: "20px",
+            padding: "5px 0",
+            fontSize: "26px",
+            fontWeight: "900",
           }}
         >
           કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે

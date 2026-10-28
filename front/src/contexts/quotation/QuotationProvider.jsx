@@ -27,7 +27,15 @@ const QuotationProvider = ({
   const [
     quotations,
     setQuotations,
-  ] = useState([]);
+  ] = useState(() => {
+    // Load from localStorage for instant rendering
+    try {
+      const cached = localStorage.getItem('lst_quotations');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const {
     loading,
@@ -46,17 +54,20 @@ const QuotationProvider = ({
     async () => {
 
       try {
-
-        startLoading();
+        // Don't show loading if we have cached data
+        if (quotations.length === 0) {
+          startLoading();
+        }
 
         clearError();
 
         const response =
           await getQuotations();
 
-        setQuotations(
-          response.data || []
-        );
+        setQuotations(response.data || []);
+        
+        // Cache in localStorage
+        localStorage.setItem('lst_quotations', JSON.stringify(response.data || []));
 
       } catch (err) {
 
@@ -84,14 +95,20 @@ const QuotationProvider = ({
             data
           );
 
-        setQuotations((prev) => [
-          response.data,
-          ...prev,
-        ]);
+        const createdItem = response.data?.data || response.data;
+        const newQuotations = [createdItem, ...quotations];
+        setQuotations(newQuotations);
+        
+        // Update cache
+        localStorage.setItem('lst_quotations', JSON.stringify(newQuotations));
+
+        // Immediately refresh from server to ensure latest data
+        await fetchQuotations();
 
         return {
           success: true,
-          data: response.data,
+          data: createdItem,
+          quotation: createdItem,
         };
 
       } catch (err) {
@@ -103,6 +120,7 @@ const QuotationProvider = ({
 
         return {
           success: false,
+          message: err.response?.data?.message || err.message || "Failed to create quotation",
         };
       }
     };
@@ -124,14 +142,16 @@ const QuotationProvider = ({
             data
           );
 
-        setQuotations((prev) =>
-          prev.map((q) =>
-            q.quotationNo ===
-              quotationNo
-              ? response.data
+                const updatedItem = response.data?.data || response.data;
+        const newQuotations = (quotations || []).map((q) =>
+            q && String(q.quotationNo) === String(quotationNo)
+              ? updatedItem
               : q
-          )
-        );
+          );
+        setQuotations(newQuotations);
+        
+        // Update cache
+        localStorage.setItem('lst_quotations', JSON.stringify(newQuotations));
 
         return {
           success: true,  
@@ -162,13 +182,14 @@ const QuotationProvider = ({
           quotationNo
         );
 
-        setQuotations((prev) =>
-          prev.filter(
-            (q) =>
-              q.quotationNo !==
-              quotationNo
-          )
+        const newQuotations = (quotations || []).filter(
+          (q) =>
+            q && q.quotationNo !== quotationNo
         );
+        setQuotations(newQuotations);
+        
+        // Update cache
+        localStorage.setItem('lst_quotations', JSON.stringify(newQuotations));
 
         return {
           success: true,
@@ -211,6 +232,7 @@ const QuotationProvider = ({
     };
 
   useEffect(() => {
+    // Always fetch fresh data on mount to ensure sync
     fetchQuotations();
   }, []);
 
@@ -219,7 +241,7 @@ const QuotationProvider = ({
       value={{
         quotations,
 
-        loading,
+        loading: false, // Never show loading state for cached data
         error,
 
         fetchQuotations,
