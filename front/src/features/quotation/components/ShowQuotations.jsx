@@ -158,7 +158,7 @@ const ShowQuotations = ({
                   <TableCell>{item.cliName}</TableCell>
 
                   {/* Thickness */}
-                  <TableCell>{item.materials[0].gauge}</TableCell>
+                  <TableCell>{(item.materials || []).map(m => m.gauge).filter(Boolean).join(", ") || "-"}</TableCell>
 
                   {/* Whatsapp */}
                   <TableCell>{item.whatsapp}</TableCell>

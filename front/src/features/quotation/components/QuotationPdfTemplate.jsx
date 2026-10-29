@@ -185,7 +185,7 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
 
               if (size === "small") {
                 if (i === 0) {
-                  rightLabel = "WHATSAPP:-";
+                  rightLabel = "WH:-";
                   rightVal = whatsappNumber;
                   isThemeBg = true;
                 } else if (i === 1) {
@@ -199,16 +199,16 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   rightVal = data?.add || "";
                   isThemeBg = true;
                 } else if (i === 4) {
-                  rightLabel = "BENDING:-";
+                  rightLabel = "BE:-";
                   rightVal = data?.bending || "";
                 } else if (i === 5) {
-                  rightLabel = "LASER CUTTING:-";
+                  rightLabel = "LC:-";
                   rightVal = data?.laserCutting || "";
                 }
               } else {
                 // mid (13 rows) & large (26 rows)
                 if (i === 0) {
-                  rightLabel = "WHATSAPP:-";
+                  rightLabel = "WH:-";
                   rightVal = whatsappNumber;
                   isThemeBg = true;
                 } else if (i === 1) {
@@ -222,10 +222,10 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                   rightVal = data?.add || "";
                   isThemeBg = true;
                 } else if (i === 4) {
-                  rightLabel = "BENDING:-";
+                  rightLabel = "BE:-";
                   rightVal = data?.bending || "";
                 } else if (i === 5) {
-                  rightLabel = "LASER CUTTING:-";
+                  rightLabel = "LC:-";
                   rightVal = data?.laserCutting || "";
                 } else if (i === 6) {
                   rightLabel = "MO";

@@ -8,7 +8,11 @@ import {
   Box,
   Typography,
   InputAdornment,
+  Button as MuiButton,
 } from "@mui/material";
+import PrintIcon from "@mui/icons-material/Print";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import { printQuotationsReport, downloadQuotationsReportPdf } from "../../../utils/printQuotationsReport";
 
 
 import {
@@ -29,7 +33,16 @@ import dayjs
 import SearchIcon from "@mui/icons-material/Search";
 import Button from "../../../components/ui/Button";
 
-const QuotationActions = ({ setFilter, setSearch, setSelectedMonth, search, filteredCount }) => {
+const QuotationActions = ({
+  setFilter,
+  setSearch,
+  setSelectedMonth,
+  search,
+  filter,
+  selectedMonth,
+  filteredCount,
+  filteredData = []
+}) => {
   const navigate = useNavigate();
   const [value, setValue] = useState("ALL");
 
@@ -238,6 +251,62 @@ const QuotationActions = ({ setFilter, setSearch, setSelectedMonth, search, filt
               ),
           }}
         />
+
+        {/* Print A4 Report */}
+        <MuiButton
+          variant="outlined"
+          size="small"
+          startIcon={<PrintIcon />}
+          onClick={() =>
+            printQuotationsReport({
+              data: filteredData,
+              search,
+              filter,
+              selectedMonth,
+            })
+          }
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            color: "#0f766e",
+            borderColor: "#0f766e",
+            "&:hover": { bgcolor: "#f0fdfa", borderColor: "#0f766e" },
+            whiteSpace: "nowrap",
+            px: 1.5,
+            py: 0.8,
+            borderRadius: 1.5,
+          }}
+        >
+          Print List (A4)
+        </MuiButton>
+
+        {/* Download A4 PDF Report */}
+        <MuiButton
+          variant="outlined"
+          size="small"
+          startIcon={<PictureAsPdfIcon />}
+          onClick={() =>
+            downloadQuotationsReportPdf({
+              data: filteredData,
+              search,
+              filter,
+              selectedMonth,
+            })
+          }
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            color: "#be123c",
+            borderColor: "#be123c",
+            "&:hover": { bgcolor: "#fff1f2", borderColor: "#be123c" },
+            whiteSpace: "nowrap",
+            px: 1.5,
+            py: 0.8,
+            borderRadius: 1.5,
+          }}
+        >
+          PDF Download
+        </MuiButton>
 
         <Button
           btnName="+ Create Quotation"

@@ -207,6 +207,9 @@ const QuotationArea = () => {
           }
           search={search}
           filteredCount={filteredData.length}
+          filter={filter}
+          selectedMonth={selectedMonth}
+          filteredData={filteredData}
         />
 
         {/* Data */}
