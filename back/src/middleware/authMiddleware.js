@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import envConfig from "../config/envConfig.js";
 import { connectUserDatabases } from "../config/setDatabase.js";
 
 const authMiddleware = async (req, res, next) => {
@@ -13,11 +14,9 @@ const authMiddleware = async (req, res, next) => {
     }
 
     const token = authHeader.split(" ")[1];
+    const secret = envConfig?.JWT_SECRET || process.env.JWT_SECRET || "supersecretjwtkey12345";
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token, secret);
 
     req.user = decoded;
 

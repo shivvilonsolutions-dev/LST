@@ -1,25 +1,19 @@
-import jwt
-from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+import envConfig from "../config/envConfig.js";
 
+const generateToken = (user) => {
+  const secret = envConfig?.JWT_SECRET || process.env.JWT_SECRET || "supersecretjwtkey12345";
 
-const generateToken =
-  (user) => {
-
-    return jwt.sign({
-
-      userId:
-        user.userId,
-
-      email:
-        user.email,
-
+  return jwt.sign(
+    {
+      userId: user.userId,
+      email: user.email,
     },
-
-    process.env.JWT_SECRET,
-
+    secret,
     {
       expiresIn: "30d", // 30 days - no auto logout
-    });
-  };
+    }
+  );
+};
 
 export default generateToken;

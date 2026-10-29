@@ -28,10 +28,16 @@ if (envPath && fs.existsSync(envPath)) {
 const envConfig = {
   PORT: process.env.PORT || 5000,
   LOCAL_MONGO_URI: process.env.LOCAL_MONGO_URI || "mongodb://127.0.0.1:27017/lst_local",
-  ATLAS_MONGO_URI: process.env.ATLAS_MONGO_URI || "mongodb://127.0.0.1:27017/lst_atlas",
+  ATLAS_MONGO_URI: process.env.ATLAS_MONGO_URI || "mongodb+srv://shivvilonsolutions_db_user:SLPyWcPpOYg6Jysx@cluster0.bt8izdt.mongodb.net/lst?retryWrites=true&w=majority",
   EMAIL_USER: process.env.EMAIL_USER || "",
   EMAIL_PASS: process.env.EMAIL_PASS || "",
   JWT_SECRET: process.env.JWT_SECRET || "supersecretjwtkey12345",
 };
+
+// Guarantee process.env has the fallbacks as well
+process.env.JWT_SECRET = envConfig.JWT_SECRET;
+process.env.PORT = String(envConfig.PORT);
+process.env.LOCAL_MONGO_URI = envConfig.LOCAL_MONGO_URI;
+process.env.ATLAS_MONGO_URI = envConfig.ATLAS_MONGO_URI;
 
 export default envConfig;

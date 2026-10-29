@@ -28,6 +28,7 @@ process.on("unhandledRejection", (reason) => {
 // START BACKEND SERVER IN PRODUCTION
 if (process.env.NODE_ENV !== "development") {
     try {
+        if (!process.env.JWT_SECRET) process.env.JWT_SECRET = "supersecretjwtkey12345";
         console.log("Starting backend server in production...");
         import("../back/server.js")
             .then(() => {
