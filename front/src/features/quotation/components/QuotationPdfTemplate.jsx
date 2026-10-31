@@ -341,22 +341,11 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
           style={{
             textAlign: "center",
             padding: "5px 0",
-            borderBottom: "1.5px solid #000000",
-            fontSize: "26px",
+            fontSize: "29px",
             fontWeight: "900",
           }}
         >
-          માપ ચેક કરી ને રજા લેવી
-        </div>
-        <div
-          style={{
-            textAlign: "center",
-            padding: "5px 0",
-            fontSize: "26px",
-            fontWeight: "900",
-          }}
-        >
-          કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
+          માપ ચેક કરી ને રજા લેવી | કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે
         </div>
       </div>
     </div>
