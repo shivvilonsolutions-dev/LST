@@ -10,7 +10,9 @@ import {
   TableBody,
   Divider,
   Select,
-  MenuItem
+  MenuItem,
+  Autocomplete,
+  TextField
 } from "@mui/material";
 
 import Input from "../../../components/ui/Input";
@@ -635,58 +637,97 @@ const QuotationForm = ({ initialData = null }) => {
 
             {/* Input Area */}
             {!isNewClient ? (
-              <Select
+              <Autocomplete
                 size="small"
-                value={formData.cliId || ""}
-                displayEmpty
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  if (value === "__new__") {
-                    setIsNewClient(true);
-                    setFormData({
-                      ...formData,
+                options={[
+                  { isAddNew: true, cliId: "__new__", cliName: "+ Add New", mobile: "" },
+                  ...(clients || [])
+                ]}
+                value={
+                  (clients || []).find((c) => String(c.cliId) === String(formData.cliId)) ||
+                  (formData.cliName ? { cliId: formData.cliId || "", cliName: formData.cliName, mobile: formData.mobile || formData.whatsapp || "" } : null)
+                }
+                onChange={(event, newValue) => {
+                  if (!newValue) {
+                    setFormData((prev) => ({
+                      ...prev,
                       cliId: "",
                       cliName: "",
                       mobile: "",
                       whatsapp: "",
-                    });
-                  } else {
-                    const selectedClient = clients.find(
-                      (c) =>
-                        String(c.cliId) === String(value)
-                    );
-
-                    if (!selectedClient) return;
-
-                    setFormData({
-                      ...formData,
-                      cliId: value, // ✅ FIX
-                      cliName: selectedClient.cliName,
-                      mobile: selectedClient.mobile,
-                      whatsapp: selectedClient.whatsapp,
-                    });
+                    }));
+                    return;
                   }
+                  if (newValue.isAddNew || newValue.cliId === "__new__") {
+                    setIsNewClient(true);
+                    setFormData((prev) => ({
+                      ...prev,
+                      cliId: "",
+                      cliName: "",
+                      mobile: "",
+                      whatsapp: "",
+                    }));
+                    return;
+                  }
+                  setFormData((prev) => ({
+                    ...prev,
+                    cliId: newValue.cliId,
+                    cliName: newValue.cliName,
+                    mobile: newValue.mobile || "",
+                    whatsapp: newValue.whatsapp || newValue.mobile || "",
+                  }));
                 }}
+                getOptionLabel={(option) => {
+                  if (!option) return "";
+                  if (option.isAddNew) return "+ Add New";
+                  return `${option.cliName || ""}${option.mobile ? ` (${option.mobile})` : ""}`;
+                }}
+                filterOptions={(options, { inputValue }) => {
+                  const q = (inputValue || "").toLowerCase().trim();
+                  if (!q) return options;
+                  return options.filter((opt) => {
+                    if (opt.isAddNew) return true;
+                    const matchName = String(opt.cliName || "").toLowerCase().includes(q);
+                    const matchMobile = String(opt.mobile || "").includes(q);
+                    const matchWhatsapp = String(opt.whatsapp || "").includes(q);
+                    return matchName || matchMobile || matchWhatsapp;
+                  });
+                }}
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props;
+                  return (
+                    <li key={key || option.cliId || option.mobile || Math.random()} {...otherProps}>
+                      {option.isAddNew ? (
+                        <Typography sx={{ color: "primary.main", fontWeight: "bold" }}>
+                          + Add New
+                        </Typography>
+                      ) : (
+                        <Box sx={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                          <Typography sx={{ fontWeight: 500 }}>{option.cliName}</Typography>
+                          <Typography variant="body2" sx={{ color: "text.secondary", ml: 1 }}>
+                            {option.mobile || ""}
+                          </Typography>
+                        </Box>
+                      )}
+                    </li>
+                  );
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search by name or number..."
+                    size="small"
+                    InputProps={{
+                      ...params.InputProps,
+                      sx: { height: "40px", backgroundColor: "#fff" },
+                    }}
+                  />
+                )}
                 sx={{
                   flex: 1,
-                  minWidth: 0
+                  minWidth: 0,
                 }}
-              >
-                <MenuItem value="" disabled>
-                  Select Client
-                </MenuItem>
-
-                <MenuItem value="__new__" sx={{ color: "primary.main" }}>
-                  + Add New
-                </MenuItem>
-
-                {clients.map((client) => (
-                  <MenuItem key={client.cliId} value={client.cliId}>
-                    {client.cliName} ({client.mobile})
-                  </MenuItem>
-                ))}
-              </Select>
+              />
             ) : (
               <Box
                 sx={{
@@ -789,7 +830,7 @@ const QuotationForm = ({ initialData = null }) => {
                           onChange={(e) => {
                             handleMaterialChange(i, "size", e.target.value)
                           }}
-                          isReq={isRowFilled}
+                          isReq={false}
                         />
                       </TableCell>
 
@@ -799,7 +840,7 @@ const QuotationForm = ({ initialData = null }) => {
                           onChange={(e) => {
                             handleMaterialChange(i, "piece", e.target.value)
                           }}
-                          isReq={isRowFilled}
+                          isReq={false}
                         />
                       </TableCell>
 
@@ -809,7 +850,7 @@ const QuotationForm = ({ initialData = null }) => {
                           onChange={(e) => {
                             handleMaterialChange(i, "gauge", e.target.value)
                           }}
-                          isReq={isRowFilled}
+                          isReq={false}
                         />
                       </TableCell>
 

@@ -167,6 +167,13 @@ const QuotationArea = () => {
         return searchableText.includes(
           query
         );
+      })
+
+      // CHRONOLOGICAL SORT: Newest date and time first
+      .sort((a, b) => {
+        const timeA = new Date(a?.quotationDate || a?.createdAt || 0).getTime();
+        const timeB = new Date(b?.quotationDate || b?.createdAt || 0).getTime();
+        return timeB - timeA;
       });
 
   return (

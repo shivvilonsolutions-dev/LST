@@ -113,7 +113,7 @@ export const createQuotationService = async (data) => {
   try {
     if (LocalQuotation) {
       quotation = await LocalQuotation.create(quotationData);
-      if (!quotation.isImported && AtlasQuotation) {
+      if (AtlasQuotation) {
         await syncAfterLocalSave(quotation, "quotation");
       }
     }
@@ -156,7 +156,7 @@ export const getAllQuotationsService = async () => {
   const { LocalQuotation, AtlasQuotation } = getModels();
   try {
     if (LocalQuotation) {
-      const list = await LocalQuotation.find().sort({ createdAt: -1 });
+      const list = await LocalQuotation.find().sort({ quotationDate: -1, createdAt: -1 });
       if (list && list.length > 0) return list;
     }
   } catch (err) {
@@ -165,7 +165,7 @@ export const getAllQuotationsService = async () => {
 
   if (AtlasQuotation) {
     try {
-      return await AtlasQuotation.find().sort({ createdAt: -1 });
+      return await AtlasQuotation.find().sort({ quotationDate: -1, createdAt: -1 });
     } catch (err) {
       console.log("AtlasQuotation.find failed:", err.message);
     }

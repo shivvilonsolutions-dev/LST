@@ -50,89 +50,113 @@ const extractText = (
     .trim();
 };
 
-const parseExcelDate =
-  (rawDate) => {
+const parseExcelDate = (rawDate, fallbackDate = null) => {
+  // REAL JS DATE
+  if (rawDate instanceof Date && !isNaN(rawDate)) {
+    return rawDate;
+  }
 
-    // REAL JS DATE
-    if (
-      rawDate instanceof Date &&
-      !isNaN(rawDate)
-    ) {
+  // FORMULA CELL
+  if (rawDate && typeof rawDate === "object") {
+    if (rawDate.result instanceof Date && !isNaN(rawDate.result)) {
+      return rawDate.result;
+    }
+    if (typeof rawDate.result === "number") {
+      return new Date(Math.round((rawDate.result - 25569) * 86400 * 1000));
+    }
+    if (typeof rawDate.result === "string") {
+      rawDate = rawDate.result;
+    }
+  }
 
-      return rawDate;
+  // EXCEL SERIAL NUMBER
+  if (typeof rawDate === "number" && !isNaN(rawDate)) {
+    return new Date(Math.round((rawDate - 25569) * 86400 * 1000));
+  }
+
+  // STRING DATE
+  if (typeof rawDate === "string") {
+    let clean = rawDate
+      .replace(/^(DATE|DT)\s*[:-]\s*/i, "")
+      .replace(/SHREE\s*[:-]/i, "")
+      .trim();
+
+    if (!clean) return fallbackDate || new Date();
+
+    // Direct native parse
+    let parsed = new Date(clean);
+    if (!isNaN(parsed) && parsed.getFullYear() > 1990 && parsed.getFullYear() < 2100) {
+      return parsed;
     }
 
+    // Handle DD/MM/YYYY or DD-MM-YYYY or MM/DD/YYYY formats with optional time
+    const dmyRegex = /^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:\s*[, ]\s*(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?)?$/i;
+    const match = clean.match(dmyRegex);
+    if (match) {
+      let [, p1, p2, p3, hours, minutes, seconds, ampm] = match;
+      let day, month, year;
+      let num1 = parseInt(p1, 10);
+      let num2 = parseInt(p2, 10);
+      let num3 = parseInt(p3, 10);
+      if (num3 < 100) num3 += 2000;
 
-    // FORMULA CELL
-    if (
-      rawDate &&
-      typeof rawDate === "object" &&
-      rawDate.result
-    ) {
-
-      // RESULT IS ALREADY DATE
-      if (
-        rawDate.result instanceof Date &&
-        !isNaN(rawDate.result)
-      ) {
-
-        return rawDate.result;
+      if (num1 > 12) {
+        day = num1;
+        month = num2 - 1;
+        year = num3;
+      } else if (num2 > 12) {
+        month = num1 - 1;
+        day = num2;
+        year = num3;
+      } else {
+        // Default Indian format: DD/MM/YYYY
+        day = num1;
+        month = num2 - 1;
+        year = num3;
       }
 
+      let h = hours ? parseInt(hours, 10) : 0;
+      let m = minutes ? parseInt(minutes, 10) : 0;
+      let s = seconds ? parseInt(seconds, 10) : 0;
+      if (ampm) {
+        const upper = ampm.toUpperCase();
+        if (upper === "PM" && h < 12) h += 12;
+        if (upper === "AM" && h === 12) h = 0;
+      }
 
-      // RESULT IS SERIAL NUMBER
-      if (
-        typeof rawDate.result ===
-        "number"
-      ) {
+      const d = new Date(year, month, day, h, m, s);
+      if (!isNaN(d)) return d;
+    }
 
-        return new Date(
-          Math.round(
-            (
-              rawDate.result - 25569
-            ) * 86400 * 1000
-          )
-        );
+    // Handle named months e.g. "16 SEPT 2026, 02:56 PM" or "27 OCT 2026"
+    const textDateMatch = clean.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{2,4})(?:\s*[, ]\s*(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?)?$/i);
+    if (textDateMatch) {
+      let [, dayStr, monthStr, yearStr, hours, minutes, seconds, ampm] = textDateMatch;
+      const monthMap = {
+        jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+        jul: 6, aug: 7, sep: 8, sept: 8, oct: 9, nov: 10, dec: 11
+      };
+      const mIdx = monthStr.toLowerCase().startsWith("sept") ? 8 : (monthMap[monthStr.toLowerCase().slice(0, 3)] ?? -1);
+      if (mIdx !== -1) {
+        let y = parseInt(yearStr, 10);
+        if (y < 100) y += 2000;
+        let d = parseInt(dayStr, 10);
+        let h = hours ? parseInt(hours, 10) : 0;
+        let m = minutes ? parseInt(minutes, 10) : 0;
+        let s = seconds ? parseInt(seconds, 10) : 0;
+        if (ampm) {
+          const upper = ampm.toUpperCase();
+          if (upper === "PM" && h < 12) h += 12;
+          if (upper === "AM" && h === 12) h = 0;
+        }
+        const parsedText = new Date(y, mIdx, d, h, m, s);
+        if (!isNaN(parsedText)) return parsedText;
       }
     }
+  }
 
-
-    // EXCEL SERIAL NUMBER
-    if (
-      typeof rawDate ===
-      "number"
-    ) {
-
-      return new Date(
-        Math.round(
-          (
-            rawDate - 25569
-          ) * 86400 * 1000
-        )
-      );
-    }
-
-
-    // STRING DATE
-    if (
-      typeof rawDate ===
-      "string"
-    ) {
-
-      const parsed =
-        new Date(rawDate);
-
-      if (
-        !isNaN(parsed)
-      ) {
-
-        return parsed;
-      }
-    }
-
-
-    return null;
-  };
+  return fallbackDate || new Date();
+};
 
 const getMaterials =
   (
@@ -219,7 +243,8 @@ const parseSmallQuotation =
   (
     sheet,
     startRow,
-    fileName
+    fileName,
+    fallbackDate = null
   ) => {
 
     const header =
@@ -251,7 +276,8 @@ const parseSmallQuotation =
 
     const quotationDate =
       parseExcelDate(
-        rawDate
+        rawDate,
+        fallbackDate
       );
 
     const mobile =
@@ -367,7 +393,8 @@ const parseMediumQuotation =
   (
     sheet,
     startRow,
-    fileName
+    fileName,
+    fallbackDate = null
   ) => {
 
     const header =
@@ -399,7 +426,8 @@ const parseMediumQuotation =
 
     const quotationDate =
       parseExcelDate(
-        rawDate
+        rawDate,
+        fallbackDate
       );
 
     const mobile =
@@ -532,7 +560,8 @@ const parseMediumQuotation =
 const parseLargeQuotation =
   (
     sheet,
-    fileName
+    fileName,
+    fallbackDate = null
   ) => {
 
     const header =
@@ -564,7 +593,8 @@ const parseLargeQuotation =
 
     const quotationDate =
       parseExcelDate(
-        rawDate
+        rawDate,
+        fallbackDate
       );
 
     const mobile =
@@ -783,6 +813,9 @@ export const importQuotationFolderService =
             file
           );
 
+        const fileMtime = fs.existsSync(originalPath)
+          ? fs.statSync(originalPath).mtime
+          : new Date();
 
         const savedExcelPath =
           path.join(
@@ -790,12 +823,10 @@ export const importQuotationFolderService =
             file
           );
 
-
         fs.copyFileSync(
           originalPath,
           savedExcelPath
         );
-
 
         const workbook =
           new ExcelJS.Workbook();
@@ -803,7 +834,6 @@ export const importQuotationFolderService =
         await workbook.xlsx.readFile(
           originalPath
         );
-
 
         for (
           const sheet
@@ -826,7 +856,8 @@ export const importQuotationFolderService =
                     parseSmallQuotation(
                       sheet,
                       startRow,
-                      file
+                      file,
+                      fileMtime
                     );
 
                   if (
@@ -854,7 +885,8 @@ export const importQuotationFolderService =
                     parseMediumQuotation(
                       sheet,
                       startRow,
-                      file
+                      file,
+                      fileMtime
                     );
 
                   if (
@@ -877,7 +909,8 @@ export const importQuotationFolderService =
             const quotation =
               parseLargeQuotation(
                 sheet,
-                file
+                file,
+                fileMtime
               );
 
             if (
