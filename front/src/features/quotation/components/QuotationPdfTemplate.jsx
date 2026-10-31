@@ -261,7 +261,7 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
                     fontSize: "28px",
                     fontWeight: "900",
                     color: "#000000",
-                    textAlign: "left",
+                    textAlign: "center",
                     backgroundColor: "#ffffff",
                   }}
                 >
@@ -341,8 +341,10 @@ const QuotationPdfTemplate = forwardRef(({ data, size = "small" }, ref) => {
           style={{
             textAlign: "center",
             padding: "5px 0",
-            fontSize: "29px",
+            fontSize: "22px",
             fontWeight: "900",
+            whiteSpace: "nowrap",
+            letterSpacing: "-0.2px",
           }}
         >
           માપ ચેક કરી ને રજા લેવી | કટિંગ કરેલ માલ પાછો રાખવા માં નહિ આવે

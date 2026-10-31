@@ -10,7 +10,9 @@ const Input = ({
   onChange,
   inpWidth = "100%",
   readOnly = false,
-  endAdornment
+  endAdornment,
+  textAlign = "left",
+  inputProps,
 }) => {
   // console.log("Inside the input box - readOnly: ", readOnly);
   
@@ -23,6 +25,10 @@ const Input = ({
       onChange={onChange}
       placeholder={inpPlaceholder}
       size="small"
+      inputProps={{
+        style: { textAlign },
+        ...inputProps,
+      }}
       InputProps={{
         readOnly: readOnly,
         endAdornment: endAdornment,

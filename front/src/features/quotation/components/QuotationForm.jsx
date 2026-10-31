@@ -809,9 +809,9 @@ const QuotationForm = ({ initialData = null }) => {
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ width: "5%" }}>No.</TableCell>
-                  <TableCell sx={{ width: "50%" }}>Size</TableCell>
-                  <TableCell sx={{ width: "17%" }}>Peice</TableCell>
-                  <TableCell sx={{ width: "18%" }}>Gauge</TableCell>
+                  <TableCell sx={{ width: "37%", textAlign: "center" }}>Size</TableCell>
+                  <TableCell sx={{ width: "24%" }}>Peice</TableCell>
+                  <TableCell sx={{ width: "24%" }}>Gauge</TableCell>
                   <TableCell sx={{ width: "10%" }}>Action</TableCell>
                 </TableRow>
               </TableHead>
@@ -830,6 +830,7 @@ const QuotationForm = ({ initialData = null }) => {
                           onChange={(e) => {
                             handleMaterialChange(i, "size", e.target.value)
                           }}
+                          textAlign="center"
                           isReq={false}
                         />
                       </TableCell>
