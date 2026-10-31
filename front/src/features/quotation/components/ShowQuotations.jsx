@@ -39,11 +39,25 @@ const ShowQuotations = ({
   const [selectedId, setSelectedId] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  // Optimistic local status overrides: { [quotationNo]: "CONFIRM" | "PENDING" }
+  const [localStatuses, setLocalStatuses] = useState({});
 
   const paginatedData = data.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
+
+  // INSTANT optimistic status toggle — no popup, no wait
+  const handleStatusToggle = async (item) => {
+    const newStatus = item.status === "PENDING" ? "CONFIRM" : "PENDING";
+    // 1. Update UI instantly
+    setLocalStatuses((prev) => ({ ...prev, [item.quotationNo]: newStatus }));
+    // 2. Fire API in background (no await block on UI)
+    updateQuotationStatus(item.quotationNo, newStatus).catch(() => {
+      // Revert on failure
+      setLocalStatuses((prev) => ({ ...prev, [item.quotationNo]: item.status }));
+    });
+  };
 
   const handleConfirm =
     async () => {
@@ -172,18 +186,15 @@ const ShowQuotations = ({
                   {/* Status */}
                   <TableCell>
                     <Chip
-                      label={item.status}
+                      label={localStatuses[item.quotationNo] ?? item.status}
                       color={
-                        item.status === "CONFIRM"
+                        (localStatuses[item.quotationNo] ?? item.status) === "CONFIRM"
                           ? "success"
                           : "warning"
                       }
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setConfirmPopUp(true);
-                      }}
+                      onClick={() => handleStatusToggle(item)}
                       size="small"
-                      sx={{ marginRight: "15px" }}
+                      sx={{ marginRight: "15px", cursor: "pointer" }}
                     />
 
                   </TableCell>
@@ -268,31 +279,6 @@ const ShowQuotations = ({
         onPageChange={(e, newPage) => setPage(newPage)}
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={[5]}
-      />
-
-      {/* Popup Confirm Quotation */}
-      <Popup
-        isLoading={isUpdatingStatus}
-        confirmText={
-          isUpdatingStatus
-            ? "Updating..."
-            : "OK"
-        }
-        isOpen={confirmPopUp}
-        title="Update Status"
-        message={
-          selectedItem?.status === "PENDING"
-            ? "Are you sure you want to CONFIRM this quotation?"
-            : "Are you sure you want to mark this quotation as PENDING?"
-        }
-        onConfirm={handleConfirm}
-        onCancel={() => {
-          if (
-            isUpdatingStatus
-          ) return;
-          setConfirmPopUp(false);
-          setSelectedItem(null);
-        }}
       />
 
       {/* Popup Delete Quotation */}
