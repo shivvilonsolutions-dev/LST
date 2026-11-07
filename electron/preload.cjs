@@ -47,6 +47,12 @@ contextBridge.exposeInMainWorld(
         url
       ),
 
+    sendWhatsAppText: (payload) =>
+      ipcRenderer.invoke(
+        "system:send-whatsapp-text",
+        payload
+      ),
+
     showItemInFolder:
       (filePath) =>
         shell.showItemInFolder(

@@ -85,12 +85,25 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
   const [sentMap, setSentMap] = useState({});
   const [copiedType, setCopiedType] = useState("");
 
+  // Auto-send loop state
+  const [isAutoSending, setIsAutoSending] = useState(false);
+  const [currentSendingClient, setCurrentSendingClient] = useState(null);
+  const [countdown, setCountdown] = useState(0);
+  const stopAutoSendRef = React.useRef(false);
+
   // When modal opens, select all by default and reset sent map
   useEffect(() => {
     if (open) {
       setSelectedPhones(clients.map((c) => c.phone));
       setSentMap({});
       setCopiedType("");
+      setIsAutoSending(false);
+      setCurrentSendingClient(null);
+      setCountdown(0);
+      stopAutoSendRef.current = false;
+    } else {
+      stopAutoSendRef.current = true;
+      setIsAutoSending(false);
     }
   }, [open]);
 
@@ -122,12 +135,14 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
   };
 
   // Send single WhatsApp message
-  const handleSendToClient = async (client) => {
+  const handleSendToClient = async (client, autoEnter = false) => {
     const text = buildPersonalizedMessage(client);
     const whatsappUrl = `https://web.whatsapp.com/send?phone=91${client.phone}&text=${encodeURIComponent(text)}`;
 
     try {
-      if (window.electronAPI?.openExternal) {
+      if (window.electronAPI?.sendWhatsAppText) {
+        await window.electronAPI.sendWhatsAppText({ url: whatsappUrl, autoEnter, delay: 6 });
+      } else if (window.electronAPI?.openExternal) {
         // Electron environment - open in system default browser (Chrome/Edge)
         await window.electronAPI.openExternal(whatsappUrl);
       } else {
@@ -146,13 +161,54 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
     }
   };
 
-  // Send next pending client in queue
+  // Auto Send to ALL pending selected clients sequentially
+  const handleStartAutoSend = async () => {
+    const pendingClients = clients.filter(
+      (c) => selectedPhones.includes(c.phone) && !sentMap[c.phone]
+    );
+    if (pendingClients.length === 0) return;
+
+    setIsAutoSending(true);
+    stopAutoSendRef.current = false;
+
+    for (let i = 0; i < pendingClients.length; i++) {
+      if (stopAutoSendRef.current) break;
+
+      const client = pendingClients[i];
+      setCurrentSendingClient(client);
+
+      // Send to client with auto-enter enabled
+      await handleSendToClient(client, true);
+
+      // If more clients left, wait with countdown (6s) so WhatsApp Web has time to load and send
+      if (i < pendingClients.length - 1 && !stopAutoSendRef.current) {
+        for (let cd = 6; cd > 0; cd--) {
+          if (stopAutoSendRef.current) break;
+          setCountdown(cd);
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+      }
+    }
+
+    setIsAutoSending(false);
+    setCurrentSendingClient(null);
+    setCountdown(0);
+  };
+
+  const handleStopAutoSend = () => {
+    stopAutoSendRef.current = true;
+    setIsAutoSending(false);
+    setCurrentSendingClient(null);
+    setCountdown(0);
+  };
+
+  // Send next pending client in queue (manual 1 by 1)
   const handleSendNext = () => {
     const nextClient = clients.find(
       (c) => selectedPhones.includes(c.phone) && !sentMap[c.phone]
     );
     if (nextClient) {
-      handleSendToClient(nextClient);
+      handleSendToClient(nextClient, false);
     }
   };
 
@@ -483,39 +539,82 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
           py: 1.5,
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Progress: <strong>{sentCount}</strong> / {selectedCount} sent
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary" }}>
+            Progress: <strong>{sentCount}</strong> / {selectedCount} sent
+          </Typography>
 
-        <Stack direction="row" spacing={1.5}>
-          <MuiButton
-            variant="outlined"
-            onClick={onClose}
-            sx={{ textTransform: "none", color: "#64748b", borderColor: "#cbd5e1" }}
-          >
-            Close
-          </MuiButton>
+          {isAutoSending && (
+            <Chip
+              size="small"
+              color="warning"
+              label={`Auto-Sending (${currentSendingClient?.cliName || "Client"})${countdown > 0 ? ` • Next in ${countdown}s` : ""}`}
+              sx={{ fontWeight: 600, animation: "pulse 1.5s infinite" }}
+            />
+          )}
+        </Box>
 
-          {/* Send Next button */}
-          <MuiButton
-            variant="contained"
-            color="success"
-            startIcon={<SendIcon />}
-            onClick={handleSendNext}
-            disabled={selectedCount === 0 || sentCount >= selectedCount}
-            sx={{
-              textTransform: "none",
-              fontWeight: 600,
-              bgcolor: "#25D366",
-              "&:hover": { bgcolor: "#1ebd5a" },
-            }}
-          >
-            {sentCount === 0
-              ? "Start Sending (1 by 1)"
-              : `Send Next (${selectedCount - sentCount} left)`}
-          </MuiButton>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          {isAutoSending ? (
+            <MuiButton
+              variant="contained"
+              color="error"
+              onClick={handleStopAutoSend}
+              sx={{ textTransform: "none", fontWeight: 700, px: 2 }}
+            >
+              ⏹ Stop Auto-Send
+            </MuiButton>
+          ) : (
+            <>
+              <MuiButton
+                variant="outlined"
+                onClick={onClose}
+                sx={{ textTransform: "none", color: "#64748b", borderColor: "#cbd5e1" }}
+              >
+                Close
+              </MuiButton>
+
+              {/* Manual 1-by-1 button */}
+              <MuiButton
+                variant="outlined"
+                color="success"
+                onClick={handleSendNext}
+                disabled={selectedCount === 0 || sentCount >= selectedCount}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  fontSize: "12px",
+                  borderColor: "#25D366",
+                  color: "#166534",
+                  "&:hover": { borderColor: "#1ebd5a", bgcolor: "#f0fdf4" },
+                }}
+              >
+                Send 1-by-1 ({selectedCount - sentCount} left)
+              </MuiButton>
+
+              {/* Auto Send ALL button */}
+              <MuiButton
+                variant="contained"
+                color="success"
+                startIcon={<SendIcon />}
+                onClick={handleStartAutoSend}
+                disabled={selectedCount === 0 || sentCount >= selectedCount}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  px: 2,
+                  bgcolor: "#25D366",
+                  "&:hover": { bgcolor: "#1ebd5a" },
+                  boxShadow: "0 2px 8px rgba(37, 211, 102, 0.4)",
+                }}
+              >
+                🚀 Auto-Send All ({selectedCount - sentCount} remaining)
+              </MuiButton>
+            </>
+          )}
         </Stack>
       </DialogActions>
     </Dialog>

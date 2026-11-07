@@ -250,6 +250,42 @@ function registerAllIPC() {
         }
     });
 
+    // WhatsApp Text Auto-Send (with optional auto-enter keypress)
+    ipcMain.handle("system:send-whatsapp-text", async (_, payload) => {
+        try {
+            const { url, autoEnter = true, delay = 6 } = payload || {};
+            if (!url) return { success: false, error: "No URL provided" };
+
+            await shell.openExternal(url);
+
+            if (autoEnter) {
+                const tempScript = path.join(os.tmpdir(), `lst_wa_enter_${Date.now()}.ps1`);
+                const psContent = [
+                    '$wshell = New-Object -ComObject wscript.shell',
+                    `Start-Sleep -Seconds ${delay || 6}`,
+                    'for ($i = 0; $i -lt 15; $i++) {',
+                    '    if ($wshell.AppActivate("WhatsApp") -or $wshell.AppActivate("Chrome") -or $wshell.AppActivate("Edge")) {',
+                    '        Start-Sleep -Milliseconds 1200',
+                    '        $wshell.SendKeys("{ENTER}")',
+                    '        break',
+                    '    }',
+                    '    Start-Sleep -Milliseconds 1000',
+                    '}',
+                ].join('\r\n');
+
+                fs.writeFileSync(tempScript, psContent, 'utf-8');
+                exec(`powershell -ExecutionPolicy Bypass -File "${tempScript}"`, () => {
+                    try { fs.unlinkSync(tempScript); } catch (_) {}
+                });
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error("Failed to send WhatsApp text:", error);
+            return { success: false, error: error.message };
+        }
+    });
+
     // Clipboard & WhatsApp Auto-Send
     ipcMain.handle("system:copy-image", async (_, dataUrl) => {
         try {
