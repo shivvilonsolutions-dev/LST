@@ -12,7 +12,9 @@ import {
 } from "@mui/material";
 import PrintIcon from "@mui/icons-material/Print";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { printQuotationsReport, downloadQuotationsReportPdf } from "../../../utils/printQuotationsReport";
+import BulkWhatsAppModal from "./BulkWhatsAppModal";
 
 
 import {
@@ -45,6 +47,7 @@ const QuotationActions = ({
 }) => {
   const navigate = useNavigate();
   const [value, setValue] = useState("ALL");
+  const [whatsAppModalOpen, setWhatsAppModalOpen] = useState(false);
 
   const [monthValue,
     setMonthValue] =
@@ -308,6 +311,28 @@ const QuotationActions = ({
           PDF Download
         </MuiButton>
 
+        {/* Customised WhatsApp Message Button */}
+        <MuiButton
+          variant="contained"
+          size="small"
+          startIcon={<WhatsAppIcon />}
+          onClick={() => setWhatsAppModalOpen(true)}
+          disabled={!filteredData || filteredData.length === 0}
+          sx={{
+            textTransform: "none",
+            fontWeight: 600,
+            bgcolor: "#25D366",
+            color: "#ffffff",
+            "&:hover": { bgcolor: "#1ebd5a" },
+            whiteSpace: "nowrap",
+            px: 1.5,
+            py: 0.8,
+            borderRadius: 1.5,
+          }}
+        >
+          WhatsApp Message
+        </MuiButton>
+
         <Button
           btnName="+ Create Quotation"
           btnColor="secondary.main"
@@ -316,6 +341,14 @@ const QuotationActions = ({
         />
 
       </Stack>
+
+      {/* Bulk WhatsApp Custom Message Modal */}
+      <BulkWhatsAppModal
+        open={whatsAppModalOpen}
+        onClose={() => setWhatsAppModalOpen(false)}
+        data={filteredData}
+        searchQuery={search}
+      />
     </Box>
   );
 };
