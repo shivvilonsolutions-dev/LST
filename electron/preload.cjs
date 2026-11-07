@@ -37,20 +37,18 @@ contextBridge.exposeInMainWorld(
       ),
 
     selectFolder: () =>
-
       ipcRenderer.invoke(
         "dialog:select-folder"
       ),
 
     openExternal: (url) =>
-
-      shell.openExternal(
+      ipcRenderer.invoke(
+        "system:open-external-url",
         url
       ),
 
     showItemInFolder:
       (filePath) =>
-
         shell.showItemInFolder(
           filePath
         ),

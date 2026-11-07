@@ -236,6 +236,20 @@ function registerAllIPC() {
         }
     });
 
+    // Open External URL in default system browser
+    ipcMain.handle("system:open-external-url", async (_, url) => {
+        try {
+            if (url) {
+                await shell.openExternal(url);
+                return { success: true };
+            }
+            return { success: false, error: "No URL provided" };
+        } catch (error) {
+            console.error("Failed to open external URL:", error);
+            return { success: false, error: error.message };
+        }
+    });
+
     // Clipboard & WhatsApp Auto-Send
     ipcMain.handle("system:copy-image", async (_, dataUrl) => {
         try {

@@ -85,14 +85,14 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
   const [sentMap, setSentMap] = useState({});
   const [copiedType, setCopiedType] = useState("");
 
-  // When modal opens or clients change, select all by default
+  // When modal opens, select all by default and reset sent map
   useEffect(() => {
     if (open) {
       setSelectedPhones(clients.map((c) => c.phone));
       setSentMap({});
       setCopiedType("");
     }
-  }, [open, clients]);
+  }, [open]);
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -122,19 +122,28 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
   };
 
   // Send single WhatsApp message
-  const handleSendToClient = (client) => {
+  const handleSendToClient = async (client) => {
     const text = buildPersonalizedMessage(client);
     const whatsappUrl = `https://web.whatsapp.com/send?phone=91${client.phone}&text=${encodeURIComponent(text)}`;
 
-    if (window.electronAPI?.openExternal) {
-      // Electron environment - open in system default browser (Chrome/Edge)
-      window.electronAPI.openExternal(whatsappUrl);
-    } else {
-      // Browser environment
-      window.open(whatsappUrl, "_blank");
+    try {
+      if (window.electronAPI?.openExternal) {
+        // Electron environment - open in system default browser (Chrome/Edge)
+        await window.electronAPI.openExternal(whatsappUrl);
+      } else {
+        // Browser environment
+        window.open(whatsappUrl, "_blank");
+      }
+    } catch (err) {
+      console.error("Failed to open WhatsApp URL:", err);
+      try {
+        window.open(whatsappUrl, "_blank");
+      } catch (fallbackErr) {
+        console.error("Browser fallback error:", fallbackErr);
+      }
+    } finally {
+      setSentMap((prev) => ({ ...prev, [client.phone]: true }));
     }
-
-    setSentMap((prev) => ({ ...prev, [client.phone]: true }));
   };
 
   // Send next pending client in queue
@@ -447,6 +456,21 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
               </TableBody>
             </Table>
           </TableContainer>
+
+          {/* WhatsApp Ban Safety Tip */}
+          <Box
+            sx={{
+              mt: 1.5,
+              bgcolor: "#fffbeb",
+              border: "1px solid #fef3c7",
+              borderRadius: 1.5,
+              p: 1.2,
+            }}
+          >
+            <Typography variant="caption" sx={{ color: "#92400e", fontSize: "11.5px", display: "block" }}>
+              💡 <strong>WhatsApp Ban Protection:</strong> Har message bhejte waqt 5-10 second ka gap rakhein. Ek din me 40-50 se zyada bulk follow-ups na karein. Client ka naam `{name}` aur requirement `{thickness}` hone se WhatsApp spam filter trigger nahi hota.
+            </Typography>
+          </Box>
         </Box>
       </DialogContent>
 
