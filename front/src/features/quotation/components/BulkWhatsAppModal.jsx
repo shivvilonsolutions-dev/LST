@@ -468,7 +468,7 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
             }}
           >
             <Typography variant="caption" sx={{ color: "#92400e", fontSize: "11.5px", display: "block" }}>
-              💡 <strong>WhatsApp Ban Protection:</strong> Har message bhejte waqt 5-10 second ka gap rakhein. Ek din me 40-50 se zyada bulk follow-ups na karein. Client ka naam `{name}` aur requirement `{thickness}` hone se WhatsApp spam filter trigger nahi hota.
+              💡 <strong>WhatsApp Ban Protection:</strong> Har message bhejte waqt 5-10 second ka gap rakhein. Ek din me 40-50 se zyada bulk follow-ups na karein. Client ka naam {"{name}"} aur requirement {"{thickness}"} hone se WhatsApp spam filter trigger nahi hota.
             </Typography>
           </Box>
         </Box>
