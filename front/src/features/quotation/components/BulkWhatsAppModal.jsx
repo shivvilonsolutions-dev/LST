@@ -126,9 +126,9 @@ const BulkWhatsAppModal = ({ open, onClose, data = [], searchQuery = "" }) => {
     const text = buildPersonalizedMessage(client);
     const whatsappUrl = `https://web.whatsapp.com/send?phone=91${client.phone}&text=${encodeURIComponent(text)}`;
 
-    if (window.electronAPI?.sendWhatsAppImage) {
-      // Electron environment
-      window.open(whatsappUrl, "WhatsAppWebWindow");
+    if (window.electronAPI?.openExternal) {
+      // Electron environment - open in system default browser (Chrome/Edge)
+      window.electronAPI.openExternal(whatsappUrl);
     } else {
       // Browser environment
       window.open(whatsappUrl, "_blank");
